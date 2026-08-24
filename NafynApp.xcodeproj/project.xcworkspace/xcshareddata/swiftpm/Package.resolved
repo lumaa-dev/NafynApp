@@ -1,0 +1,51 @@
+{
+  "originHash" : "c3b7a862cbae45b50ea802479be42d38f0ba305939134564f16d7f941303ee20",
+  "pins" : [
+    {
+      "identity" : "safyn",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/lumaa-dev/Safyn",
+      "state" : {
+        "branch" : "main",
+        "revision" : "8b0d07247b3cf79e8c9b735c9e95c64a0c52a48c"
+      }
+    },
+    {
+      "identity" : "union-gestures",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/unionst/union-gestures.git",
+      "state" : {
+        "revision" : "e6128f1d09aa94af0f44ffd6859ca854586a0df1",
+        "version" : "1.0.1"
+      }
+    },
+    {
+      "identity" : "union-haptics",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/unionst/union-haptics.git",
+      "state" : {
+        "revision" : "b876d2d90a7c8f4039939a0804882c9a3956e3c5",
+        "version" : "1.2.1"
+      }
+    },
+    {
+      "identity" : "union-scroll",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/unionst/union-scroll.git",
+      "state" : {
+        "revision" : "2580fe8954d9a22a9f3998fd991c549409fe8aae",
+        "version" : "1.0.0"
+      }
+    },
+    {
+      "identity" : "union-toast",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/unionst/union-toast/",
+      "state" : {
+        "revision" : "f177616001f14c1664a450d04ba5faf4142fbdfe",
+        "version" : "2.1.2"
+      }
+    }
+  ],
+  "version" : 3
+}
