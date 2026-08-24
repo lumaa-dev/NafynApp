@@ -4,7 +4,7 @@ import SwiftUI
 import Safyn
 
 struct NowPlayingView: View {
-	@Environment(\.zoomNamespace) private var zoomNamespace: Namespace.ID?
+	let namespace: Namespace.ID
 
 	private enum PanelTab {
 		case queue
@@ -12,6 +12,8 @@ struct NowPlayingView: View {
 	}
 
 	@State private var activePanel: PanelTab? = nil
+	@State private var sliderValue: Float = Float(PlayerEngine.shared.currentTime)
+	@State private var isDraggingSlider = false
 
 	var body: some View {
 		NavigationStack {
@@ -61,23 +63,14 @@ struct NowPlayingView: View {
 				}
 			}
 			.background(DTColor.background.ignoresSafeArea())
-			.toolbar {
-				ToolbarItem(placement: .cancellationAction) {
-					Button {
-						PlayerEngine.shared.isExpanded = false
-					} label: {
-						Image(systemName: "chevron.down")
-					}
-				}
-			}
 		}
-		.modifier(ZoomTransitionModifier(namespace: self.zoomNamespace))
+		.navigationTransition(.zoom(sourceID: "miniPlayer", in: self.namespace))
 	}
 
 	@ViewBuilder
 	private func fullHeader(_ track: MediaRow) -> some View {
 		VStack(spacing: 16) {
-			CoverImage(url: track.coverArt.flatMap { URL(string: $0) })
+			CoverImage(url: track.highResCoverURL)
 				.frame(width: 300, height: 300)
 
 			VStack(spacing: 4) {
@@ -96,7 +89,7 @@ struct NowPlayingView: View {
 	@ViewBuilder
 	private func compactHeader(_ track: MediaRow) -> some View {
 		HStack(spacing: 12) {
-			CoverImage(url: track.coverArt.flatMap { URL(string: $0) })
+			CoverImage(url: track.highResCoverURL)
 				.frame(width: 44, height: 44)
 
 			VStack(alignment: .leading, spacing: 2) {
@@ -131,11 +124,18 @@ struct NowPlayingView: View {
 	@ViewBuilder
 	private var scrubber: some View {
 		VStack(spacing: 6) {
-			Slider(
-				value: Binding(get: { PlayerEngine.shared.currentTime }, set: { PlayerEngine.shared.seek(to: $0) }),
-				in: 0...max(PlayerEngine.shared.duration, 1)
-			)
-			.tint(DTColor.accentStart)
+			PlayerSlider(
+				self.$sliderValue,
+				range: 0...Float(max(PlayerEngine.shared.duration, 1)),
+				isDragging: self.$isDraggingSlider
+			) {
+				PlayerEngine.shared.seek(to: TimeInterval(self.sliderValue))
+			}
+			.frame(height: 20)
+			.onChange(of: PlayerEngine.shared.currentTime) { _, newValue in
+				guard !self.isDraggingSlider else { return }
+				self.sliderValue = Float(newValue)
+			}
 
 			HStack {
 				Text(Self.formatted(PlayerEngine.shared.currentTime))
@@ -204,19 +204,5 @@ struct NowPlayingView: View {
 	private static func formatted(_ time: TimeInterval) -> String {
 		let total = Int(time.rounded())
 		return String(format: "%d:%02d", total / 60, total % 60)
-	}
-}
-
-/// Applies `.navigationTransition(.zoom(sourceID:in:))` only when a namespace was actually injected —
-/// keeps `NowPlayingView` usable (e.g. in previews) without one.
-private struct ZoomTransitionModifier: ViewModifier {
-	let namespace: Namespace.ID?
-
-	func body(content: Content) -> some View {
-		if let namespace {
-			content.navigationTransition(.zoom(sourceID: "miniPlayer", in: namespace))
-		} else {
-			content
-		}
 	}
 }

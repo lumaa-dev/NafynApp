@@ -20,6 +20,7 @@ struct NafynApp: App {
 		// material, so the nav bar itself should stay transparent rather than painting a second,
 		// possibly-inconsistent background over content.
 		let titleColor = UIColor(DTColor.textPrimary)
+		let tintColor = UIColor.white
 		let titleFont = UIFont(name: "InstrumentSerif-Italic", size: 20) ?? UIFont.systemFont(ofSize: 20)
 		let largeTitleFont = UIFont(name: "InstrumentSerif-Italic", size: 34) ?? UIFont.systemFont(ofSize: 34)
 
@@ -30,7 +31,7 @@ struct NafynApp: App {
 		UINavigationBar.appearance().standardAppearance = navAppearance
 		UINavigationBar.appearance().scrollEdgeAppearance = navAppearance
 		UINavigationBar.appearance().compactAppearance = navAppearance
-		UINavigationBar.appearance().tintColor = titleColor
+		UINavigationBar.appearance().tintColor = tintColor
 
 		UITableView.appearance().backgroundColor = .clear
 		UICollectionView.appearance().backgroundColor = .clear
@@ -45,6 +46,9 @@ struct NafynApp: App {
 	var body: some Scene {
 		WindowGroup {
 			RootView()
+				.tint(Color.blue)
+				.preferredColorScheme(.dark)
+				.colorScheme(.dark)
 		}
 		.modelContext(self.context)
 	}

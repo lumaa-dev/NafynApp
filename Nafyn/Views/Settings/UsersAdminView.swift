@@ -150,12 +150,14 @@ private struct EditUserSheet: View {
 			.toolbar {
 				ToolbarItem(placement: .cancellationAction) {
 					Button(String(localized: "cancel")) { self.dismiss() }
+						.tint(Color.primary)
 				}
 				ToolbarItem(placement: .confirmationAction) {
 					Button(String(localized: "save")) {
 						self.save()
 					}
 					.disabled(self.isSaving)
+					.tint(Color.primary)
 				}
 			}
 			.toast(self.toast)

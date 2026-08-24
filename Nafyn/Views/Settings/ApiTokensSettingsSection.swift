@@ -21,6 +21,7 @@ struct ApiTokensSettingsSection: View {
 						} label: {
 							Label(String(localized: "delete"), systemImage: "trash")
 						}
+						.tint(DTColor.buttonDanger)
 					}
 			}
 

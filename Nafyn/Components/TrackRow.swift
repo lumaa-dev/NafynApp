@@ -55,7 +55,7 @@ struct TrackRow<Trailing: View>: View {
 					Spacer()
 
 					Text(Self.formattedDuration(self.duration))
-						.font(DTFont.system(16))
+						.font(DTFont.system(12).monospacedDigit())
 						.foregroundStyle(DTColor.textPrimary.opacity(0.5))
 				}
 				.contentShape(Rectangle())

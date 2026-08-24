@@ -3,6 +3,9 @@
 import Foundation
 import AVFoundation
 import MediaPlayer
+#if canImport(NowPlaying)
+import NowPlaying
+#endif
 import Safyn
 
 /// The kind of media a fresh `play(_:queue:recordContext:)` call should record as recently-played.
@@ -21,10 +24,20 @@ enum RepeatMode {
 
 /// Global singleton audio engine, mirroring the web app's `usePlayer.ts`: one shared player that
 /// survives navigation, streams via HTTP Range requests against `Library.stream`, and integrates with
-/// the lock screen / Control Center through an `MPNowPlayingSession`.
+/// the lock screen / Control Center.
+///
+/// Two integration paths coexist, chosen once at `configure(server:)` and never mixed:
+/// - iOS/tvOS/watchOS/visionOS 27+: the new `NowPlaying` framework (`MediaSession`), which observes
+///   this class's `content`/`playbackSnapshot`/`commands` automatically — no manual push needed.
+/// - Earlier OS versions: the classic `MPRemoteCommandCenter.shared()`/`MPNowPlayingInfoCenter.default()`
+///   singletons, updated manually from `updateNowPlayingInfo()`.
 @Observable
 final class PlayerEngine: NSObject {
 	static let shared = PlayerEngine()
+
+	/// Stable identifier for the app's one Now Playing session (`MediaSessionRepresentable`'s
+	/// `Identifiable` requirement on iOS 27+; unused, but harmless, on earlier OS versions).
+	let id = "fr.lumaa.Nafyn.player"
 
 	private(set) var queue: [MediaRow] = []
 	private(set) var currentIndex: Int = -1
@@ -40,11 +53,15 @@ final class PlayerEngine: NSObject {
 	}
 
 	private var player: AVPlayer?
-	private var nowPlayingSession: MPNowPlayingSession?
-	private weak var remoteCommandCenter: MPRemoteCommandCenter?
+	private var didConfigureRemoteCommands = false
 	private weak var server: NafynServer?
 	private var timeObserver: Any?
 	private var artworkCache: [String: MPMediaItemArtwork] = [:]
+
+	/// Type-erased storage for `MediaSession<PlayerEngine>` (iOS 27+ only) — the concrete generic type
+	/// can't be named in a stored property that must also compile on older OS versions, since
+	/// `PlayerEngine`'s conformance to `MediaSessionRepresentable` is itself `@available`-gated below.
+	private var mediaSessionBox: Any? = nil
 
 	private override init() {
 		super.init()
@@ -63,7 +80,11 @@ final class PlayerEngine: NSObject {
 		}
 		#endif
 
-		// Remote command handling is attached to the player-specific Now Playing session.
+		if #available(iOS 27.0, tvOS 27.0, watchOS 27.0, visionOS 27.0, *) {
+			self.setupMediaSession()
+		} else {
+			self.setupRemoteCommandCenter()
+		}
 	}
 
 	// MARK: - Playback control
@@ -156,7 +177,13 @@ final class PlayerEngine: NSObject {
 		self.duration = 0
 		self.queue = []
 		self.currentIndex = -1
-		self.nowPlayingSession?.nowPlayingInfoCenter.nowPlayingInfo = nil
+
+		// On iOS 27+, `content`/`playbackSnapshot` above already become `nil` now that `currentTrack`
+		// is `nil` — `MediaSession` observes that automatically and clears the system's Now Playing UI.
+		// Only the legacy singleton needs to be told explicitly.
+		if #unavailable(iOS 27.0, tvOS 27.0, watchOS 27.0, visionOS 27.0) {
+			MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
+		}
 	}
 
 	// MARK: - Item loading
@@ -170,9 +197,7 @@ final class PlayerEngine: NSObject {
 		if let player {
 			player.replaceCurrentItem(with: item)
 		} else {
-			let player = AVPlayer(playerItem: item)
-			self.player = player
-			self.configureNowPlayingSession(for: player)
+			self.player = AVPlayer(playerItem: item)
 		}
 
 		NotificationCenter.default.removeObserver(self, name: AVPlayerItem.didPlayToEndTimeNotification, object: nil)
@@ -181,7 +206,7 @@ final class PlayerEngine: NSObject {
 		NotificationCenter.default.addObserver(self, selector: #selector(self.itemFailedToPlay(_:)), name: AVPlayerItem.failedToPlayToEndTimeNotification, object: item)
 
 		self.currentTime = 0
-		self.duration = 0
+		self.duration = track.duration
 		self.lastError = nil
 
 		self.player?.play()
@@ -189,7 +214,12 @@ final class PlayerEngine: NSObject {
 
 		self.addTimeObserver()
 		self.updateNowPlayingInfo()
-		self.fetchArtwork(for: track)
+
+		// On iOS 27+, `Artwork`'s provider closure (in the `content` conformance below) fetches
+		// artwork lazily and on-demand — no need for the legacy path's manual prefetch/cache.
+		if #unavailable(iOS 27.0, tvOS 27.0, watchOS 27.0, visionOS 27.0) {
+			self.fetchArtwork(for: track)
+		}
 	}
 
 	@objc private func itemFailedToPlay(_ notification: Notification) {
@@ -230,7 +260,9 @@ final class PlayerEngine: NSObject {
 
 	private func addTimeObserver() {
 		guard let player else { return }
-		self.timeObserver = player.addPeriodicTimeObserver(forInterval: CMTime(seconds: 0.5, preferredTimescale: 600), queue: .main) { [weak self] time in
+		// 0.1s (rather than the usual 0.5s) so `currentTime`-driven UI (the scrubber, syllable-level
+		// lyrics highlighting) tracks playback smoothly instead of visibly stepping.
+		self.timeObserver = player.addPeriodicTimeObserver(forInterval: CMTime(seconds: 0.1, preferredTimescale: 600), queue: .main) { [weak self] time in
 			guard let self else { return }
 			self.currentTime = time.seconds.isFinite ? time.seconds : 0
 			if let itemDuration = player.currentItem?.duration.seconds, itemDuration.isFinite {
@@ -246,34 +278,42 @@ final class PlayerEngine: NSObject {
 		self.timeObserver = nil
 	}
 
-	// MARK: - Remote commands / Now Playing info
+	// MARK: - Remote command actions (shared by both integration paths)
 
-	private func configureNowPlayingSession(for player: AVPlayer) {
-		let session = MPNowPlayingSession(players: [player])
-		session.automaticallyPublishesNowPlayingInfo = false
-		self.nowPlayingSession = session
-		self.setupRemoteCommandCenter(session.remoteCommandCenter)
-		session.becomeActiveIfPossible()
+	private func remotePlay() {
+		guard !self.isPlaying else { return }
+		self.togglePlay()
 	}
 
-	private func setupRemoteCommandCenter(_ center: MPRemoteCommandCenter) {
-		guard self.remoteCommandCenter !== center else { return }
-		self.remoteCommandCenter = center
+	private func remotePause() {
+		guard self.isPlaying else { return }
+		self.togglePlay()
+	}
 
-		center.playCommand.removeTarget(nil)
-		center.pauseCommand.removeTarget(nil)
-		center.nextTrackCommand.removeTarget(nil)
-		center.previousTrackCommand.removeTarget(nil)
-		center.changePlaybackPositionCommand.removeTarget(nil)
+	// MARK: - Legacy path (< iOS 27): MPRemoteCommandCenter / MPNowPlayingInfoCenter
+
+	private func setupRemoteCommandCenter() {
+		guard !self.didConfigureRemoteCommands else { return }
+		self.didConfigureRemoteCommands = true
+
+		let center = MPRemoteCommandCenter.shared()
+		center.playCommand.isEnabled = true
+		center.pauseCommand.isEnabled = true
+		center.togglePlayPauseCommand.isEnabled = true
+		center.nextTrackCommand.isEnabled = true
+		center.previousTrackCommand.isEnabled = true
+		center.changePlaybackPositionCommand.isEnabled = true
 
 		center.playCommand.addTarget { [weak self] _ in
-			guard let self, !self.isPlaying else { return .success }
-			self.togglePlay()
+			self?.remotePlay()
 			return .success
 		}
 		center.pauseCommand.addTarget { [weak self] _ in
-			guard let self, self.isPlaying else { return .success }
-			self.togglePlay()
+			self?.remotePause()
+			return .success
+		}
+		center.togglePlayPauseCommand.addTarget { [weak self] _ in
+			self?.togglePlay()
 			return .success
 		}
 		center.nextTrackCommand.addTarget { [weak self] _ in
@@ -292,13 +332,19 @@ final class PlayerEngine: NSObject {
 	}
 
 	private func updateNowPlayingInfo() {
-		guard let track = self.currentTrack, let nowPlayingInfoCenter = self.nowPlayingSession?.nowPlayingInfoCenter else { return }
+		// `MediaSession` (iOS 27+) observes `content`/`playbackSnapshot` on its own; pushing to the
+		// legacy singleton too would just be redundant (and could momentarily race with it).
+		guard #unavailable(iOS 27.0, tvOS 27.0, watchOS 27.0, visionOS 27.0) else { return }
+		guard let track = self.currentTrack else { return }
 
 		var info: [String: Any] = [
 			MPMediaItemPropertyTitle: track.title,
 			MPMediaItemPropertyArtist: track.artistName,
 			MPMediaItemPropertyPlaybackDuration: self.duration,
 			MPNowPlayingInfoPropertyElapsedPlaybackTime: self.currentTime,
+			// Pausing only ever changes the rate to 0 here — title/artist/artwork/duration stay
+			// populated, so the system's Now Playing surface stays up with a paused state instead of
+			// disappearing.
 			MPNowPlayingInfoPropertyPlaybackRate: self.isPlaying ? 1.0 : 0.0,
 		]
 		if let album = track.album {
@@ -308,11 +354,11 @@ final class PlayerEngine: NSObject {
 			info[MPMediaItemPropertyArtwork] = artwork
 		}
 
-		nowPlayingInfoCenter.nowPlayingInfo = info
+		MPNowPlayingInfoCenter.default().nowPlayingInfo = info
 	}
 
 	private func fetchArtwork(for track: MediaRow) {
-		guard self.artworkCache[track.id] == nil, let coverArt = track.coverArt, let url = URL(string: coverArt) else { return }
+		guard self.artworkCache[track.id] == nil, let url = track.highResCoverURL else { return }
 
 		Task {
 			guard let (data, _) = try? await URLSession.shared.data(from: url) else { return }
@@ -334,4 +380,59 @@ final class PlayerEngine: NSObject {
 			}
 		}
 	}
+
+	// MARK: - iOS 27+ path: NowPlaying framework (MediaSession)
+
+	@available(iOS 27.0, tvOS 27.0, watchOS 27.0, visionOS 27.0, *)
+	private func setupMediaSession() {
+		#if canImport(NowPlaying)
+		guard self.mediaSessionBox == nil else { return }
+		let session = MediaSession(self)
+		self.mediaSessionBox = session
+		Task {
+			try? await session.requestToBecomeApplicationPrimary()
+		}
+		#endif
+	}
 }
+
+#if canImport(NowPlaying)
+@available(iOS 27.0, tvOS 27.0, watchOS 27.0, visionOS 27.0, *)
+extension PlayerEngine: MediaSessionRepresentable {
+	var content: (any MediaContentRepresentable)? {
+		guard let track = self.currentTrack else { return nil }
+
+		return MusicContent(
+			id: track.id,
+			songTitle: track.title,
+			artistName: track.artistName,
+			albumName: track.album ?? "",
+			type: .audio,
+			duration: .finite(max(self.duration, track.duration)),
+			artwork: track.highResCoverURL.map { url in
+				Artwork(id: track.id) { _ in
+					let (data, _) = try await URLSession.shared.data(from: url)
+					return try ArtworkRepresentation(data: data)
+				}
+			}
+		)
+	}
+
+	var playbackSnapshot: MediaPlaybackSnapshot? {
+		guard self.currentTrack != nil else { return nil }
+		let state: MediaPlaybackSnapshot.PlaybackState = self.isPlaying ? .playing(rate: 1.0) : .paused
+		return MediaPlaybackSnapshot(state: state, defaultPlaybackRate: 1.0, elapsedTime: self.currentTime, timestamp: .now)
+	}
+
+	var commands: [MediaCommand] {
+		[
+			.play { [weak self] in self?.remotePlay() },
+			.pause { [weak self] in self?.remotePause() },
+			.togglePlayPause { [weak self] in self?.togglePlay() },
+			.next { [weak self] in self?.next() },
+			.previous { [weak self] in self?.prev() },
+			.seekToPosition { [weak self] time in self?.seek(to: time) },
+		]
+	}
+}
+#endif

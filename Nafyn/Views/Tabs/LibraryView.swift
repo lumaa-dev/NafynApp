@@ -33,6 +33,7 @@ struct LibraryView: View {
 						} label: {
 							Image(systemName: "gearshape")
 						}
+						.tint(Color.primary)
 					}
 				}
 				.task {
@@ -60,15 +61,17 @@ struct LibraryView: View {
 				Text("recently-played")
 					.font(DTFont.serifItalic(25))
 
-				LazyVGrid(columns: colItems, alignment: .center) {
+				LazyVGrid(columns: colItems, alignment: .leading) {
 					ForEach(recntPlays, id: \.refId) { elm in
 						NavigationLink(value: elm.destination) {
 							MusicCard(.recentlyPlayed(elm))
+								.frame(maxWidth: .infinity, alignment: .leading)
 						}
 						.buttonStyle(.plain)
 					}
 				}
 			}
+			.frame(maxWidth: .infinity, alignment: .leading)
 		}
 	}
 
@@ -86,6 +89,7 @@ struct LibraryView: View {
 			}
 			.buttonStyle(.glass)
 			.buttonBorderShape(.circle)
+			.tint(Color.primary)
 
 			Text(title)
 		}

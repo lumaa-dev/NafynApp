@@ -45,6 +45,7 @@ struct AddTracksToPlaylistSheet: View {
 			.toolbar {
 				ToolbarItem(placement: .confirmationAction) {
 					Button(String(localized: "done")) { self.dismiss() }
+						.tint(Color.primary)
 				}
 			}
 			.toast(self.toast)

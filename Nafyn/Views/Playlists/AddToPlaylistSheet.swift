@@ -53,6 +53,7 @@ struct AddToPlaylistSheet: View {
 			.toolbar {
 				ToolbarItem(placement: .cancellationAction) {
 					Button(String(localized: "cancel")) { self.dismiss() }
+						.tint(Color.primary)
 				}
 			}
 			.toast(self.toast)

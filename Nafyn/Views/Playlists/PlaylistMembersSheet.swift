@@ -34,6 +34,7 @@ struct PlaylistMembersSheet: View {
 									} label: {
 										Label(String(localized: "remove"), systemImage: "trash")
 									}
+									.tint(DTColor.buttonDanger)
 								}
 							}
 					}
@@ -63,6 +64,7 @@ struct PlaylistMembersSheet: View {
 			.toolbar {
 				ToolbarItem(placement: .cancellationAction) {
 					Button(String(localized: "done")) { self.dismiss() }
+						.tint(Color.primary)
 				}
 			}
 			.toast(self.toast)

@@ -7,7 +7,7 @@ import Safyn
 /// cover/title expands to ``NowPlayingView``; transport controls sit alongside as sibling buttons so
 /// they don't fight a wrapping `Button`'s gesture.
 struct MiniPlayerBar: View {
-	@Environment(\.zoomNamespace) private var zoomNamespace: Namespace.ID?
+	let namespace: Namespace.ID
 
 	var body: some View {
 		if let track = PlayerEngine.shared.currentTrack, !PlayerEngine.shared.isExpanded {
@@ -67,10 +67,6 @@ struct MiniPlayerBar: View {
 		let image = CoverImage(url: track.coverArt.flatMap { URL(string: $0) })
 			.frame(width: 44, height: 44)
 
-		if let zoomNamespace {
-			image.matchedTransitionSource(id: "miniPlayer", in: zoomNamespace)
-		} else {
-			image
-		}
+		image.matchedTransitionSource(id: "miniPlayer", in: self.namespace)
 	}
 }

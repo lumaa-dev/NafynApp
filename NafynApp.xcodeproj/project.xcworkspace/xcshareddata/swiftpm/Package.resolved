@@ -1,5 +1,5 @@
 {
-  "originHash" : "c3b7a862cbae45b50ea802479be42d38f0ba305939134564f16d7f941303ee20",
+  "originHash" : "831d36b722269a3e2fda6e5b7ab31e72fb44bb98c7d0b9b49879028ebf829e40",
   "pins" : [
     {
       "identity" : "safyn",
@@ -8,6 +8,15 @@
       "state" : {
         "branch" : "main",
         "revision" : "8b0d07247b3cf79e8c9b735c9e95c64a0c52a48c"
+      }
+    },
+    {
+      "identity" : "textflowkit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/the-amber-team/TextFlowKit",
+      "state" : {
+        "branch" : "main",
+        "revision" : "94bde3770604b19422617795287e59f5d2c77a96"
       }
     },
     {

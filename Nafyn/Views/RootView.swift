@@ -13,8 +13,16 @@ struct RootView: View {
 	@State private var onboarding: OnboardingView.OnboardingSteps = .welcome
 	@Namespace private var playerZoomNamespace
 
+	/// Mirrors `PlayerEngine.shared.isExpanded` as plain `@State`. The zoom transition's source
+	/// geometry resolves against `MiniPlayerBar`'s `matchedTransitionSource` only when the presenting
+	/// `isPresented` binding is backed by `@State` — driving `fullScreenCover` straight off an
+	/// `@Observable` property (as before) makes the transition start from the screen center instead.
+	@State private var isPlayerExpanded = false
+
 	var body: some View {
 		ZStack {
+			self.warmup
+
 			DTColor.background.ignoresSafeArea()
 
 			if isLoading {
@@ -23,11 +31,15 @@ struct RootView: View {
 			} else if let server {
 				self.tabs
 				.environment(\.server, server)
-				.environment(\.zoomNamespace, self.playerZoomNamespace)
-				.fullScreenCover(isPresented: Binding(get: { PlayerEngine.shared.isExpanded }, set: { PlayerEngine.shared.isExpanded = $0 })) {
-					NowPlayingView()
+				.fullScreenCover(isPresented: self.$isPlayerExpanded) {
+					NowPlayingView(namespace: self.playerZoomNamespace)
 						.environment(\.server, server)
-						.environment(\.zoomNamespace, self.playerZoomNamespace)
+				}
+				.onChange(of: PlayerEngine.shared.isExpanded) { _, newValue in
+					self.isPlayerExpanded = newValue
+				}
+				.onChange(of: self.isPlayerExpanded) { _, newValue in
+					PlayerEngine.shared.isExpanded = newValue
 				}
 				.sheet(isPresented: Binding(get: { Navigator.shared.sheet != nil }, set: { if !$0 { Navigator.shared.sheet = nil } })) {
 					Navigator.shared.sheet?.view
@@ -53,6 +65,27 @@ struct RootView: View {
 		}
 	}
 
+	/// Zero-size, hidden `List`/`.swipeActions`/`.searchable` so UIKit builds and caches their backing
+	/// classes (compositional-layout collection view, `UISearchController`, keyboard/predictive-text
+	/// resources) during the launch spinner instead of on the user's first visit to Settings/Search —
+	/// that first-ever construction is synchronous and multi-second, and was showing up as a dropped-
+	/// framerate stall on first tap into either tab.
+	private var warmup: some View {
+		NavigationStack {
+			List {
+				Text(String())
+					.swipeActions {
+						Button(String()) {}
+					}
+			}
+			.searchable(text: .constant(String()))
+		}
+		.frame(width: 0, height: 0)
+		.opacity(0)
+		.allowsHitTesting(false)
+		.accessibilityHidden(true)
+	}
+
 	@ContentBuilder
 	private var tabs: some View {
 		TabView(selection: Binding(get: { Navigator.shared.currentTab }, set: { Navigator.shared.currentTab = $0 })) {
@@ -75,7 +108,7 @@ struct RootView: View {
 			}
 		}
 		.tabViewBottomAccessory(isEnabled: PlayerEngine.shared.currentTrack != nil) {
-			MiniPlayerBar()
+			MiniPlayerBar(namespace: self.playerZoomNamespace)
 		}
 	}
 

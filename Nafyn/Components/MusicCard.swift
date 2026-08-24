@@ -140,7 +140,7 @@ enum MusicCardEntry: Hashable {
 			case .media(let media):
 				media.artistName
 			case .playlist(let playlist):
-				playlist.description?.isEmpty == false ? playlist.description : nil
+				playlist.description?.isEmpty == false ? playlist.description : String(localized: "playlist")
 			case .info(let info):
 				info.artist.name
 			case .artist:

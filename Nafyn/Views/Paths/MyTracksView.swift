@@ -50,6 +50,7 @@ struct MyTracksView: View {
 			} label: {
 				Label(String(localized: "delete"), systemImage: "trash")
 			}
+			.tint(DTColor.buttonDanger)
 		}
 		.swipeActions(edge: .leading) {
 			Button {

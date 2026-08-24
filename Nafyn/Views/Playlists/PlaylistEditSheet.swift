@@ -54,12 +54,14 @@ struct PlaylistEditSheet: View {
 			.toolbar {
 				ToolbarItem(placement: .cancellationAction) {
 					Button(String(localized: "cancel")) { self.dismiss() }
+						.tint(Color.primary)
 				}
 				ToolbarItem(placement: .confirmationAction) {
 					Button(String(localized: "save")) {
 						self.save()
 					}
 					.disabled(self.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || self.isSaving)
+					.tint(Color.primary)
 				}
 			}
 			.toast(self.toast)

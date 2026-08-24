@@ -33,7 +33,7 @@ struct HollowButtonStyle: ButtonStyle {
 
 		configuration.label
 			.font(DTFont.serif(20))
-			.foregroundStyle(configuration.isPressed ? .black : DTColor.textPrimary)
+			.foregroundStyle(DTColor.textPrimary)
 			.padding(.vertical, DTSpacing.buttonVertical)
 			.padding(.horizontal, DTSpacing.buttonHorizontal)
 			.background(Capsule().fill(.clear))

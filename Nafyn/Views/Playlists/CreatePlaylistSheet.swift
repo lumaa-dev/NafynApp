@@ -35,12 +35,14 @@ struct CreatePlaylistSheet: View {
 			.toolbar {
 				ToolbarItem(placement: .cancellationAction) {
 					Button(String(localized: "cancel")) { self.dismiss() }
+						.tint(Color.primary)
 				}
 				ToolbarItem(placement: .confirmationAction) {
 					Button(String(localized: "create")) {
 						self.create()
 					}
 					.disabled(self.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || self.isCreating)
+					.tint(Color.primary)
 				}
 			}
 			.toast(self.toast)

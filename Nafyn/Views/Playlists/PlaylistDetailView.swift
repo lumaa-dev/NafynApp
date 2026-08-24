@@ -118,6 +118,7 @@ private struct PlaylistDetailContent: View {
 				} label: {
 					Image(systemName: "ellipsis.circle")
 				}
+				.tint(Color.primary)
 			}
 		}
 		.sheet(isPresented: self.$showEdit) {
@@ -188,6 +189,7 @@ private struct PlaylistDetailContent: View {
 					} label: {
 						Label(String(localized: "remove"), systemImage: "trash")
 					}
+					.tint(DTColor.buttonDanger)
 				}
 			}
 		}

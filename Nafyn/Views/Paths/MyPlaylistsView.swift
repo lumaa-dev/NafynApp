@@ -54,6 +54,7 @@ struct MyPlaylistsView: View {
 				} label: {
 					Image(systemName: "plus")
 				}
+				.tint(Color.primary)
 			}
 		}
 		.sheet(isPresented: self.$showCreate) {

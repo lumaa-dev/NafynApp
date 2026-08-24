@@ -19,14 +19,18 @@ struct ProfileSettingsSection: View {
 	@State private var isSaving = false
 	@State private var isUploadingAvatar = false
 	@State private var avatarPickerItem: PhotosPickerItem? = nil
-	@State private var avatarCacheBust = Date()
 
-	/// `AsyncImage` (inside `CoverImage`) caches by URL — if the avatar URL string doesn't change after
-	/// a re-upload (common when the server serves a fixed per-user avatar path), the stale cached image
-	/// keeps showing. Appending a value that changes on every successful upload forces a fresh fetch.
+	/// `NafynUser.avatar` is NOT a URL — confirmed against `user/avatar.post.ts`, it's just a
+	/// cache-busting timestamp string (`Date.now().toString()`) the server bumps on every upload. The
+	/// actual image lives behind the authenticated `User.avatar(id:token:)` endpoint (same pattern as a
+	/// playlist's `image` field). Folding that timestamp into the URL as a query item both builds the
+	/// right URL and — as a free side effect — busts `AsyncImage`'s cache on every new upload.
 	private var avatarURL: URL? {
-		guard let avatar = self.user.avatar, var components = URLComponents(string: avatar) else { return nil }
-		components.queryItems = (components.queryItems ?? []) + [URLQueryItem(name: "cb", value: String(Int(self.avatarCacheBust.timeIntervalSince1970)))]
+		guard let avatarVersion = self.user.avatar, let server else { return nil }
+		let endpoint = User.avatar(id: self.user.id, token: server.authToken)
+		guard var components = URLComponents(url: server.instance.baseURL, resolvingAgainstBaseURL: false) else { return nil }
+		components.path += endpoint.path
+		components.queryItems = endpoint.queries + [URLQueryItem(name: "v", value: avatarVersion)]
 		return components.url
 	}
 
@@ -116,7 +120,6 @@ struct ProfileSettingsSection: View {
 				return
 			}
 			let updated = try await server.send(User.setAvatar(data: data, filename: "avatar.jpg", mimeType: "image/jpeg")) as NafynUser
-			self.avatarCacheBust = Date()
 			self.onUpdated(updated)
 		} catch {
 			self.toast.failure(error)

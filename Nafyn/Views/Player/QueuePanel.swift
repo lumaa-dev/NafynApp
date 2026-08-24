@@ -32,6 +32,7 @@ struct QueuePanel: View {
 					} label: {
 						Label(String(localized: "remove"), systemImage: "trash")
 					}
+					.tint(DTColor.buttonDanger)
 				}
 			}
 		}

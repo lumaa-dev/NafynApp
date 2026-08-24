@@ -34,7 +34,7 @@ struct SearchView: View {
 					} else if let result {
 						if !result.albums.isEmpty {
 							self.section(title: "albums") {
-								LazyVGrid(columns: self.albumColumns, spacing: 16) {
+								LazyVGrid(columns: self.albumColumns, alignment: .leading, spacing: 16) {
 									ForEach(result.albums, id: \.id) { info in
 										self.card(.info(info))
 									}
@@ -81,7 +81,12 @@ struct SearchView: View {
 		.searchable(text: self.$query, prompt: String(localized: "search"))
 		.searchFocused(self.$isSearchFocused)
 		.onAppear {
-			self.isSearchFocused = true
+			// Deferred a tick so the tab-switch transition and `.searchable`'s first-ever mount (which
+			// pulls in UISearchController + keyboard resources) don't land in the same frame as the
+			// keyboard-presentation work — stacking both was showing up as a dropped-framerate stall.
+			DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+				self.isSearchFocused = true
+			}
 		}
 		.onSubmit(of: .search) {
 			self.triggerSearch()
@@ -106,7 +111,7 @@ struct SearchView: View {
 		if let destination = entry.destination {
 			NavigationLink(value: destination) {
 				MusicCard(entry)
-					.frame(maxWidth: .infinity)
+					.frame(maxWidth: .infinity, alignment: .leading)
 			}
 			.buttonStyle(.plain)
 		} else {
