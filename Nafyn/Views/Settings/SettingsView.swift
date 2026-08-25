@@ -80,14 +80,31 @@ private struct SettingsForm: View {
 private struct AppearanceSettingsSection: View {
 	@AppStorage(LyricsPanel.useSystemFontKey) private var lyricsUseSystemFont = false
 
+	private var themeBinding: Binding<AppTheme> {
+		Binding(
+			get: { ThemeManager.shared.current },
+			set: { ThemeManager.shared.current = $0 }
+		)
+	}
+
 	var body: some View {
 		Section {
+			Picker(String(localized: "theme"), selection: self.themeBinding) {
+				ForEach(AppTheme.allCases) { theme in
+					Label(theme.label, systemImage: theme.symbolName)
+						.tag(theme)
+				}
+			}
+
 			Toggle(String(localized: "lyrics-system-font"), isOn: self.$lyricsUseSystemFont)
 		}
 		header: {
 			Text(String(localized: "appearance"))
 		} footer: {
-			Text(String(localized: "appearance-lyrics-font-footer"))
+			VStack(alignment: .leading, spacing: 4) {
+				Text(String(localized: "appearance-theme-footer"))
+				Text(String(localized: "appearance-lyrics-font-footer"))
+			}
 		}
 	}
 }

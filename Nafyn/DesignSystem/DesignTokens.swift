@@ -2,6 +2,9 @@
 
 import SwiftUI
 import CoreText
+#if canImport(UIKit)
+import UIKit
+#endif
 
 extension Color {
 	init(hex: String, opacity: Double = 1) {
@@ -15,39 +18,72 @@ extension Color {
 	}
 }
 
+/// Every token below re-reads `ThemeManager.shared.current` on each access rather than caching a value,
+/// so views that read these tokens in `body` re-theme automatically when the user switches theme in
+/// Settings (same Observation-tracking pattern as `PlayerEngine.shared`/`Navigator.shared`).
 enum DTColor {
-	static let background = Color(hex: "2A2A27")
-	static let textPrimary = Color.white.opacity(0.68)
-	static let surfaceInput = Color.black.opacity(0.31)
-	static let surfaceSelect = Color(hex: "1A1A1A")
-	static let surfaceSelectHover = Color(hex: "232323")
-	static let borderSelect = Color(hex: "333333")
-	static let buttonFilled = Color.white.opacity(0.68)
-	static let buttonFilledHover = Color.white.opacity(0.82)
-	static let buttonDanger = Color(hex: "E06666", opacity: 0.68)
-	static let buttonDangerHover = Color(hex: "E06666", opacity: 0.82)
-	static let accentStart = Color(hex: "2E74FF", opacity: 0.5)
-	static let accentEnd = Color(hex: "1F6AFF", opacity: 0.2)
+	private static var isSystemTheme: Bool { ThemeManager.shared.current == .system }
 
-	static let accentGradient = LinearGradient(
-		colors: [accentStart, accentEnd],
-		startPoint: .top,
-		endPoint: .bottom
-	)
+	static var background: Color {
+		isSystemTheme ? Color(uiColor: .systemGroupedBackground) : Color(hex: "2A2A27")
+	}
+	static var textPrimary: Color {
+		isSystemTheme ? Color.primary : Color.white.opacity(0.68)
+	}
+	static var surfaceInput: Color {
+		isSystemTheme ? Color(uiColor: .secondarySystemGroupedBackground) : Color.black.opacity(0.31)
+	}
+	static var surfaceSelect: Color {
+		isSystemTheme ? Color(uiColor: .secondarySystemGroupedBackground) : Color(hex: "1A1A1A")
+	}
+	static var surfaceSelectHover: Color {
+		isSystemTheme ? Color(uiColor: .tertiarySystemGroupedBackground) : Color(hex: "232323")
+	}
+	static var borderSelect: Color {
+		isSystemTheme ? Color(uiColor: .separator) : Color(hex: "333333")
+	}
+	static var buttonFilled: Color {
+		isSystemTheme ? Color.accentColor : Color.white.opacity(0.68)
+	}
+	static var buttonFilledHover: Color {
+		isSystemTheme ? Color.accentColor.opacity(0.85) : Color.white.opacity(0.82)
+	}
+	static var buttonDanger: Color {
+		isSystemTheme ? Color.red : Color(hex: "E06666", opacity: 0.68)
+	}
+	static var buttonDangerHover: Color {
+		isSystemTheme ? Color.red.opacity(0.85) : Color(hex: "E06666", opacity: 0.82)
+	}
+	static var accentStart: Color {
+		isSystemTheme ? Color.accentColor.opacity(0.5) : Color(hex: "2E74FF", opacity: 0.5)
+	}
+	static var accentEnd: Color {
+		isSystemTheme ? Color.accentColor.opacity(0.2) : Color(hex: "1F6AFF", opacity: 0.2)
+	}
 
-	static let statusWaiting = Color(hex: "E0C666")
-	static let statusActive = Color(hex: "E0A666")
-	static let statusSuccess = Color(hex: "66E086")
-	static let statusFailure = Color(hex: "E06666")
+	static var accentGradient: LinearGradient {
+		LinearGradient(
+			colors: [accentStart, accentEnd],
+			startPoint: .top,
+			endPoint: .bottom
+		)
+	}
+
+	static var statusWaiting: Color { isSystemTheme ? Color.yellow : Color(hex: "E0C666") }
+	static var statusActive: Color { isSystemTheme ? Color.orange : Color(hex: "E0A666") }
+	static var statusSuccess: Color { isSystemTheme ? Color.green : Color(hex: "66E086") }
+	static var statusFailure: Color { isSystemTheme ? Color.red : Color(hex: "E06666") }
 }
 
 enum DTFont {
+	private static var isSystemTheme: Bool { ThemeManager.shared.current == .system }
+
 	public static func serif(_ size: CGFloat) -> Font {
-		.custom("InstrumentSerif-Regular", size: size)
+		isSystemTheme ? .system(size: size - 5) : .custom("InstrumentSerif-Regular", size: size)
 	}
 
 	public static func serifItalic(_ size: CGFloat) -> Font {
-		.custom("InstrumentSerif-Italic", size: size)
+		isSystemTheme ? .system(size: size - 5) : .custom("InstrumentSerif-Italic", size: size)
 	}
 
 	public static func system(_ size: CGFloat, weight: Font.Weight = .regular, design: Font.Design = .default, width: Font.Width = .standard) -> Font {

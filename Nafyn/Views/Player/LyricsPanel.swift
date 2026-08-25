@@ -18,7 +18,7 @@ struct LyricsPanel: View {
 	public static let longThreshold: TimeInterval = 1.5
 
 	static func font(_ size: CGFloat, useSystemFont: Bool) -> Font {
-		useSystemFont ? DTFont.system(size, weight: .bold) : DTFont.serif(size)
+		useSystemFont ? DTFont.system(size, weight: .bold) : DTFont.serif(size).bold()
 	}
 
 	/// How long the user must go without touching the scroll view before auto-scroll resumes.

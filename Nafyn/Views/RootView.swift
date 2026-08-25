@@ -52,7 +52,8 @@ struct RootView: View {
 				OnboardingView(onboarding: $onboarding)
 			}
 		}
-		.preferredColorScheme(ColorScheme.dark)
+		.id(ThemeManager.shared.current)
+		.preferredColorScheme(ThemeManager.shared.preferredColorScheme)
 		.task {
 			await self.attemptLogin()
 		}
