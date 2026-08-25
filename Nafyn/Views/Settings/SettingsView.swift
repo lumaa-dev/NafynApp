@@ -67,6 +67,8 @@ private struct SettingsForm: View {
 
 			AppearanceSettingsSection()
 
+			AppleMusicImportSection()
+
 			ApiTokensSettingsSection()
 		}
 		.scrollContentBackground(.hidden)
@@ -85,7 +87,7 @@ private struct AppearanceSettingsSection: View {
 		header: {
 			Text(String(localized: "appearance"))
 		} footer: {
-			Text(String(localized: "Use the system font instead of the serif display font for lyrics."))
+			Text(String(localized: "appearance-lyrics-font-footer"))
 		}
 	}
 }
@@ -153,7 +155,7 @@ private struct LocalAccountsSettingsSection: View {
 		header: {
 			Text(String(localized: "app-accounts"))
 		} footer: {
-			Text(String(localized: "Choose which saved account Nafyn should use. Switching accounts reloads the app with that account's server and token."))
+			Text(String(localized: "app-accounts-footer"))
 		}
 		.sheet(isPresented: self.$showingAddAccount) {
 			AddLocalAccountSheet()

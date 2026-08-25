@@ -6,5 +6,7 @@
 	<array>
 		<string>audio</string>
 	</array>
+	<key>NSAppleMusicUsageDescription</key>
+	<string>Nafyn uses your Apple Music library to import playlists.</string>
 </dict>
 </plist>
