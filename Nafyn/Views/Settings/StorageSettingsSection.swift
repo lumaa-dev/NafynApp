@@ -7,6 +7,16 @@ import Safyn
 struct StorageSettingsSection: View {
 	@Environment(\.server) private var server: NafynServer?
 	@State private var info: StorageInfo? = nil
+	@State private var selectedAngle: Double?
+
+	private var selectedUsage: StorageInfo.UserUsage? {
+		guard let selectedAngle, let info else { return nil }
+		var cumulative: Double = 0
+		return info.perUser.first { usage in
+			cumulative += usage.bytes
+			return selectedAngle <= cumulative
+		}
+	}
 
 	var body: some View {
 		Group {
@@ -15,15 +25,36 @@ struct StorageSettingsSection: View {
 					VStack(alignment: .leading, spacing: 12) {
 						ProgressView(value: info.usedByNafynBytes, total: max(info.totalBytes, 1))
 
-						Text("\(Self.formatted(info.usedByNafynBytes)) / \(Self.formatted(info.totalBytes))")
+						Text("\(self.formatted(info.usedByNafynBytes)) / \(self.formatted(info.totalBytes))")
 							.font(.footnote)
 							.foregroundStyle(.secondary)
 
 						if !info.perUser.isEmpty {
 							Chart(info.perUser, id: \.userId) { usage in
-								SectorMark(angle: .value("bytes", usage.bytes), innerRadius: .ratio(0.55), angularInset: 1.5)
-									.foregroundStyle(by: .value("user", usage.displayName ?? usage.username))
-									.cornerRadius(4)
+								SectorMark(
+									angle: .value("bytes", usage.bytes),
+									innerRadius: .ratio(0.55),
+									angularInset: 1.5
+								)
+								.foregroundStyle(by: .value("user", usage.displayName ?? usage.username))
+								.cornerRadius(8)
+								.opacity(selectedUsage == nil || selectedUsage?.userId == usage.userId ? 1 : 0.4)
+							}
+							.chartAngleSelection(value: $selectedAngle)
+							.chartBackground { proxy in
+								GeometryReader { geometry in
+									if let plotFrame = proxy.plotFrame, let selectedUsage {
+										let frame = geometry[plotFrame]
+										VStack(spacing: 2) {
+											Text(selectedUsage.displayName ?? selectedUsage.username)
+												.font(.footnote.bold())
+											Text(self.formatted(selectedUsage.bytes))
+												.font(.caption)
+												.foregroundStyle(.secondary)
+										}
+										.position(x: frame.midX, y: frame.midY)
+									}
+								}
 							}
 							.frame(height: 200)
 							.padding(.vertical, 4)
@@ -33,10 +64,11 @@ struct StorageSettingsSection: View {
 							HStack {
 								Text(usage.displayName ?? usage.username)
 								Spacer()
-								Text(Self.formatted(usage.bytes))
+								Text(self.formatted(usage.bytes))
 									.foregroundStyle(.secondary)
 							}
 							.font(.footnote)
+							.opacity(selectedUsage == nil || selectedUsage?.userId == usage.userId ? 1 : 0.4)
 						}
 					}
 					.listRowBackground(Color.clear)
@@ -57,7 +89,17 @@ struct StorageSettingsSection: View {
 		}
 	}
 
-	private static func formatted(_ bytes: Double) -> String {
+	private func formatted(_ bytes: Double) -> String {
 		ByteCountFormatter.string(fromByteCount: Int64(bytes), countStyle: .file)
+	}
+}
+
+extension StorageInfo.UserUsage: @retroactive Plottable {
+	public var primitivePlottable: Double {
+		return self.bytes
+	}
+
+	public init?(primitivePlottable: Double) {
+		self.init(userId: "unknown", username: "unknown", displayName: nil, bytes: primitivePlottable)
 	}
 }
