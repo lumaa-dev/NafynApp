@@ -72,6 +72,7 @@ final class PlayerEngine: NSObject {
 	private var timeObserver: Any?
 	private var artworkCache: [String: MPMediaItemArtwork] = [:]
 	private var itemObservers: [any NSObjectProtocol] = []
+	private var interruptionObserver: (any NSObjectProtocol)? = nil
 
 	/// Type-erased storage for `MediaSession<PlayerEngine>` (iOS 27+ only) — the concrete generic type
 	/// can't be named in a stored property that must also compile on older OS versions, since
@@ -91,6 +92,25 @@ final class PlayerEngine: NSObject {
 	func configure(server: NafynServer) {
 		self.server = server
 
+		self.activateAudioSession()
+		self.observeAudioInterruptions()
+
+		if #available(iOS 27.0, tvOS 27.0, watchOS 27.0, visionOS 27.0, *) {
+			self.setupMediaSession()
+		} else {
+			self.setupRemoteCommandCenter()
+		}
+	}
+
+	// MARK: - Audio session
+
+	/// Activates the playback audio session, and re-activates it after anything that may have torn it
+	/// down (an interruption, a route loss).
+	///
+	/// A paused app whose audio session is inactive is not a Now Playing app as far as iOS is concerned,
+	/// and the system drops its Now Playing entry — so the session is activated on every resume rather
+	/// than only once at launch, and it is never deactivated on pause.
+	private func activateAudioSession() {
 		#if canImport(UIKit) || canImport(AVFAudio)
 		let audioSession = AVAudioSession.sharedInstance()
 		try? audioSession.setCategory(.playback, mode: .default)
@@ -100,12 +120,46 @@ final class PlayerEngine: NSObject {
 			try? audioSession.setActive(true)
 		}
 		#endif
+	}
 
-		if #available(iOS 27.0, tvOS 27.0, watchOS 27.0, visionOS 27.0, *) {
-			self.setupMediaSession()
-		} else {
-			self.setupRemoteCommandCenter()
+	/// Keeps the Now Playing entry alive across interruptions (a call, another app taking the session).
+	///
+	/// An interruption pauses playback without any of this class's own pause paths running, so without
+	/// this the reported state stays "playing" while nothing plays, and the entry is dropped when the
+	/// interruption ends and the session isn't re-activated.
+	private func observeAudioInterruptions() {
+		#if canImport(AVFAudio)
+		guard self.interruptionObserver == nil else { return }
+
+		self.interruptionObserver = NotificationCenter.default.addObserver(
+			forName: AVAudioSession.interruptionNotification,
+			object: AVAudioSession.sharedInstance(),
+			queue: .main
+		) { [weak self] notification in
+			guard
+				let self,
+				let rawType = notification.userInfo?[AVAudioSessionInterruptionTypeKey] as? UInt,
+				let type = AVAudioSession.InterruptionType(rawValue: rawType)
+			else { return }
+
+			switch type {
+				case .began:
+					// The system has already paused the player; mirror that so the Now Playing entry
+					// shows a paused — not a stale playing — state.
+					if self.isPlaying {
+						self.isPlaying = false
+						PlayTracker.shared.paused()
+						self.updateNowPlayingInfo()
+					}
+				case .ended:
+					self.activateAudioSession()
+					self.updateNowPlayingInfo()
+					self.reassertNowPlayingSession()
+				@unknown default:
+					break
+			}
 		}
+		#endif
 	}
 
 	// MARK: - Playback control
@@ -136,11 +190,15 @@ final class PlayerEngine: NSObject {
 			self.isPlaying = false
 			PlayTracker.shared.paused()
 		} else {
+			// Resuming from a long pause can find the session deactivated (an interruption, another app
+			// having taken it); activating first means `play()` isn't silently dropped.
+			self.activateAudioSession()
 			player.play()
 			self.isPlaying = true
 			PlayTracker.shared.resumed()
 		}
 		self.updateNowPlayingInfo()
+		self.reassertNowPlayingSession()
 	}
 
 	func next() {
@@ -212,6 +270,9 @@ final class PlayerEngine: NSObject {
 		// is `nil` — `MediaSession` observes that automatically and clears the system's Now Playing UI.
 		// Only the legacy singleton needs to be told explicitly.
 		if #unavailable(iOS 27.0, tvOS 27.0, watchOS 27.0, visionOS 27.0) {
+			// `playbackState` first: clearing `nowPlayingInfo` while the state still reads `.playing`
+			// leaves the system with a playing app that has no item.
+			MPNowPlayingInfoCenter.default().playbackState = .stopped
 			MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
 		}
 	}
@@ -255,6 +316,7 @@ final class PlayerEngine: NSObject {
 		self.duration = track.duration
 		self.lastError = nil
 
+		self.activateAudioSession()
 		self.player?.play()
 		self.isPlaying = true
 
@@ -398,6 +460,7 @@ final class PlayerEngine: NSObject {
 			// populated, so the system's Now Playing surface stays up with a paused state instead of
 			// disappearing.
 			MPNowPlayingInfoPropertyPlaybackRate: self.isPlaying ? 1.0 : 0.0,
+			MPNowPlayingInfoPropertyDefaultPlaybackRate: 1.0,
 		]
 		if let album = track.album {
 			info[MPMediaItemPropertyAlbumTitle] = album
@@ -407,6 +470,11 @@ final class PlayerEngine: NSObject {
 		}
 
 		MPNowPlayingInfoCenter.default().nowPlayingInfo = info
+
+		// iOS drops a Now Playing entry whose owner never reports a state — a rate of 0 alone reads as
+		// "stopped playing" and takes the entry with it. `.paused` is what keeps the item on screen,
+		// with its controls live, while nothing is coming out of the speaker.
+		MPNowPlayingInfoCenter.default().playbackState = self.isPlaying ? .playing : .paused
 	}
 
 	private func fetchArtwork(for track: MediaRow) {
@@ -434,6 +502,25 @@ final class PlayerEngine: NSObject {
 	}
 
 	// MARK: - iOS 27+ path: NowPlaying framework (MediaSession)
+
+	/// Re-requests application-primary status when the session has lost it.
+	///
+	/// Pausing can cost the app its primary session on iOS 27 betas, which removes the Now Playing entry
+	/// outright instead of leaving it paused and resumable. Asking for it back after every pause/resume
+	/// (and after an interruption) restores the entry; it's a no-op whenever the session is still
+	/// primary, which is the case on a healthy system.
+	private func reassertNowPlayingSession() {
+		#if canImport(NowPlaying)
+		guard #available(iOS 27.0, tvOS 27.0, watchOS 27.0, visionOS 27.0, *) else { return }
+		guard let session = self.mediaSessionBox as? MediaSession<PlayerEngine> else { return }
+		guard self.currentTrack != nil else { return }
+
+		Task { @MainActor in
+			guard !session.isApplicationPrimary, session.canBecomeApplicationPrimary else { return }
+			try? await session.requestToBecomeApplicationPrimary()
+		}
+		#endif
+	}
 
 	@available(iOS 27.0, tvOS 27.0, watchOS 27.0, visionOS 27.0, *)
 	private func setupMediaSession() {
