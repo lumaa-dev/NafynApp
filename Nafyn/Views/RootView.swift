@@ -47,6 +47,7 @@ struct RootView: View {
 				}
 				.onAppear {
 					PlayerEngine.shared.configure(server: server)
+					PlayTracker.shared.configure(server: server)
 				}
 			} else {
 				OnboardingView(onboarding: $onboarding)
@@ -108,6 +109,7 @@ struct RootView: View {
 				Navigator.Tabs.search.view
 			}
 		}
+		.tabViewSearchActivation(.searchTabSelection)
 		.tabViewBottomAccessory(isEnabled: PlayerEngine.shared.currentTrack != nil) {
 			MiniPlayerBar(namespace: self.playerZoomNamespace)
 		}

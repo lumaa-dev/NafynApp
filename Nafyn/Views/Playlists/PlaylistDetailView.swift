@@ -116,7 +116,7 @@ private struct PlaylistDetailContent: View {
 						}
 					}
 				} label: {
-					Image(systemName: "ellipsis.circle")
+					Image(systemName: "ellipsis")
 				}
 				.tint(Color.primary)
 			}

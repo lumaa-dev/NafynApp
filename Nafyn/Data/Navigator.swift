@@ -1,6 +1,7 @@
 // Made by Lumaa
 
 import SwiftUI
+import Safyn
 
 @Observable
 final class Navigator {
@@ -75,6 +76,11 @@ final class Navigator {
 		case everyoneLibrary
 		case settings
 		case users
+		case musicYear(year: Int?)
+		case monthlyInsights(month: String?)
+		case insightsTop(type: RankedEntityKind, period: String, year: Int?, month: String?)
+		case replayMix(year: String?)
+		case yearComparison
 		case addToPlaylist(mediaIds: [String])
 
 		var view: AnyView {
@@ -103,6 +109,16 @@ final class Navigator {
 					AnyView(SettingsView())
 				case .users:
 					AnyView(UsersAdminView())
+				case .musicYear(let year):
+					AnyView(MusicYearView(year: year))
+				case .monthlyInsights(let month):
+					AnyView(MonthlyInsightsView(month: month))
+				case .insightsTop(let type, let period, let year, let month):
+					AnyView(InsightsTopListView(type: type, period: period, year: year, month: month))
+				case .replayMix(let year):
+					AnyView(ReplayMixView(year: year))
+				case .yearComparison:
+					AnyView(YearComparisonView())
 				case .addToPlaylist(let mediaIds):
 					AnyView(AddToPlaylistSheet(mediaIds: mediaIds))
 			}

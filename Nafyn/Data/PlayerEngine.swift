@@ -16,6 +16,20 @@ struct RecordContext {
 	let refId: String
 }
 
+extension RecordContext {
+	/// The `Insights` play-event source matching this record context.
+	var playEventSource: PlayEventSource {
+		switch self.type {
+			case .track:
+				return .track
+			case .album:
+				return .album
+			case .playlist:
+				return .playlist
+		}
+	}
+}
+
 enum RepeatMode {
 	case off
 	case queue
@@ -57,11 +71,18 @@ final class PlayerEngine: NSObject {
 	private weak var server: NafynServer?
 	private var timeObserver: Any?
 	private var artworkCache: [String: MPMediaItemArtwork] = [:]
+	private var itemObservers: [any NSObjectProtocol] = []
 
 	/// Type-erased storage for `MediaSession<PlayerEngine>` (iOS 27+ only) — the concrete generic type
 	/// can't be named in a stored property that must also compile on older OS versions, since
 	/// `PlayerEngine`'s conformance to `MediaSessionRepresentable` is itself `@available`-gated below.
 	private var mediaSessionBox: Any? = nil
+
+	/// Where the current queue was started from, reported with every play event sent to `Insights`.
+	private var playSource: PlayEventSource = .library
+
+	/// The playlist the current queue was started from, if any, for the same reason.
+	private var playPlaylistId: String? = nil
 
 	private override init() {
 		super.init()
@@ -98,6 +119,9 @@ final class PlayerEngine: NSObject {
 			self.currentIndex = 0
 		}
 
+		self.playSource = recordContext.map(\.playEventSource) ?? .library
+		self.playPlaylistId = recordContext.flatMap { $0.type == .playlist ? $0.refId : nil }
+
 		self.startCurrentItem()
 
 		if let recordContext {
@@ -110,9 +134,11 @@ final class PlayerEngine: NSObject {
 		if self.isPlaying {
 			player.pause()
 			self.isPlaying = false
+			PlayTracker.shared.paused()
 		} else {
 			player.play()
 			self.isPlaying = true
+			PlayTracker.shared.resumed()
 		}
 		self.updateNowPlayingInfo()
 	}
@@ -169,8 +195,12 @@ final class PlayerEngine: NSObject {
 	}
 
 	func stop() {
+		PlayTracker.shared.finished(completed: false)
+
 		self.player?.pause()
 		self.removeTimeObserver()
+		self.itemObservers.forEach(NotificationCenter.default.removeObserver)
+		self.itemObservers = []
 		self.player = nil
 		self.isPlaying = false
 		self.currentTime = 0
@@ -200,10 +230,26 @@ final class PlayerEngine: NSObject {
 			self.player = AVPlayer(playerItem: item)
 		}
 
-		NotificationCenter.default.removeObserver(self, name: AVPlayerItem.didPlayToEndTimeNotification, object: nil)
-		NotificationCenter.default.addObserver(self, selector: #selector(self.itemDidPlayToEnd), name: AVPlayerItem.didPlayToEndTimeNotification, object: item)
-		NotificationCenter.default.removeObserver(self, name: AVPlayerItem.failedToPlayToEndTimeNotification, object: nil)
-		NotificationCenter.default.addObserver(self, selector: #selector(self.itemFailedToPlay(_:)), name: AVPlayerItem.failedToPlayToEndTimeNotification, object: item)
+		// Block-based, delivered on the main queue: AVFoundation posts these from its own internal
+		// queue, and both handlers touch main-actor state (`@Observable` playback properties, and
+		// `PlayTracker`'s event session).
+		self.itemObservers.forEach(NotificationCenter.default.removeObserver)
+		self.itemObservers = [
+			NotificationCenter.default.addObserver(
+				forName: AVPlayerItem.didPlayToEndTimeNotification,
+				object: item,
+				queue: .main
+			) { [weak self] _ in
+				self?.itemDidPlayToEnd()
+			},
+			NotificationCenter.default.addObserver(
+				forName: AVPlayerItem.failedToPlayToEndTimeNotification,
+				object: item,
+				queue: .main
+			) { [weak self] notification in
+				self?.itemFailedToPlay(notification)
+			},
+		]
 
 		self.currentTime = 0
 		self.duration = track.duration
@@ -211,6 +257,8 @@ final class PlayerEngine: NSObject {
 
 		self.player?.play()
 		self.isPlaying = true
+
+		PlayTracker.shared.began(track: track, source: self.playSource, playlistId: self.playPlaylistId)
 
 		self.addTimeObserver()
 		self.updateNowPlayingInfo()
@@ -222,13 +270,17 @@ final class PlayerEngine: NSObject {
 		}
 	}
 
-	@objc private func itemFailedToPlay(_ notification: Notification) {
+	private func itemFailedToPlay(_ notification: Notification) {
 		let error = notification.userInfo?[AVPlayerItemFailedToPlayToEndTimeErrorKey] as? Error
 		self.lastError = error?.localizedDescription ?? "Playback failed"
 		self.isPlaying = false
 	}
 
-	@objc private func itemDidPlayToEnd() {
+	private func itemDidPlayToEnd() {
+		// Close the play event here rather than letting the next `startCurrentItem()`/`stop()` do it, so
+		// this play is recorded as having reached the end of the file.
+		PlayTracker.shared.finished(completed: true)
+
 		if self.repeatMode == .track {
 			self.seek(to: 0)
 			self.player?.play()

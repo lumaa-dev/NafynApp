@@ -69,6 +69,8 @@ private struct SettingsForm: View {
 
 			AppearanceSettingsSection()
 
+			InsightsSettingsSection()
+
 			AppleMusicImportSection()
 
 			ApiTokensSettingsSection()

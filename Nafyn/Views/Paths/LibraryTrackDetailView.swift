@@ -50,7 +50,7 @@ private struct LibraryTrackDetailContent: View {
 						Label(String(localized: "delete"), systemImage: "trash")
 					}
 				} label: {
-					Image(systemName: "ellipsis.circle")
+					Image(systemName: "ellipsis")
 				}
 				.tint(Color.primary)
 			}

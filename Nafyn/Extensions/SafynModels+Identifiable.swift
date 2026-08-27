@@ -12,6 +12,14 @@ extension PlaylistRow: @retroactive Identifiable {}
 extension NafynRequest: @retroactive Identifiable {}
 extension NafynUser: @retroactive Identifiable {}
 
+extension RankedEntity: @retroactive Identifiable {
+	public var id: String { "\(self.entityType.rawValue)-\(self.entityId)-\(self.rank)" }
+}
+
+extension ReplayEntry: @retroactive Identifiable {
+	public var id: String { "\(self.position)-\(self.trackId)" }
+}
+
 extension PlaylistEntry: @retroactive Identifiable {
 	public var id: String { self.entryId }
 }
