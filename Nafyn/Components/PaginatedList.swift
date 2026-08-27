@@ -19,8 +19,7 @@ struct PaginatedList<Item: Codable & Sendable & Identifiable & Hashable, RowCont
 			}
 
 			if self.paginator.isLoadingPage {
-				ProgressView()
-					.frame(maxWidth: .infinity)
+				SkeletonTrackRows(count: self.paginator.items.isEmpty ? 8 : 2)
 					.listRowSeparator(.hidden)
 					.listRowBackground(Color.clear)
 			}

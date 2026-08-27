@@ -25,11 +25,11 @@ struct MyPlaylistsView: View {
 				.padding()
 
 				if paginator.isLoadingPage {
-					ProgressView()
-						.padding()
+					SkeletonMusicGrid(columns: self.columns, count: 2)
+						.padding(.horizontal)
 				}
 			} else {
-				ProgressView()
+				SkeletonMusicGrid(columns: self.columns)
 					.padding()
 			}
 		}

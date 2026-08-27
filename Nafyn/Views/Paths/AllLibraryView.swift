@@ -18,7 +18,12 @@ struct AllLibraryView: View {
 					self.row(entry)
 				}
 			} else {
-				ProgressView()
+				List {
+					SkeletonTrackRows()
+						.listRowBackground(Color.clear)
+				}
+				.listStyle(.plain)
+				.scrollContentBackground(.hidden)
 			}
 		}
 		.task {

@@ -53,7 +53,10 @@ struct AppleMusicImportSheet: View {
 			Group {
 				switch self.phase {
 					case .loadingPlaylists:
-						ProgressView()
+						List {
+							SkeletonTrackRows(showsCover: false)
+						}
+						.listStyle(.plain)
 
 					case .pickingPlaylist(let playlists):
 						self.playlistPicker(playlists)

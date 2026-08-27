@@ -14,7 +14,7 @@ struct MyAlbumsView: View {
 			if let paginator {
 				LazyVGrid(columns: self.columns, spacing: 16) {
 					ForEach(paginator.items) { album in
-						NavigationLink(value: Navigator.Paths.album(id: album.id)) {
+						NavigationLink(value: Navigator.Paths.libraryAlbum(id: album.id)) {
 							MusicCard(.album(album))
 						}
 						.buttonStyle(.plain)
@@ -24,11 +24,11 @@ struct MyAlbumsView: View {
 				.padding()
 
 				if paginator.isLoadingPage {
-					ProgressView()
-						.padding()
+					SkeletonMusicGrid(columns: self.columns, count: 2)
+						.padding(.horizontal)
 				}
 			} else {
-				ProgressView()
+				SkeletonMusicGrid(columns: self.columns)
 					.padding()
 			}
 		}

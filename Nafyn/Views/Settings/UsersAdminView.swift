@@ -18,7 +18,12 @@ struct UsersAdminView: View {
 					self.row(user)
 				}
 			} else {
-				ProgressView()
+				List {
+					SkeletonTrackRows()
+						.listRowBackground(Color.clear)
+				}
+				.listStyle(.plain)
+				.scrollContentBackground(.hidden)
 			}
 		}
 		.task {

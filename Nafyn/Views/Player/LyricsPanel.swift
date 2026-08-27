@@ -34,6 +34,8 @@ struct LyricsPanel: View {
 		AsyncContentView {
 			guard let server else { throw NafynError.unauthenticated }
 			return try await server.send(Library.lyrics(id: self.trackId)) as Lyrics
+		} skeleton: {
+			AnyView(SkeletonTextLines())
 		} content: { lyrics, _ in
 			ScrollViewReader { proxy in
 				ScrollView {

@@ -67,6 +67,8 @@ final class Navigator {
 		case artist(id: String)
 		case track(id: String)
 		case playlist(id: String)
+		case libraryAlbum(id: String)
+		case libraryTrack(id: String)
 		case myTracks
 		case myAlbums
 		case myPlaylists
@@ -85,6 +87,10 @@ final class Navigator {
 					AnyView(TrackDetailView(trackId: id))
 				case .playlist(let id):
 					AnyView(PlaylistDetailView(playlistId: id))
+				case .libraryAlbum(let id):
+					AnyView(LibraryAlbumDetailView(albumId: id))
+				case .libraryTrack(let id):
+					AnyView(LibraryTrackDetailView(trackId: id))
 				case .myTracks:
 					AnyView(MyTracksView())
 				case .myAlbums:

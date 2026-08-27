@@ -28,9 +28,13 @@ struct SearchView: View {
 					.pickerStyle(.segmented)
 
 					if self.isSearching {
-						ProgressView()
-							.frame(maxWidth: .infinity)
-							.padding(.top, 20)
+						VStack(alignment: .leading, spacing: 20) {
+							SkeletonMusicGrid(columns: self.albumColumns, count: 2)
+
+							VStack(spacing: 12) {
+								SkeletonTrackRows(count: 4)
+							}
+						}
 					} else if let result {
 						if !result.albums.isEmpty {
 							self.section(title: "albums") {

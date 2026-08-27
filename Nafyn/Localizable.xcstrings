@@ -1960,6 +1960,22 @@
         }
       }
     },
+    "view-track" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "View Track"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Voir la piste"
+          }
+        }
+      }
+    },
     "view-on-musicbrainz" : {
       "localizations" : {
         "en" : {

@@ -1,5 +1,5 @@
 {
-  "originHash" : "831d36b722269a3e2fda6e5b7ab31e72fb44bb98c7d0b9b49879028ebf829e40",
+  "originHash" : "99061f87d3b89a1a6c2aa8ea3f6db5d619525c9032698b5f23b9438cbbadfd4f",
   "pins" : [
     {
       "identity" : "safyn",
@@ -7,7 +7,7 @@
       "location" : "https://github.com/lumaa-dev/Safyn",
       "state" : {
         "branch" : "main",
-        "revision" : "8b0d07247b3cf79e8c9b735c9e95c64a0c52a48c"
+        "revision" : "e9ac8065641e805cfa47d0a218eed90f91f91fd7"
       }
     },
     {

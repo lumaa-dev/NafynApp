@@ -32,7 +32,7 @@ extension MusicCardEntry {
 			case .recentlyPlayed(let entry):
 				entry.destination
 			case .album(let album):
-				.album(id: album.id)
+				.libraryAlbum(id: album.id)
 			case .media:
 				nil
 			case .playlist(let playlist):

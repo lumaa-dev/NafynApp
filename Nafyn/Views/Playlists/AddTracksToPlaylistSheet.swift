@@ -29,7 +29,10 @@ struct AddTracksToPlaylistSheet: View {
 					.listStyle(.plain)
 					.scrollEdgeEffectStyle(.soft, for: .all)
 				} else {
-					ProgressView()
+					List {
+						SkeletonTrackRows(showsCover: false)
+					}
+					.listStyle(.plain)
 				}
 			}
 			.background(DTColor.background.ignoresSafeArea())

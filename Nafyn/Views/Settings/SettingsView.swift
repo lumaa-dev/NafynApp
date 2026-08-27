@@ -11,6 +11,8 @@ struct SettingsView: View {
 		AsyncContentView {
 			guard let server else { throw NafynError.unauthenticated }
 			return try await server.send(User.me) as NafynUser
+		} skeleton: {
+			AnyView(SkeletonFormRows())
 		} content: { user, _ in
 			SettingsForm(initialUser: user)
 		}

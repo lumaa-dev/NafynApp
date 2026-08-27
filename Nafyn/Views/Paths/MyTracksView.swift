@@ -17,7 +17,12 @@ struct MyTracksView: View {
 					self.row(track)
 				}
 			} else {
-				ProgressView()
+				List {
+					SkeletonTrackRows()
+						.listRowBackground(Color.clear)
+				}
+				.listStyle(.plain)
+				.scrollContentBackground(.hidden)
 			}
 		}
 		.task {
@@ -59,6 +64,19 @@ struct MyTracksView: View {
 				Label(String(localized: "add-to-playlist"), systemImage: "text.badge.plus")
 			}
 			.tint(DTColor.accentStart)
+		}
+		.contextMenu {
+			Button {
+				Navigator.shared.sheet = Navigator.Paths.addToPlaylist(mediaIds: [track.id])
+			} label: {
+				Label(String(localized: "add-to-playlist"), systemImage: "text.badge.plus")
+			}
+
+			Button {
+				Navigator.shared.send(to: .libraryTrack(id: track.id))
+			} label: {
+				Label(String(localized: "view-track"), systemImage: "info.circle")
+			}
 		}
 	}
 

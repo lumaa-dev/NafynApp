@@ -13,13 +13,14 @@ struct AsyncContentView<Value, Content: View>: View {
 	@State private var state: LoadState = .loading
 
 	let load: () async throws -> Value
+	var skeleton: () -> AnyView = { AnyView(SkeletonDetailScreen()) }
 	@ViewBuilder let content: (Value, _ reload: @escaping () async -> Void) -> Content
 
 	var body: some View {
 		Group {
 			switch self.state {
 				case .loading:
-					ProgressView()
+					self.skeleton()
 						.frame(maxWidth: .infinity, maxHeight: .infinity)
 				case .loaded(let value):
 					self.content(value, self.reload)

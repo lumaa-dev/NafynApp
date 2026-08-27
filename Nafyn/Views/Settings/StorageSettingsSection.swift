@@ -73,7 +73,12 @@ struct StorageSettingsSection: View {
 					}
 					.listRowBackground(Color.clear)
 				} else {
-					ProgressView()
+					VStack(alignment: .leading, spacing: 12) {
+						SkeletonBar(height: 8, cornerRadius: 4)
+						SkeletonBar(width: 140, height: 12)
+						SkeletonBar(height: 200, cornerRadius: 100)
+					}
+					.listRowBackground(Color.clear)
 				}
 			}
 
