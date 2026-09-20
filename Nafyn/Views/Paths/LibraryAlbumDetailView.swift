@@ -54,15 +54,15 @@ private struct LibraryAlbumDetailContent: View {
 	@ViewBuilder
 	private var header: some View {
 		VStack(alignment: .leading, spacing: 10) {
-			CoverImage(url: self.response.album.coverArt.flatMap { URL(string: $0) })
+			CoverImage(url: self.response.album.row.coverArt.flatMap { URL(string: $0) })
 				.frame(width: 200, height: 200)
 				.frame(maxWidth: .infinity)
 
-			Text(self.response.album.title)
+			Text(self.response.album.row.title)
 				.font(DTFont.serif(31))
 				.foregroundStyle(DTColor.textPrimary)
 
-			Text(self.response.album.artistName)
+			Text(self.response.album.row.artistName)
 				.font(DTFont.serif(20))
 				.foregroundStyle(DTColor.textPrimary.opacity(0.7))
 
@@ -90,7 +90,7 @@ private struct LibraryAlbumDetailContent: View {
 
 	@ViewBuilder
 	private func trackRow(_ track: MediaRow) -> some View {
-		TrackRow(title: track.title, duration: track.duration, verticalPadding: 12, onTap: { self.play(track) })
+		TrackRow(title: track.title, duration: track.duration, fileSize: track.fileSize, verticalPadding: 12, onTap: { self.play(track) })
 		.contextMenu {
 			Button {
 				Navigator.shared.sheet = Navigator.Paths.addToPlaylist(mediaIds: [track.id])
@@ -109,17 +109,17 @@ private struct LibraryAlbumDetailContent: View {
 	@ViewBuilder
 	private var footer: some View {
 		VStack(alignment: .leading, spacing: 4) {
-			if let releaseDate = self.response.album.releaseDateValue {
+			if let releaseDate = self.response.album.row.releaseDateValue {
 				Text(releaseDate.formatted(date: .abbreviated, time: .omitted))
 			}
-			Text("\(self.response.album.trackCount) " + String(localized: "tracks"))
+			Text("\(self.response.album.row.trackCount) " + String(localized: "tracks"))
 		}
 		.font(DTFont.system(16))
 		.foregroundStyle(DTColor.textPrimary.opacity(0.5))
 	}
 
 	private func play(_ track: MediaRow) {
-		PlayerEngine.shared.play(track, queue: self.response.tracks, recordContext: RecordContext(type: .album, refId: self.response.album.id))
+		PlayerEngine.shared.play(track, queue: self.response.tracks, recordContext: RecordContext(type: .album, refId: self.response.album.row.id))
 	}
 
 	private func playAll(shuffle: Bool) {
@@ -128,6 +128,6 @@ private struct LibraryAlbumDetailContent: View {
 		if shuffle {
 			queue.shuffle()
 		}
-		PlayerEngine.shared.play(queue[0], queue: queue, recordContext: RecordContext(type: .album, refId: self.response.album.id))
+		PlayerEngine.shared.play(queue[0], queue: queue, recordContext: RecordContext(type: .album, refId: self.response.album.row.id))
 	}
 }

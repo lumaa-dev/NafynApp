@@ -52,6 +52,17 @@
         }
       }
     },
+    "%@ • %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ • %2$@"
+          }
+        }
+      },
+      "shouldTranslate" : false
+    },
     "%@-%@-month-year" : {
       "comment" : "Month name followed by year, e.g. March 2026",
       "localizations" : {
@@ -181,8 +192,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "%lld %%"
+            "state" : "translated",
+            "value" : "%lld %"
           }
         }
       }
@@ -428,6 +439,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Apparence"
+          }
+        }
+      }
+    },
+    "appearance-duration-footer" : {
+      "comment" : "footer explaining the show-duration toggle in Settings",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show each track's duration in track lists."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afficher la durée de chaque morceau dans les listes de morceaux."
+          }
+        }
+      }
+    },
+    "appearance-file-size-footer" : {
+      "comment" : "footer explaining the show-file-size toggle in Settings, only shown to users who can turn it on",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show each track's file size in track lists."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afficher la taille du fichier de chaque morceau dans les listes de morceaux."
           }
         }
       }
@@ -1484,40 +1529,6 @@
         }
       }
     },
-    "insights-top-artist" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Top artist"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Artiste le plus écouté"
-          }
-        }
-      }
-    },
-    "insights-top-track" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Top track"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Titre le plus écouté"
-          }
-        }
-      }
-    },
     "insights-total-listening" : {
       "localizations" : {
         "en" : {
@@ -2149,6 +2160,38 @@
         }
       }
     },
+    "playing-from" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Playing From"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Lecture depuis"
+          }
+        }
+      }
+    },
+    "playing-next" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Playing Next"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "À suivre"
+          }
+        }
+      }
+    },
     "playlist" : {
       "localizations" : {
         "en" : {
@@ -2530,6 +2573,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Réglages"
+          }
+        }
+      }
+    },
+    "show-duration" : {
+      "comment" : "Settings toggle: show track duration in track lists",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show Duration"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afficher la durée"
+          }
+        }
+      }
+    },
+    "show-file-size" : {
+      "comment" : "Settings toggle: show track file size in track lists",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show File Size"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afficher la taille du fichier"
           }
         }
       }
@@ -2939,6 +3016,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Voir l'album"
+          }
+        }
+      }
+    },
+    "view-artist" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "View Artist"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Voir l'artiste"
           }
         }
       }

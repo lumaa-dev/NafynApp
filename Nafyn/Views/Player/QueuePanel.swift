@@ -6,44 +6,90 @@ import Safyn
 struct QueuePanel: View {
 	var body: some View {
 		List {
-			ForEach(Array(PlayerEngine.shared.queue.enumerated()), id: \.element.id) { index, track in
-				Button {
-					PlayerEngine.shared.play(track, queue: PlayerEngine.shared.queue)
-				} label: {
-					HStack(spacing: 10) {
-						CoverImage(url: track.highResCoverURL, cornerRadius: 6)
-							.frame(width: 44, height: 44)
-
-						VStack(alignment: .leading, spacing: 2) {
-							Text(track.title)
-								.font(DTFont.serif(18))
-								.foregroundStyle(index == PlayerEngine.shared.currentIndex ? DTColor.accentStart : DTColor.textPrimary)
-								.lineLimit(1)
-							Text(track.artistName)
-								.font(DTFont.serif(15))
-								.foregroundStyle(DTColor.textPrimary.opacity(0.5))
-								.lineLimit(1)
-						}
-						Spacer()
-					}
-				}
-				.buttonStyle(.plain)
+			self.header
+				.listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 16, trailing: 0))
 				.listRowBackground(Color.clear)
-				.swipeActions {
-					Button(role: .destructive) {
-						PlayerEngine.shared.removeFromQueue(at: index)
+				.listRowSeparator(.hidden)
+
+			Section {
+				ForEach(Array(PlayerEngine.shared.queue.enumerated()), id: \.element.id) { index, track in
+					Button {
+						PlayerEngine.shared.play(track, queue: PlayerEngine.shared.queue)
 					} label: {
-						Label(String(localized: "remove"), systemImage: "trash")
+						HStack(spacing: 10) {
+							CoverImage(url: track.highResCoverURL, cornerRadius: 6)
+								.frame(width: 44, height: 44)
+
+							VStack(alignment: .leading, spacing: 2) {
+								Text(track.title)
+									.font(DTFont.serif(18))
+									.foregroundStyle(index == PlayerEngine.shared.currentIndex ? DTColor.accentStart : DTColor.textPrimary)
+									.lineLimit(1)
+								Text(track.artistName)
+									.font(DTFont.serif(15))
+									.foregroundStyle(DTColor.textPrimary.opacity(0.5))
+									.lineLimit(1)
+							}
+							Spacer()
+						}
 					}
-					.tint(DTColor.buttonDanger)
+					.buttonStyle(.plain)
+					.listRowBackground(Color.clear)
+					.swipeActions {
+						Button(role: .destructive) {
+							PlayerEngine.shared.removeFromQueue(at: index)
+						} label: {
+							Label(String(localized: "remove"), systemImage: "trash")
+						}
+						.tint(DTColor.buttonDanger)
+					}
 				}
+				.onMove(perform: PlayerEngine.shared.shuffleEnabled ? nil : { source, destination in
+					PlayerEngine.shared.moveInQueue(from: source, to: destination)
+				})
+			} header: {
+				Text("playing-next")
+					.font(DTFont.system(12, weight: .semibold))
+					.foregroundStyle(DTColor.textPrimary.opacity(0.5))
+					.textCase(.uppercase)
 			}
-			.onMove(perform: PlayerEngine.shared.shuffleEnabled ? nil : { source, destination in
-				PlayerEngine.shared.moveInQueue(from: source, to: destination)
-			})
 		}
 		.listStyle(.plain)
 		.scrollContentBackground(.hidden)
 		.scrollEdgeEffectStyle(.soft, for: .all)
+	}
+
+	/// "Playing from {source}" — the source is approximated from the currently-playing track's own
+	/// metadata (album, falling back to artist) rather than the original playlist/album name, since
+	/// `PlayerEngine` only retains that source's ID for play-event reporting, not a display name.
+	@ViewBuilder
+	private var header: some View {
+		if let track = PlayerEngine.shared.currentTrack {
+			HStack(spacing: 10) {
+				RoundedRectangle(cornerRadius: 8, style: .continuous)
+					.fill(DTColor.surfaceSelect)
+					.frame(width: 36, height: 36)
+					.overlay {
+						Image(systemName: "music.note")
+							.font(.system(size: 14))
+							.foregroundStyle(DTColor.textPrimary.opacity(0.6))
+					}
+
+				VStack(alignment: .leading, spacing: 1) {
+					Text("playing-from")
+						.font(DTFont.system(11, weight: .semibold))
+						.foregroundStyle(DTColor.textPrimary.opacity(0.5))
+						.textCase(.uppercase)
+					Text(track.album ?? track.artistName)
+						.font(DTFont.serif(17))
+						.foregroundStyle(DTColor.textPrimary)
+						.lineLimit(1)
+				}
+
+				Spacer()
+
+				SixBandWaveform(tint: DTColor.textPrimary.opacity(0.7))
+			}
+		}
 	}
 }

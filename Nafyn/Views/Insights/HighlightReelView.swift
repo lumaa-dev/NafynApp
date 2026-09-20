@@ -58,6 +58,7 @@ private struct HighlightReelPlayer: View {
 	@State private var slideTask: Task<Void, Never>? = nil
 	@State private var isRequestingVideo = false
 	@State private var toast = ToastState()
+	@State private var containerWidth: CGFloat = 0
 
 	/// Slides without an audio excerpt (intro, stat, outro) hold for this long.
 	private static let defaultSlideSeconds: Double = 5
@@ -89,6 +90,7 @@ private struct HighlightReelPlayer: View {
 		}
 		.toast(self.toast)
 		.contentShape(Rectangle())
+		.onGeometryChange(for: CGFloat.self) { $0.size.width } action: { self.containerWidth = $0 }
 		.onTapGesture { location in
 			self.handleTap(at: location)
 		}
@@ -373,11 +375,6 @@ private struct HighlightReelPlayer: View {
 	}
 
 	private func handleTap(at location: CGPoint) {
-		#if canImport(UIKit)
-		let width = UIScreen.main.bounds.width
-		#else
-		let width: CGFloat = 400
-		#endif
-		self.advance(by: location.x < width / 3 ? -1 : 1)
+		self.advance(by: location.x < self.containerWidth / 3 ? -1 : 1)
 	}
 }

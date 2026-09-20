@@ -89,7 +89,7 @@ final class PlayerEngine: NSObject {
 	private var timeObserver: Any?
 	private var artworkCache: [String: MPMediaItemArtwork] = [:]
 	private var itemObservers: [any NSObjectProtocol] = []
-	private var interruptionObserver: (any NSObjectProtocol)? = nil
+	private var interruptionObservers: [NotificationCenter.ObservationToken] = []
 
 	/// Type-erased storage for `MediaSession<PlayerEngine>` (iOS 27+ only) — the concrete generic type
 	/// can't be named in a stored property that must also compile on older OS versions, since
@@ -129,12 +129,16 @@ final class PlayerEngine: NSObject {
 	/// than only once at launch, and it is never deactivated on pause.
 	private func activateAudioSession() {
 		#if canImport(UIKit) || canImport(AVFAudio)
-		let audioSession = AVAudioSession.sharedInstance()
-		try? audioSession.setCategory(.playback, mode: .default)
-		if #available(iOS 26.0, tvOS 26.0, watchOS 26.0, visionOS 26.0, *) {
-			audioSession.activate { _, _ in }
-		} else {
-			try? audioSession.setActive(true)
+		// `setCategory`/`setActive` can block for disk/IPC work under the hood; SessionCore warns if
+		// they're called on the main thread while the session is active, so they run off it here.
+		Task.detached(priority: .userInitiated) {
+			let audioSession = AVAudioSession.sharedInstance()
+			try? audioSession.setCategory(.playback, mode: .default)
+			if #available(iOS 26.0, tvOS 26.0, watchOS 26.0, visionOS 26.0, *) {
+				audioSession.activate { _, _ in }
+			} else {
+				try? audioSession.setActive(true)
+			}
 		}
 		#endif
 	}
@@ -146,36 +150,33 @@ final class PlayerEngine: NSObject {
 	/// interruption ends and the session isn't re-activated.
 	private func observeAudioInterruptions() {
 		#if canImport(AVFAudio)
-		guard self.interruptionObserver == nil else { return }
+		guard self.interruptionObservers.isEmpty else { return }
 
-		self.interruptionObserver = NotificationCenter.default.addObserver(
-			forName: AVAudioSession.interruptionNotification,
-			object: AVAudioSession.sharedInstance(),
-			queue: .main
-		) { [weak self] notification in
-			guard
-				let self,
-				let rawType = notification.userInfo?[AVAudioSessionInterruptionTypeKey] as? UInt,
-				let type = AVAudioSession.InterruptionType(rawValue: rawType)
-			else { return }
+		let session = AVAudioSession.sharedInstance()
 
-			switch type {
-				case .began:
-					// The system has already paused the player; mirror that so the Now Playing entry
-					// shows a paused — not a stale playing — state.
-					if self.isPlaying {
-						self.isPlaying = false
-						PlayTracker.shared.paused()
-						self.updateNowPlayingInfo()
-					}
-				case .ended:
-					self.activateAudioSession()
-					self.updateNowPlayingInfo()
-					self.reassertNowPlayingSession()
-				@unknown default:
-					break
-			}
+		// The system has already paused the player by the time this fires; mirror that so the Now
+		// Playing entry shows a paused — not a stale playing — state.
+		let inactiveToken = NotificationCenter.default.addObserver(
+			of: session,
+			for: AVAudioSession.DidBecomeInactiveMessage.self
+		) { [weak self] _ in
+			guard let self, self.isPlaying else { return }
+			self.isPlaying = false
+			PlayTracker.shared.paused()
+			self.updateNowPlayingInfo()
 		}
+
+		let resumptionToken = NotificationCenter.default.addObserver(
+			of: session,
+			for: AVAudioSession.ResumptionRecommendationMessage.self
+		) { [weak self] message in
+			guard let self, message.recommendation == .shouldResume else { return }
+			self.activateAudioSession()
+			self.updateNowPlayingInfo()
+			self.reassertNowPlayingSession()
+		}
+
+		self.interruptionObservers = [inactiveToken, resumptionToken]
 		#endif
 	}
 
@@ -346,6 +347,7 @@ final class PlayerEngine: NSObject {
 	func stop() {
 		PlayTracker.shared.finished(completed: false)
 
+		AudioReactivityEngine.shared.detach()
 		self.player?.pause()
 		self.removeTimeObserver()
 		self.itemObservers.forEach(NotificationCenter.default.removeObserver)
@@ -382,6 +384,7 @@ final class PlayerEngine: NSObject {
 		} else {
 			self.player = AVPlayer(playerItem: item)
 		}
+		AudioReactivityEngine.shared.attach(to: item, trackId: track.id)
 
 		// Block-based, delivered on the main queue: AVFoundation posts these from its own internal
 		// queue, and both handlers touch main-actor state (`@Observable` playback properties, and

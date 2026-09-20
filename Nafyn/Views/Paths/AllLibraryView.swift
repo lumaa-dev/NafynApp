@@ -39,7 +39,7 @@ struct AllLibraryView: View {
 	@ViewBuilder
 	private func row(_ entry: LibraryMediaEntry) -> some View {
 		VStack(alignment: .leading, spacing: 6) {
-			TrackRow(title: entry.media.title, subtitle: entry.media.artistName, duration: entry.media.duration)
+			TrackRow(title: entry.media.title, subtitle: entry.media.artistName, duration: entry.media.duration, fileSize: entry.media.fileSize)
 
 			HStack(spacing: 6) {
 				ForEach(entry.owners, id: \.userId) { owner in

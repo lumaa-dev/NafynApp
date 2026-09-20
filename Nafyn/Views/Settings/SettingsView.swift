@@ -59,7 +59,7 @@ private struct SettingsForm: View {
 				.tint(Color.primary)
 			}
 
-			AppearanceSettingsSection()
+			AppearanceSettingsSection(canManageFileSize: self.user.permissions.has(.manageMusic))
 
 			InsightsSettingsSection()
 
@@ -74,7 +74,13 @@ private struct SettingsForm: View {
 }
 
 private struct AppearanceSettingsSection: View {
+	let canManageFileSize: Bool
+
+	@Environment(\.server) private var server: NafynServer?
 	@AppStorage(LyricsPanel.useSystemFontKey) private var lyricsUseSystemFont = false
+
+	@State private var showDuration = DisplayPreferences.shared.showDuration
+	@State private var showFileSize = DisplayPreferences.shared.showFileSize
 
 	private var themeBinding: Binding<AppTheme> {
 		Binding(
@@ -93,6 +99,20 @@ private struct AppearanceSettingsSection: View {
 			}
 
 			Toggle(String(localized: "lyrics-system-font"), isOn: self.$lyricsUseSystemFont)
+
+			Toggle(String(localized: "show-duration"), isOn: self.$showDuration)
+				.onChange(of: self.showDuration) { _, newValue in
+					DisplayPreferences.shared.showDuration = newValue
+					self.pushUpdate(showDuration: newValue)
+				}
+
+			if self.canManageFileSize {
+				Toggle(String(localized: "show-file-size"), isOn: self.$showFileSize)
+					.onChange(of: self.showFileSize) { _, newValue in
+						DisplayPreferences.shared.showFileSize = newValue
+						self.pushUpdate(showFileSize: newValue)
+					}
+			}
 		}
 		header: {
 			Text(String(localized: "appearance"))
@@ -100,7 +120,29 @@ private struct AppearanceSettingsSection: View {
 			VStack(alignment: .leading, spacing: 4) {
 				Text(String(localized: "appearance-theme-footer"))
 				Text(String(localized: "appearance-lyrics-font-footer"))
+				Text(String(localized: "appearance-duration-footer"))
+				if self.canManageFileSize {
+					Text(String(localized: "appearance-file-size-footer"))
+				}
 			}
+		}
+		.task {
+			await self.refreshFromServer()
+		}
+	}
+
+	private func refreshFromServer() async {
+		guard let server else { return }
+		guard let settings = try? await server.send(User.appearanceSettings) as AppearanceSettings else { return }
+		DisplayPreferences.shared.apply(settings)
+		self.showDuration = settings.showDuration
+		self.showFileSize = settings.showFileSize
+	}
+
+	private func pushUpdate(showFileSize: Bool? = nil, showDuration: Bool? = nil) {
+		guard let server else { return }
+		Task {
+			_ = try? await server.send(User.updateAppearanceSettings(showFileSize: showFileSize, showDuration: showDuration)) as AppearanceSettings
 		}
 	}
 }

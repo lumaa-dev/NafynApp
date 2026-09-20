@@ -15,6 +15,7 @@ struct TrackRow<Trailing: View>: View {
 	var title: String
 	var subtitle: String? = nil
 	var duration: TimeInterval
+	var fileSize: Int64? = nil
 	var dimmed: Bool = false
 	var verticalPadding: CGFloat = 6
 	var onTap: (() -> Void)? = nil
@@ -54,9 +55,19 @@ struct TrackRow<Trailing: View>: View {
 
 					Spacer()
 
-					Text(Self.formattedDuration(self.duration))
-						.font(DTFont.system(12).monospacedDigit())
-						.foregroundStyle(DTColor.textPrimary.opacity(0.5))
+					VStack(alignment: .trailing, spacing: 2) {
+						if DisplayPreferences.shared.showFileSize, let fileSize {
+							Text(Self.formattedFileSize(fileSize))
+								.font(DTFont.system(10).monospacedDigit())
+								.foregroundStyle(DTColor.textPrimary.opacity(0.4))
+						}
+
+						if DisplayPreferences.shared.showDuration {
+							Text(Self.formattedDuration(self.duration))
+								.font(DTFont.system(12).monospacedDigit())
+								.foregroundStyle(DTColor.textPrimary.opacity(0.5))
+						}
+					}
 				}
 				.contentShape(Rectangle())
 			}
@@ -72,10 +83,24 @@ struct TrackRow<Trailing: View>: View {
 		let total = Int(duration.rounded())
 		return String(format: "%d:%02d", total / 60, total % 60)
 	}
+
+	static func formattedFileSize(_ bytes: Int64) -> String {
+		TrackRowFormatting.fileSizeFormatter.string(fromByteCount: bytes)
+	}
+}
+
+/// Not nested in `TrackRow` — a generic type can't hold static stored properties.
+private enum TrackRowFormatting {
+	static let fileSizeFormatter: ByteCountFormatter = {
+		let formatter = ByteCountFormatter()
+		formatter.countStyle = .file
+		formatter.allowedUnits = [.useMB, .useKB, .useGB]
+		return formatter
+	}()
 }
 
 extension TrackRow where Trailing == EmptyView {
-	init(coverURL: URL? = nil, index: String? = nil, title: String, subtitle: String? = nil, duration: TimeInterval, dimmed: Bool = false, verticalPadding: CGFloat = 6, onTap: (() -> Void)? = nil) {
-		self.init(coverURL: coverURL, index: index, title: title, subtitle: subtitle, duration: duration, dimmed: dimmed, verticalPadding: verticalPadding, onTap: onTap, trailing: { EmptyView() })
+	init(coverURL: URL? = nil, index: String? = nil, title: String, subtitle: String? = nil, duration: TimeInterval, fileSize: Int64? = nil, dimmed: Bool = false, verticalPadding: CGFloat = 6, onTap: (() -> Void)? = nil) {
+		self.init(coverURL: coverURL, index: index, title: title, subtitle: subtitle, duration: duration, fileSize: fileSize, dimmed: dimmed, verticalPadding: verticalPadding, onTap: onTap, trailing: { EmptyView() })
 	}
 }

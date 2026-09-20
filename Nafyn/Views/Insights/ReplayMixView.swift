@@ -54,6 +54,7 @@ private struct ReplayMixContent: View {
 							title: entry.media?.title ?? entry.title ?? entry.trackId,
 							subtitle: entry.media?.artistName ?? entry.subtitle,
 							duration: entry.media?.duration ?? 0,
+							fileSize: entry.media?.fileSize,
 							dimmed: !entry.available
 						) {
 							self.play(entry)

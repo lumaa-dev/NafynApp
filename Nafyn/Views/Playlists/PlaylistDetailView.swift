@@ -177,7 +177,7 @@ private struct PlaylistDetailContent: View {
 
 	private func trackRows(for paginator: Paginator<PlaylistEntry>) -> some DynamicViewContent {
 		ForEach(paginator.items) { entry in
-			TrackRow(coverURL: entry.media.coverArt.flatMap { URL(string: $0) }, title: entry.media.title, subtitle: entry.media.artistName, duration: entry.media.duration) {
+			TrackRow(coverURL: entry.media.coverArt.flatMap { URL(string: $0) }, title: entry.media.title, subtitle: entry.media.artistName, duration: entry.media.duration, fileSize: entry.media.fileSize) {
 				self.play(entry, in: paginator.items)
 			}
 			.listRowBackground(Color.clear)

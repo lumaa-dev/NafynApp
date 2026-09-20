@@ -34,9 +34,11 @@ private struct LenientAlbumDetail: Decodable {
 	let description: String?
 	let label: String?
 	let tracks: [LenientTrackInfo]
+	let imageColors: [String]?
+	let textColor: String?
 
 	var resolved: AlbumDetail {
-		AlbumDetail(id: id, releaseId: releaseId, title: title, artist: artist, type: type, coverArt: coverArt, releaseDate: releaseDate, description: description, label: label, tracks: tracks.compactMap { $0.resolved })
+		AlbumDetail(id: id, releaseId: releaseId, title: title, artist: artist, type: type, coverArt: coverArt, releaseDate: releaseDate, description: description, label: label, tracks: tracks.compactMap { $0.resolved }, imageColors: imageColors ?? [], textColor: textColor ?? "#FFFFFF")
 	}
 }
 

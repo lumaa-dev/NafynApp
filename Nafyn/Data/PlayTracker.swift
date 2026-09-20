@@ -70,11 +70,13 @@ final class PlayTracker {
 			object: nil,
 			queue: .main
 		) { [weak self] _ in
-			guard let self else { return }
-			// Close the open session first: a backgrounded app may never come back, and an event that
-			// was only ever held in memory would be lost with it.
-			self.checkpointSession()
-			Task { await self.flush() }
+			MainActor.assumeIsolated {
+				guard let self else { return }
+				// Close the open session first: a backgrounded app may never come back, and an event
+				// that was only ever held in memory would be lost with it.
+				self.checkpointSession()
+				Task { await self.flush() }
+			}
 		}
 		#endif
 	}
