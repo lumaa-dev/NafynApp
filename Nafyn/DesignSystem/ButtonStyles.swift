@@ -14,6 +14,8 @@ struct FilledButtonStyle: ButtonStyle {
 		configuration.label
 			.font(DTFont.serif(20))
 			.foregroundStyle(danger ? DTColor.textPrimary : .black)
+			.lineLimit(1)
+			.truncationMode(.tail)
 			.padding(.vertical, DTSpacing.buttonVertical)
 			.padding(.horizontal, DTSpacing.buttonHorizontal)
 			.background(configuration.isPressed ? hover : base, in: Capsule())
@@ -34,6 +36,8 @@ struct HollowButtonStyle: ButtonStyle {
 		configuration.label
 			.font(DTFont.serif(20))
 			.foregroundStyle(DTColor.textPrimary)
+			.lineLimit(1)
+			.truncationMode(.tail)
 			.padding(.vertical, DTSpacing.buttonVertical)
 			.padding(.horizontal, DTSpacing.buttonHorizontal)
 			.background(Capsule().fill(.clear))

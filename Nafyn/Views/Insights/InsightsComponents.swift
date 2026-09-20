@@ -174,6 +174,7 @@ private struct InsightsGateProgress: View {
 			.foregroundStyle(DTColor.textPrimary.opacity(0.55))
 
 			ProgressView(value: Double(min(self.current, self.needed)), total: Double(max(self.needed, 1)))
+				.tint(DTColor.textPrimary)
 		}
 	}
 }

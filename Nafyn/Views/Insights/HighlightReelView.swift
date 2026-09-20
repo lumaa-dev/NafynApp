@@ -24,6 +24,7 @@ struct HighlightReelView: View {
 				ZStack {
 					DTColor.background.ignoresSafeArea()
 					ProgressView()
+						.tint(DTColor.textPrimary)
 				}
 			)
 		} content: { reel, reload in
@@ -120,11 +121,11 @@ private struct HighlightReelPlayer: View {
 					.blur(radius: 40)
 					.overlay(Color.black.opacity(0.45))
 			} placeholder: {
-				DTColor.accentGradient
+				Rectangle().fill(DTColor.accentGradient)
 			}
 			.ignoresSafeArea()
 		} else {
-			DTColor.accentGradient
+			Rectangle().fill(DTColor.accentGradient)
 				.ignoresSafeArea()
 		}
 	}
@@ -257,6 +258,7 @@ private struct HighlightReelPlayer: View {
 		} label: {
 			if self.isRequestingVideo {
 				ProgressView()
+					.tint(DTColor.textPrimary)
 					.frame(maxWidth: .infinity)
 			} else {
 				Label(String(localized: "insights-render-video"), systemImage: "film")

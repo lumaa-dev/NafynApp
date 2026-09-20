@@ -76,6 +76,7 @@ struct AddTracksToPlaylistSheet: View {
 
 				if self.addingId == track.id {
 					ProgressView()
+						.tint(DTColor.textPrimary)
 				} else if alreadyIn {
 					Image(systemName: "checkmark.circle.fill")
 						.foregroundStyle(DTColor.statusSuccess)

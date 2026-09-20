@@ -136,6 +136,23 @@
         }
       }
     },
+    "%lld-minutes" : {
+      "comment" : "Plain minute count, e.g. the share-card recap total (Insights)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld minutes"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld minutes"
+          }
+        }
+      }
+    },
     "%lld-minutes-short" : {
       "comment" : "Short duration, minutes only (Insights)",
       "localizations" : {
@@ -1468,6 +1485,7 @@
       }
     },
     "insights-top-artist" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1484,6 +1502,7 @@
       }
     },
     "insights-top-track" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1852,9 +1871,6 @@
           }
         }
       }
-    },
-    "Nafyn" : {
-      "shouldTranslate" : false
     },
     "new-playlist" : {
       "localizations" : {

@@ -149,29 +149,52 @@ struct NowPlayingView: View {
 
 	@ViewBuilder
 	private var transportControls: some View {
-		HStack(spacing: 40) {
+		HStack {
+			Button {
+				PlayerEngine.shared.toggleShuffle()
+			} label: {
+				Image(systemName: "shuffle")
+					.font(.body)
+					.foregroundStyle(PlayerEngine.shared.shuffleEnabled ? DTColor.accentStart : DTColor.textPrimary.opacity(0.6))
+			}
+			.frame(maxWidth: .infinity)
+
 			Button {
 				PlayerEngine.shared.prev()
 			} label: {
 				Image(systemName: "backward.fill")
 					.font(.title2)
+					.foregroundStyle(DTColor.textPrimary)
 			}
+			.frame(maxWidth: .infinity)
 
 			Button {
 				PlayerEngine.shared.togglePlay()
 			} label: {
 				Image(systemName: PlayerEngine.shared.isPlaying ? "pause.circle.fill" : "play.circle.fill")
 					.font(.system(size: 52))
+					.foregroundStyle(DTColor.textPrimary)
 			}
+			.frame(maxWidth: .infinity)
 
 			Button {
 				PlayerEngine.shared.next()
 			} label: {
 				Image(systemName: "forward.fill")
 					.font(.title2)
+					.foregroundStyle(DTColor.textPrimary)
 			}
+			.frame(maxWidth: .infinity)
+
+			Button {
+				PlayerEngine.shared.repeatMode = PlayerEngine.shared.repeatMode.next
+			} label: {
+				Image(systemName: PlayerEngine.shared.repeatMode == .track ? "repeat.1" : "repeat")
+					.font(.body)
+					.foregroundStyle(PlayerEngine.shared.repeatMode == .off ? DTColor.textPrimary.opacity(0.6) : DTColor.accentStart)
+			}
+			.frame(maxWidth: .infinity)
 		}
-		.foregroundStyle(DTColor.textPrimary)
 	}
 
 	/// Toggleable queue/lyrics buttons, mirroring Apple Music's now-playing bottom row rather than the

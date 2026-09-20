@@ -10,7 +10,10 @@ struct QueuePanel: View {
 				Button {
 					PlayerEngine.shared.play(track, queue: PlayerEngine.shared.queue)
 				} label: {
-					HStack {
+					HStack(spacing: 10) {
+						CoverImage(url: track.highResCoverURL, cornerRadius: 6)
+							.frame(width: 44, height: 44)
+
 						VStack(alignment: .leading, spacing: 2) {
 							Text(track.title)
 								.font(DTFont.serif(18))
@@ -35,6 +38,9 @@ struct QueuePanel: View {
 					.tint(DTColor.buttonDanger)
 				}
 			}
+			.onMove(perform: PlayerEngine.shared.shuffleEnabled ? nil : { source, destination in
+				PlayerEngine.shared.moveInQueue(from: source, to: destination)
+			})
 		}
 		.listStyle(.plain)
 		.scrollContentBackground(.hidden)

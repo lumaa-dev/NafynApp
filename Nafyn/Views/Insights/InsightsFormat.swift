@@ -73,9 +73,9 @@ enum InsightsFormat {
 	}
 
 	/// A `YYYY-MM-DD` day identifier printed as a short day-of-month label.
-	static func dayLabel(_ identifier: String) -> String {
-		guard let day = identifier.split(separator: "-").last, let value = Int(day) else { return identifier }
-		return String(value)
+	static func dayLabel(_ identifier: String) -> Int {
+		guard let day = identifier.split(separator: "-").last, let value = Int(day) else { return Int(identifier) ?? 0 }
+		return value
 	}
 
 	/// An hour of day (`0...23`) printed in the user's locale, e.g. "14" or "2 PM".

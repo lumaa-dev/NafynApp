@@ -34,6 +34,15 @@ enum RepeatMode {
 	case off
 	case queue
 	case track
+
+	/// Cycles off → queue → track → off, for a single toggle button.
+	var next: RepeatMode {
+		switch self {
+			case .off: .queue
+			case .queue: .track
+			case .track: .off
+		}
+	}
 }
 
 /// Global singleton audio engine, mirroring the web app's `usePlayer.ts`: one shared player that
@@ -60,7 +69,15 @@ final class PlayerEngine: NSObject {
 	private(set) var duration: TimeInterval = 0
 	private(set) var lastError: String? = nil
 	var isExpanded = false
-	var repeatMode: RepeatMode = .off
+	var repeatMode: RepeatMode = .off {
+		didSet { self.mirrorRepeatShuffleToRemoteCommands() }
+	}
+	private(set) var shuffleEnabled = false
+
+	/// Queue indices in shuffled playback order, current track pinned first — only consulted by
+	/// `next()`/`prev()` while `shuffleEnabled` is `true`. Recomputed on toggle and on any queue mutation
+	/// while shuffle stays on, so it's always in sync with `queue`'s current contents.
+	private var shuffledOrder: [Int] = []
 
 	var currentTrack: MediaRow? {
 		self.queue.indices.contains(self.currentIndex) ? self.queue[self.currentIndex] : nil
@@ -176,6 +193,10 @@ final class PlayerEngine: NSObject {
 		self.playSource = recordContext.map(\.playEventSource) ?? .library
 		self.playPlaylistId = recordContext.flatMap { $0.type == .playlist ? $0.refId : nil }
 
+		if self.shuffleEnabled {
+			self.reshuffle()
+		}
+
 		self.startCurrentItem()
 
 		if let recordContext {
@@ -204,6 +225,20 @@ final class PlayerEngine: NSObject {
 	func next() {
 		guard !self.queue.isEmpty else { return }
 
+		if self.shuffleEnabled {
+			guard let position = self.shuffledOrder.firstIndex(of: self.currentIndex) else { return }
+			if position + 1 < self.shuffledOrder.count {
+				self.currentIndex = self.shuffledOrder[position + 1]
+			} else if self.repeatMode == .queue {
+				self.currentIndex = self.shuffledOrder[0]
+			} else {
+				self.stop()
+				return
+			}
+			self.startCurrentItem()
+			return
+		}
+
 		if self.currentIndex + 1 < self.queue.count {
 			self.currentIndex += 1
 		} else if self.repeatMode == .queue {
@@ -223,11 +258,62 @@ final class PlayerEngine: NSObject {
 			return
 		}
 
+		if self.shuffleEnabled {
+			guard let position = self.shuffledOrder.firstIndex(of: self.currentIndex) else { return }
+			if position - 1 >= 0 {
+				self.currentIndex = self.shuffledOrder[position - 1]
+				self.startCurrentItem()
+			} else {
+				self.seek(to: 0)
+			}
+			return
+		}
+
 		if self.currentIndex - 1 >= 0 {
 			self.currentIndex -= 1
 			self.startCurrentItem()
 		} else {
 			self.seek(to: 0)
+		}
+	}
+
+	/// Toggles shuffle, recomputing `shuffledOrder` when turning it on.
+	func toggleShuffle() {
+		self.shuffleEnabled.toggle()
+		if self.shuffleEnabled {
+			self.reshuffle()
+		}
+		self.mirrorRepeatShuffleToRemoteCommands()
+	}
+
+	/// Fisher-Yates-shuffles every queue index except the currently-playing one, which stays pinned first
+	/// so enabling shuffle never jumps playback.
+	private func reshuffle() {
+		guard !self.queue.isEmpty else { self.shuffledOrder = []; return }
+		var rest = Array(self.queue.indices).filter { $0 != self.currentIndex }
+		rest.shuffle()
+		self.shuffledOrder = self.queue.indices.contains(self.currentIndex) ? [self.currentIndex] + rest : rest
+	}
+
+	/// Reorders the queue, keeping the currently-playing track's identity (not its index) as the source of
+	/// truth for `currentIndex` afterward — correct for any move, single or multi-item, without needing to
+	/// track index shifts by hand. `Array.move(fromOffsets:toOffset:)` lives in SwiftUI, which this pure
+	/// data-layer file deliberately doesn't import, so the same semantics are reimplemented manually here.
+	func moveInQueue(from source: IndexSet, to destination: Int) {
+		let playingId = self.currentTrack?.id
+
+		let itemsToMove = source.map { self.queue[$0] }
+		for index in source.sorted(by: >) {
+			self.queue.remove(at: index)
+		}
+		let adjustedDestination = destination - source.filter { $0 < destination }.count
+		self.queue.insert(contentsOf: itemsToMove, at: adjustedDestination)
+
+		if let playingId, let newIndex = self.queue.firstIndex(where: { $0.id == playingId }) {
+			self.currentIndex = newIndex
+		}
+		if self.shuffleEnabled {
+			self.reshuffle()
 		}
 	}
 
@@ -248,7 +334,12 @@ final class PlayerEngine: NSObject {
 				self.startCurrentItem()
 			} else {
 				self.stop()
+				return
 			}
+		}
+
+		if self.shuffleEnabled {
+			self.reshuffle()
 		}
 	}
 
@@ -265,6 +356,7 @@ final class PlayerEngine: NSObject {
 		self.duration = 0
 		self.queue = []
 		self.currentIndex = -1
+		self.shuffledOrder = []
 
 		// On iOS 27+, `content`/`playbackSnapshot` above already become `nil` now that `currentTrack`
 		// is `nil` — `MediaSession` observes that automatically and clears the system's Now Playing UI.
@@ -417,6 +509,8 @@ final class PlayerEngine: NSObject {
 		center.nextTrackCommand.isEnabled = true
 		center.previousTrackCommand.isEnabled = true
 		center.changePlaybackPositionCommand.isEnabled = true
+		center.changeRepeatModeCommand.isEnabled = true
+		center.changeShuffleModeCommand.isEnabled = true
 
 		center.playCommand.addTarget { [weak self] _ in
 			self?.remotePlay()
@@ -443,6 +537,41 @@ final class PlayerEngine: NSObject {
 			self?.seek(to: event.positionTime)
 			return .success
 		}
+		center.changeRepeatModeCommand.addTarget { [weak self] event in
+			guard let event = event as? MPChangeRepeatModeCommandEvent else { return .commandFailed }
+			switch event.repeatType {
+				case .off: self?.repeatMode = .off
+				case .all: self?.repeatMode = .queue
+				case .one: self?.repeatMode = .track
+				@unknown default: break
+			}
+			return .success
+		}
+		center.changeShuffleModeCommand.addTarget { [weak self] event in
+			guard let event = event as? MPChangeShuffleModeCommandEvent, let self else { return .commandFailed }
+			if (event.shuffleType != .off) != self.shuffleEnabled {
+				self.toggleShuffle()
+			}
+			return .success
+		}
+
+		self.mirrorRepeatShuffleToRemoteCommands()
+	}
+
+	/// Mirrors `repeatMode`/`shuffleEnabled` into the legacy command center so Control Center/lock-screen
+	/// glyphs reflect in-app state (and app-initiated changes don't look stale remotely). No-op on iOS 27+,
+	/// where `MediaSession` doesn't expose repeat/shuffle commands to mirror into.
+	private func mirrorRepeatShuffleToRemoteCommands() {
+		guard #unavailable(iOS 27.0, tvOS 27.0, watchOS 27.0, visionOS 27.0) else { return }
+		guard self.didConfigureRemoteCommands else { return }
+
+		let center = MPRemoteCommandCenter.shared()
+		center.changeRepeatModeCommand.currentRepeatType = switch self.repeatMode {
+			case .off: .off
+			case .queue: .all
+			case .track: .one
+		}
+		center.changeShuffleModeCommand.currentShuffleType = self.shuffleEnabled ? .items : .off
 	}
 
 	private func updateNowPlayingInfo() {
@@ -563,6 +692,9 @@ extension PlayerEngine: MediaSessionRepresentable {
 		return MediaPlaybackSnapshot(state: state, defaultPlaybackRate: 1.0, elapsedTime: self.currentTime, timestamp: .now)
 	}
 
+	// `NowPlaying`/`MediaSession` (this framework) has no repeat/shuffle `MediaCommand` case as of iOS 27 —
+	// unlike the legacy path below, repeat/shuffle here are in-app-only controls with no lock-screen/
+	// Control Center remote-command counterpart to wire up.
 	var commands: [MediaCommand] {
 		[
 			.play { [weak self] in self?.remotePlay() },

@@ -57,6 +57,7 @@ struct AllLibraryView: View {
 							.padding(.vertical, 3)
 							.background(DTColor.surfaceInput, in: Capsule())
 					}
+					.tint(Color.primary)
 				}
 			}
 		}

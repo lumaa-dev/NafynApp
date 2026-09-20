@@ -28,6 +28,7 @@ struct AddToPlaylistSheet: View {
 								Spacer()
 								if self.addingTo == playlist.id {
 									ProgressView()
+										.tint(DTColor.textPrimary)
 								}
 							}
 						}

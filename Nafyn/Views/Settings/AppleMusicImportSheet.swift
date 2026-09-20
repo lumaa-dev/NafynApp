@@ -129,6 +129,7 @@ struct AppleMusicImportSheet: View {
 
 			ProgressView(value: progress, total: max(total, 1))
 				.progressViewStyle(.linear)
+				.tint(DTColor.textPrimary)
 				.padding(.horizontal, 32)
 
 			Text(step.message)

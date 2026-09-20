@@ -47,6 +47,7 @@ struct InsightsSettingsSection: View {
 						if self.isExporting {
 							Spacer()
 							ProgressView()
+								.tint(DTColor.textPrimary)
 						}
 					}
 				}

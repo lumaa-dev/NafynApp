@@ -28,6 +28,7 @@ struct RootView: View {
 			if isLoading {
 				ProgressView()
 					.progressViewStyle(.circular)
+					.tint(DTColor.textPrimary)
 			} else if let server {
 				self.tabs
 				.environment(\.server, server)

@@ -44,11 +44,7 @@ private struct SettingsForm: View {
 			.tint(Color.primary)
 
 			if self.user.permissions.has(.manageAccounts) {
-				NavigationLink {
-					SettingsSectionScreen(title: String(localized: "accounts")) {
-						AccountsSettingsSection()
-					}
-				} label: {
+				NavigationLink(value: Navigator.Paths.settingsAccounts) {
 					Label(String(localized: "accounts"), systemImage: "person.2")
 						.foregroundStyle(Color.primary)
 				}
@@ -56,11 +52,7 @@ private struct SettingsForm: View {
 			}
 
 			if self.user.permissions.has(.manageMusic) {
-				NavigationLink {
-					SettingsSectionScreen(title: String(localized: "storage")) {
-						StorageSettingsSection()
-					}
-				} label: {
+				NavigationLink(value: Navigator.Paths.settingsStorage) {
 					Label(String(localized: "storage"), systemImage: "internaldrive")
 						.foregroundStyle(Color.primary)
 				}
@@ -266,6 +258,7 @@ private struct AddLocalAccountSheet: View {
 					} label: {
 						if self.isSaving {
 							ProgressView()
+								.tint(DTColor.textPrimary)
 						} else {
 							Text(String(localized: "save"))
 						}
@@ -336,9 +329,11 @@ private struct AddLocalAccountSheet: View {
 	}
 }
 
-/// Hosts one of the major settings sections (profile/accounts/storage) as its own pushed screen, since
-/// each is a `Section`-returning view meant to live inside a `Form`.
-private struct SettingsSectionScreen<Content: View>: View {
+/// Hosts one of the major settings sections (accounts/storage, plus profile inline) as its own pushed
+/// screen, since each is a `Section`-returning view meant to live inside a `Form`. Not `private` — the
+/// accounts/storage cases are constructed from `Navigator.Paths.view` in `Navigator.swift`, since they
+/// need to be typed pushes on the tab's own stack (see that file's `.settingsAccounts`/`.settingsStorage`).
+struct SettingsSectionScreen<Content: View>: View {
 	let title: String
 	@ViewBuilder let content: () -> Content
 

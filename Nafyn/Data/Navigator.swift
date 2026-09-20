@@ -22,12 +22,17 @@ final class Navigator {
 		self.sheet = nil
 	}
 
+	/// Pushes `path` onto the current tab's stack. If `path` is already somewhere in that stack, everything
+	/// after it is dropped instead of appending a duplicate — so re-sending an already-visited path pops
+	/// back to it rather than growing the stack with a second copy.
 	func send(to path: Navigator.Paths) {
-		if self.currentPath[self.currentTab] != nil {
-			self.currentPath[self.currentTab]?.append(path)
+		var stack = self.currentPath[self.currentTab] ?? []
+		if let existingIndex = stack.firstIndex(of: path) {
+			stack.removeSubrange((existingIndex + 1)...)
 		} else {
-			self.currentPath[self.currentTab] = [path]
+			stack.append(path)
 		}
+		self.currentPath[self.currentTab] = stack
 	}
 
 	enum Tabs: String, Hashable, Viewable {
@@ -75,6 +80,8 @@ final class Navigator {
 		case myPlaylists
 		case everyoneLibrary
 		case settings
+		case settingsAccounts
+		case settingsStorage
 		case users
 		case musicYear(year: Int?)
 		case monthlyInsights(month: String?)
@@ -107,6 +114,14 @@ final class Navigator {
 					AnyView(AllLibraryView())
 				case .settings:
 					AnyView(SettingsView())
+				case .settingsAccounts:
+					AnyView(SettingsSectionScreen(title: String(localized: "accounts")) {
+						AccountsSettingsSection()
+					})
+				case .settingsStorage:
+					AnyView(SettingsSectionScreen(title: String(localized: "storage")) {
+						StorageSettingsSection()
+					})
 				case .users:
 					AnyView(UsersAdminView())
 				case .musicYear(let year):

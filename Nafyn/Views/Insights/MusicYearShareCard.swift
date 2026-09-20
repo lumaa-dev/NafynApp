@@ -3,110 +3,194 @@
 import SwiftUI
 import Safyn
 
-/// The square card rendered into an image for sharing a year's highlights.
+/// A period-agnostic snapshot of what a recap share card shows, decoupled from `YearlyInsights`/
+/// `MonthlyInsights` directly so one card view serves both.
+struct RecapSummary {
+	/// "September" (month name only, no year) for a monthly recap, or "2026" for a yearly one.
+	let title: String
+	let totalMinutes: Int
+	/// Up to 3 top artists.
+	let topArtists: [RankedEntity]
+	/// Up to 3 top tracks.
+	let topTracks: [RankedEntity]
+	/// Up to 3 top albums.
+	let topAlbums: [RankedEntity]
+
+	init(yearly: YearlyInsights) {
+		self.title = String(yearly.year)
+		self.totalMinutes = yearly.totals.totalMinutes
+		self.topArtists = Array((yearly.top.artist ?? []).prefix(3))
+		self.topTracks = Array((yearly.top.track ?? []).prefix(3))
+		self.topAlbums = Array((yearly.top.album ?? []).prefix(3))
+	}
+
+	init(monthly: MonthlyInsights) {
+		let parts = monthly.month.split(separator: "-")
+		let month = parts.count == 2 ? Int(parts[1]) ?? 1 : 1
+		self.title = InsightsFormat.monthName(month)
+		self.totalMinutes = monthly.totals.totalMinutes
+		self.topArtists = Array((monthly.top.artist ?? []).prefix(3))
+		self.topTracks = Array((monthly.top.track ?? []).prefix(3))
+		self.topAlbums = Array((monthly.top.album ?? []).prefix(3))
+	}
+}
+
+/// The square card rendered into an image for sharing a recap's highlights — the same card serves both
+/// the monthly and yearly recaps, driven entirely by ``RecapSummary``.
 ///
 /// Rendered off-screen through `ImageRenderer`, which draws only what it can resolve synchronously —
 /// `AsyncImage` would come out blank, so cover art is fetched up front by ``loadCovers(for:)`` and
 /// handed in as already-decoded images.
 struct MusicYearShareCard: View {
-	let insights: YearlyInsights
+	let summary: RecapSummary
 	#if canImport(UIKit)
-	let covers: [UIImage]
+	let covers: [String: UIImage]
 	#else
-	let covers: [Never]
+	let covers: [String: Never]
 	#endif
 
 	private static let side: CGFloat = 400
+	private static let thumbnailSpacing: CGFloat = 8
 
 	var body: some View {
-		VStack(alignment: .leading, spacing: 18) {
-			VStack(alignment: .leading, spacing: 2) {
-				Text(String(localized: "music-year"))
-					.font(DTFont.system(14, weight: .medium))
-					.foregroundStyle(DTColor.textPrimary.opacity(0.6))
+		VStack(alignment: .leading, spacing: 4) {
+			HStack {
+				VStack(alignment: .leading, spacing: 0) {
+					Text(self.summary.title)
+						.font(DTFont.serif(56))
+						.foregroundStyle(DTColor.textPrimary)
+						.multilineTextAlignment(.leading)
+						.frame(maxWidth: .infinity, alignment: .leading)
 
-				Text(String(self.insights.year))
-					.font(DTFont.serif(56))
+					Text(String(localized: "\(self.summary.totalMinutes)-minutes"))
+						.font(DTFont.system(15))
+						.foregroundStyle(DTColor.textPrimary.opacity(0.55))
+						.padding(.bottom, 14)
+						.multilineTextAlignment(.leading)
+						.frame(maxWidth: .infinity, alignment: .leading)
+				}
+
+				Text(String("Nafyn"))
+					.font(DTFont.serifItalic(14))
 					.foregroundStyle(DTColor.textPrimary)
+					.lineLimit(1)
 			}
 
-			self.coverStrip
+			HStack(alignment: .top, spacing: 16) {
+				self.list
 
-			VStack(alignment: .leading, spacing: 10) {
-				self.line(
-					value: InsightsFormat.minutes(self.insights.totals.totalMinutes),
-					caption: String(localized: "insights-total-listening")
-				)
-
-				if let topTrack = self.insights.top.track?.first {
-					self.line(value: topTrack.title ?? topTrack.entityId, caption: String(localized: "insights-top-track"))
-				}
-
-				if let topArtist = self.insights.top.artist?.first {
-					self.line(value: topArtist.title ?? topArtist.entityId, caption: String(localized: "insights-top-artist"))
-				}
+				self.thumbnails
+					.frame(width: 96)
 			}
-
-			Spacer(minLength: 0)
-
-			Text("Nafyn")
-				.font(DTFont.serifItalic(20))
-				.foregroundStyle(DTColor.textPrimary.opacity(0.5))
 		}
 		.padding(28)
-		.frame(width: Self.side, height: Self.side, alignment: .leading)
+		.frame(width: Self.side, alignment: .leading)
 		.background(DTColor.background)
 	}
 
+	// MARK: - Left column: text-only ranked list
+
 	@ContentBuilder
-	private var coverStrip: some View {
+	private var list: some View {
+		VStack(alignment: .leading, spacing: 10) {
+			Text("top-artists")
+				.font(DTFont.serifItalic(23))
+				.foregroundStyle(DTColor.textPrimary)
+				.lineLimit(1)
+				.padding(.top, 12)
+
+			ForEach(self.summary.topArtists, id: \.entityId) { entity in
+				self.row(entity)
+			}
+
+			Text("top-tracks")
+				.font(DTFont.serifItalic(23))
+				.foregroundStyle(DTColor.textPrimary)
+				.lineLimit(1)
+				.padding(.top, 12)
+
+			ForEach(self.summary.topTracks, id: \.entityId) { entity in
+				self.row(entity)
+			}
+
+			Text("top-albums")
+				.font(DTFont.serifItalic(23))
+				.foregroundStyle(DTColor.textPrimary)
+				.lineLimit(1)
+				.padding(.top, 12)
+
+			ForEach(self.summary.topAlbums, id: \.entityId) { entity in
+				self.row(entity)
+			}
+		}
+		.frame(maxWidth: .infinity, alignment: .leading)
+	}
+
+	@ContentBuilder
+	private func row(_ entity: RankedEntity) -> some View {
+		Text(entity.title ?? entity.entityId)
+			.font(DTFont.system(14))
+			.foregroundStyle(DTColor.textPrimary)
+			.lineLimit(1)
+	}
+
+	// MARK: - Right column: 3 stacked big thumbnails, #1 of each kind
+
+	@ContentBuilder
+	private var thumbnails: some View {
 		#if canImport(UIKit)
-		if !self.covers.isEmpty {
-			HStack(spacing: 8) {
-				ForEach(Array(self.covers.prefix(4).enumerated()), id: \.offset) { _, cover in
-					Image(uiImage: cover)
-						.resizable()
-						.scaledToFill()
-						.frame(width: 74, height: 74)
-						.clipShape(RoundedRectangle(cornerRadius: 10))
-				}
+		GeometryReader { proxy in
+			let height = (proxy.size.height - Self.thumbnailSpacing * 2) / 3
+
+			VStack(spacing: Self.thumbnailSpacing) {
+				self.thumbnail(for: self.summary.topArtists.first, height: height, shape: AnyShape(.circle))
+				self.thumbnail(for: self.summary.topTracks.first, height: height, shape: AnyShape(RoundedRectangle(cornerRadius: 10)))
+				self.thumbnail(for: self.summary.topAlbums.first, height: height, shape: AnyShape(RoundedRectangle(cornerRadius: 10)))
 			}
 		}
 		#endif
 	}
 
+	#if canImport(UIKit)
 	@ContentBuilder
-	private func line(value: String, caption: String) -> some View {
-		VStack(alignment: .leading, spacing: 1) {
-			Text(caption)
-				.font(DTFont.system(11))
-				.foregroundStyle(DTColor.textPrimary.opacity(0.5))
-
-			Text(value)
-				.font(DTFont.serif(24))
-				.foregroundStyle(DTColor.textPrimary)
-				.lineLimit(1)
-				.minimumScaleFactor(0.6)
+	private func thumbnail(for entity: RankedEntity?, height: CGFloat, shape: AnyShape) -> some View {
+		if let entity, let image = self.covers[entity.entityId] {
+			Image(uiImage: image)
+				.resizable()
+				.scaledToFill()
+				.frame(width: height, height: height)
+				.clipShape(shape)
+		} else {
+			shape
+				.fill(DTColor.surfaceSelect)
+				.frame(width: height, height: height)
 		}
 	}
 
-	#if canImport(UIKit)
-	/// Downloads the artwork for the card's cover strip: the year's top tracks, falling back to its top
-	/// albums when tracks carry no cover.
-	static func loadCovers(for insights: YearlyInsights) async -> [UIImage] {
-		let urls = ((insights.top.track ?? []) + (insights.top.album ?? []))
-			.compactMap { $0.cover.flatMap(URL.init(string:)) }
-			.prefix(4)
+	/// Downloads the artwork for the card's 3 big thumbnails: the #1 artist/track/album, keyed by
+	/// `entityId` so a shared entity (unlikely across kinds, but naturally deduped) is fetched once.
+	///
+	/// All up-to-9 unique covers (3 artists + 3 tracks + 3 albums) are fetched concurrently via a
+	/// `TaskGroup` rather than a serial loop.
+	static func loadCovers(for summary: RecapSummary) async -> [String: UIImage] {
+		let entities = summary.topArtists + summary.topTracks + summary.topAlbums
+		var seen = Set<String>()
+		let unique = entities.filter { seen.insert($0.entityId).inserted }
 
-		var images: [UIImage] = []
-		for url in urls {
-			guard
-				let (data, _) = try? await URLSession.shared.data(from: url),
-				let image = UIImage(data: data)
-			else { continue }
-			images.append(image)
+		return await withTaskGroup(of: (String, UIImage?).self) { group in
+			for entity in unique {
+				group.addTask {
+					guard let url = entity.cover.flatMap(URL.init(string:)), let (data, _) = try? await URLSession.shared.data(from: url), let image = UIImage(data: data) else { return (entity.entityId, nil) }
+					return (entity.entityId, image)
+				}
+			}
+
+			var result: [String: UIImage] = [:]
+			for await (id, image) in group {
+				if let image { result[id] = image }
+			}
+			return result
 		}
-		return images
 	}
 	#endif
 }

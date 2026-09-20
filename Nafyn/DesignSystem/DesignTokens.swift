@@ -61,12 +61,11 @@ enum DTColor {
 		isSystemTheme ? Color.accentColor.opacity(0.2) : Color(hex: "1F6AFF", opacity: 0.2)
 	}
 
-	static var accentGradient: LinearGradient {
-		LinearGradient(
-			colors: [accentStart, accentEnd],
-			startPoint: .top,
-			endPoint: .bottom
-		)
+	/// A genuine shaded gradient (varies luminance/saturation), not a same-hue opacity fade — see the
+	/// chart-gradient rule in CLAUDE.md. Used for `Chart` marks, distinct from `accentStart`/`accentEnd`
+	/// which are plain UI tint colors used elsewhere at reduced opacity.
+	static var accentGradient: AnyGradient {
+		isSystemTheme ? Color.accentColor.gradient : Color(hex: "2E74FF").gradient
 	}
 
 	static var statusWaiting: Color { isSystemTheme ? Color.yellow : Color(hex: "E0C666") }

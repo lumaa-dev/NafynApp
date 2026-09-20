@@ -24,6 +24,7 @@ struct StorageSettingsSection: View {
 				if let info {
 					VStack(alignment: .leading, spacing: 12) {
 						ProgressView(value: info.usedByNafynBytes, total: max(info.totalBytes, 1))
+							.tint(DTColor.textPrimary)
 
 						Text("\(self.formatted(info.usedByNafynBytes)) / \(self.formatted(info.totalBytes))")
 							.font(.footnote)

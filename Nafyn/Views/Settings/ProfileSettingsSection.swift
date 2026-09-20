@@ -59,6 +59,7 @@ struct ProfileSettingsSection: View {
 									.fill(.black.opacity(0.4))
 									.frame(width: 84, height: 84)
 								ProgressView()
+									.tint(DTColor.textPrimary)
 							}
 						}
 					}
