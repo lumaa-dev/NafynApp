@@ -10,6 +10,14 @@ struct RootView: View {
 	@State private var isLoading: Bool = false
 	@State private var server: NafynServer? = nil
 
+	/// `AuthInfo.id` of the account `server` is currently authenticated as — compared against
+	/// `defaultAuthId` to detect an account switch from Settings (see that `onChange` below).
+	@State private var activeAuthId: String? = nil
+
+	private var defaultAuthId: String? {
+		self.auth.first(where: { $0.defaultAuth })?.id
+	}
+
 	@State private var onboarding: OnboardingView.OnboardingSteps = .welcome
 	@Namespace private var playerZoomNamespace
 
@@ -46,11 +54,6 @@ struct RootView: View {
 					Navigator.shared.sheet?.view
 						.environment(\.server, server)
 				}
-				.onAppear {
-					PlayerEngine.shared.configure(server: server)
-					PlayTracker.shared.configure(server: server)
-					UnityEngine.shared.configure(server: server)
-				}
 			} else {
 				OnboardingView(onboarding: $onboarding)
 			}
@@ -62,6 +65,24 @@ struct RootView: View {
 		}
 		.onChange(of: self.onboarding) { _, newValue in
 			guard newValue == .complete else { return }
+
+			Task {
+				await self.attemptLogin()
+			}
+		}
+		.onChange(of: self.defaultAuthId) { _, newValue in
+			// `LocalAccountsSettingsSection.activate(_:)` only flips `AuthInfo.defaultAuth` flags in
+			// SwiftData — it doesn't know about `server`, so switching accounts there left the app
+			// talking to the previously-active `NafynServer`/token until relaunch. Tearing `server`
+			// down and re-running `attemptLogin()` here is what actually swaps the live connection.
+			guard newValue != self.activeAuthId else { return }
+			self.isLoading = true
+			self.server = nil
+
+			// Both are tied to the outgoing account's token/session; left running they'd keep
+			// streaming/publishing against the server we're about to leave.
+			PlayerEngine.shared.stop()
+			UnityEngine.shared.disconnect()
 
 			Task {
 				await self.attemptLogin()
@@ -135,9 +156,10 @@ struct RootView: View {
 		defer { self.isLoading = false }
 		self.isLoading = true
 
-		guard auth.count > 0 && self.server == nil else { return }
+		guard auth.count > 0 else { return }
 
 		var s: NafynServer? = nil
+		var activatedId: String? = nil
 		let sort: [AuthInfo] = auth.sorted(by: { return $0.defaultAuth && !$1.defaultAuth })
 
 		for a in sort {
@@ -145,10 +167,18 @@ struct RootView: View {
 
 			if let serv: NafynServer = try? await self.tryLogin(auth: a) {
 				s = serv
+				activatedId = a.id
 			}
 		}
 
 		self.server = s
+		self.activeAuthId = activatedId
+
+		if let s {
+			PlayerEngine.shared.configure(server: s)
+			PlayTracker.shared.configure(server: s)
+			UnityEngine.shared.configure(server: s)
+		}
 	}
 
 	private func getMe(_ server: NafynServer) async -> Bool {
