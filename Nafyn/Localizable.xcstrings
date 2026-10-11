@@ -1,3089 +1,3201 @@
 {
-  "sourceLanguage" : "en",
-  "strings" : {
-    "·" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "·"
+  "sourceLanguage": "en",
+  "strings": {
+    "%@ / %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "%1$@ / %2$@"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "·"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ / %2$@"
           }
         }
-      },
-      "shouldTranslate" : false
+      }
     },
-    "@%@" : {
-      "comment" : "@username handle format, e.g. @johndoe (UsersAdminView)",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "@%@"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "@%@"
+    "%@ • %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "%1$@ • %2$@"
           }
         }
       },
-      "shouldTranslate" : false
+      "shouldTranslate": false
     },
-    "%@ / %@" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "%1$@ / %2$@"
+    "%@-%@-month-year": {
+      "comment": "Month name followed by year, e.g. March 2026",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ %2$@"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$@ / %2$@"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ %2$@"
           }
         }
       }
     },
-    "%@ • %@" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "%1$@ • %2$@"
-          }
-        }
-      },
-      "shouldTranslate" : false
-    },
-    "%@-%@-month-year" : {
-      "comment" : "Month name followed by year, e.g. March 2026",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$@ %2$@"
+    "%@/s": {
+      "comment": "download speed unit, e.g. 3.2 MB/s",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@/s"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$@ %2$@"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@/s"
           }
         }
       }
     },
-    "%@/s" : {
-      "comment" : "download speed unit, e.g. 3.2 MB/s",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@/s"
+    "%lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@/s"
-          }
-        }
-      }
-    },
-    "%lld" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld"
           }
         }
       },
-      "shouldTranslate" : false
+      "shouldTranslate": false
     },
-    "%lld-days" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld days"
+    "%lld-days": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld days"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld jours"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld jours"
           }
         }
       }
     },
-    "%lld-hours-%lld-minutes-short" : {
-      "comment" : "Short duration, hours and minutes (Insights)",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$lld h %2$lld min"
+    "%lld-hours-%lld-minutes-short": {
+      "comment": "Short duration, hours and minutes (Insights)",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld h %2$lld min"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$lld h %2$lld min"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld h %2$lld min"
           }
         }
       }
     },
-    "%lld-minutes" : {
-      "comment" : "Plain minute count, e.g. the share-card recap total (Insights)",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld minutes"
+    "%lld-minutes": {
+      "comment": "Plain minute count, e.g. the share-card recap total (Insights)",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld minutes"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld minutes"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld minutes"
           }
         }
       }
     },
-    "%lld-minutes-short" : {
-      "comment" : "Short duration, minutes only (Insights)",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld min"
+    "%lld-minutes-short": {
+      "comment": "Short duration, minutes only (Insights)",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld min"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld min"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld min"
           }
         }
       }
     },
-    "%lld-percent" : {
-      "comment" : "Percentage change against the previous period (Insights)",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld%"
+    "%lld-percent": {
+      "comment": "Percentage change against the previous period (Insights)",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld%"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld %"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld %"
           }
         }
       }
     },
-    "%lld-plays" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld plays"
+    "%lld-plays": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld plays"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld écoutes"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld écoutes"
           }
         }
       }
     },
-    "%lld-tracks-count" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld tracks"
+    "%lld-tracks-count": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld tracks"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld titres"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld titres"
           }
         }
       }
     },
-    "•" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "•"
+    "@%@": {
+      "comment": "@username handle format, e.g. @johndoe (UsersAdminView)",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "@%@"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "•"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "@%@"
           }
         }
       },
-      "shouldTranslate" : false
+      "shouldTranslate": false
     },
-    "accounts" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Accounts"
+    "accounts": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accounts"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Comptes"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comptes"
           }
         }
       }
     },
-    "add-account" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Add Account"
+    "add-account": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add Account"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ajouter un compte"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajouter un compte"
           }
         }
       }
     },
-    "add-to-playlist" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Add to Playlist"
+    "add-to-playlist": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add to Playlist"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ajouter à la playlist"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajouter à la playlist"
           }
         }
       }
     },
-    "add-tracks" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Add Tracks"
+    "add-tracks": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add Tracks"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ajouter des titres"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajouter des titres"
           }
         }
       }
     },
-    "added-by" : {
-      "comment" : "playlist sort mode: sort tracks by who added them",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Added By"
+    "added-by": {
+      "comment": "playlist sort mode: sort tracks by who added them",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Added By"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ajouté par"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajouté par"
           }
         }
       }
     },
-    "album" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Album"
+    "album": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Album"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Album"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Album"
           }
         }
       }
     },
-    "albums" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Albums"
+    "albums": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Albums"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Albums"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Albums"
           }
         }
       }
     },
-    "all" : {
-      "comment" : "search filter: all result types",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "All"
+    "all": {
+      "comment": "search filter: all result types",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tout"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tout"
           }
         }
       }
     },
-    "api-tokens" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "API Tokens"
+    "api-tokens": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "API Tokens"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Jetons API"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jetons API"
           }
         }
       }
     },
-    "app-accounts" : {
-      "comment" : "footer text under the in-app accounts section (SettingsView) listing saved server logins",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "App Accounts"
+    "app-accounts": {
+      "comment": "footer text under the in-app accounts section (SettingsView) listing saved server logins",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "App Accounts"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Comptes de l'app"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comptes de l'app"
           }
         }
       }
     },
-    "app-accounts-footer" : {
-      "comment" : "explains that these are locally saved logins, not server-side accounts",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Accounts saved on this device. Switch between them without signing in again."
+    "app-accounts-footer": {
+      "comment": "explains that these are locally saved logins, not server-side accounts",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accounts saved on this device. Switch between them without signing in again."
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Comptes enregistrés sur cet appareil. Basculez entre eux sans vous reconnecter."
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comptes enregistrés sur cet appareil. Basculez entre eux sans vous reconnecter."
           }
         }
       }
     },
-    "appearance" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Appearance"
+    "appearance": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Appearance"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Apparence"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apparence"
           }
         }
       }
     },
-    "appearance-duration-footer" : {
-      "comment" : "footer explaining the show-duration toggle in Settings",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Show each track's duration in track lists."
+    "appearance-duration-footer": {
+      "comment": "footer explaining the show-duration toggle in Settings",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show each track's duration in track lists."
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Afficher la durée de chaque morceau dans les listes de morceaux."
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Afficher la durée de chaque morceau dans les listes de morceaux."
           }
         }
       }
     },
-    "appearance-file-size-footer" : {
-      "comment" : "footer explaining the show-file-size toggle in Settings, only shown to users who can turn it on",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Show each track's file size in track lists."
+    "appearance-file-size-footer": {
+      "comment": "footer explaining the show-file-size toggle in Settings, only shown to users who can turn it on",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show each track's file size in track lists."
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Afficher la taille du fichier de chaque morceau dans les listes de morceaux."
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Afficher la taille du fichier de chaque morceau dans les listes de morceaux."
           }
         }
       }
     },
-    "appearance-lyrics-font-footer" : {
-      "comment" : "footer explaining the lyrics system-font toggle in Settings",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Use the system font for lyrics instead of the app's default font."
+    "appearance-lyrics-font-footer": {
+      "comment": "footer explaining the lyrics system-font toggle in Settings",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use the system font for lyrics instead of the app's default font."
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Utiliser la police système pour les paroles à la place de la police par défaut de l'app."
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Utiliser la police système pour les paroles à la place de la police par défaut de l'app."
           }
         }
       }
     },
-    "appearance-theme-footer" : {
-      "comment" : "footer explaining the theme picker in Settings",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Choose the accent theme used throughout the app."
+    "appearance-theme-footer": {
+      "comment": "footer explaining the theme picker in Settings",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose the accent theme used throughout the app."
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Choisissez le thème d'accentuation utilisé dans toute l'app."
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choisissez le thème d'accentuation utilisé dans toute l'app."
           }
         }
       }
     },
-    "artist" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Artist"
+    "artist": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Artist"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Artiste"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Artiste"
           }
         }
       }
     },
-    "artists" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Artists"
+    "artists": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Artists"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Artistes"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Artistes"
           }
         }
       }
     },
-    "bytes" : {
-      "comment" : "internal SectorMark data key for the storage usage chart (StorageSettingsSection), not directly shown to users",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bytes"
+    "bytes": {
+      "comment": "internal SectorMark data key for the storage usage chart (StorageSettingsSection), not directly shown to users",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bytes"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Octets"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Octets"
           }
         }
       }
     },
-    "cancel" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cancel"
+    "cancel": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Annuler"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annuler"
           }
         }
       }
     },
-    "close" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Close"
+    "close": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fermer"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fermer"
           }
         }
       }
     },
-    "create" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Create"
+    "create": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Create"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Créer"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Créer"
           }
         }
       }
     },
-    "create-api-token" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Create API Token"
+    "create-api-token": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Create API Token"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Créer un jeton API"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Créer un jeton API"
           }
         }
       }
     },
-    "create-invite-token" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Create Invite Token"
+    "create-invite-token": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Create Invite Token"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Créer un jeton d'invitation"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Créer un jeton d'invitation"
           }
         }
       }
     },
-    "day" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Day"
+    "day": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Day"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Jour"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jour"
           }
         }
       }
     },
-    "delete" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Delete"
+    "delete": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Supprimer"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Supprimer"
           }
         }
       }
     },
-    "delete-account" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Delete Account"
+    "delete-account": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete Account"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Supprimer le compte"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Supprimer le compte"
           }
         }
       }
     },
-    "delete-account-confirm" : {
-      "comment" : "confirmation dialog title when an admin deletes a user account (UsersAdminView)",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Delete this account? This cannot be undone."
+    "delete-account-confirm": {
+      "comment": "confirmation dialog title when an admin deletes a user account (UsersAdminView)",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete this account? This cannot be undone."
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Supprimer ce compte ? Cette action est irréversible."
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Supprimer ce compte ? Cette action est irréversible."
           }
         }
       }
     },
-    "delete-playlist-confirm" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Delete this playlist? This cannot be undone."
+    "delete-playlist-confirm": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete this playlist? This cannot be undone."
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Supprimer cette playlist ? Cette action est irréversible."
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Supprimer cette playlist ? Cette action est irréversible."
           }
         }
       }
     },
-    "delete-track-confirm" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Delete this track? This cannot be undone."
+    "delete-track-confirm": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete this track? This cannot be undone."
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Supprimer ce titre ? Cette action est irréversible."
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Supprimer ce titre ? Cette action est irréversible."
           }
         }
       }
     },
-    "description" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Description"
+    "description": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Description"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Description"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Description"
           }
         }
       }
     },
-    "discography" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Discography"
+    "discography": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Discography"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Discographie"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Discographie"
           }
         }
       }
     },
-    "discogs-username" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Discogs Username"
+    "discogs-username": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Discogs Username"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nom d'utilisateur Discogs"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nom d'utilisateur Discogs"
           }
         }
       }
     },
-    "display-name" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Display Name"
+    "display-name": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Display Name"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nom affiché"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nom affiché"
           }
         }
       }
     },
-    "done" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Done"
+    "done": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Done"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Terminé"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Terminé"
           }
         }
       }
     },
-    "duration" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Duration"
+    "duration": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Duration"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Durée"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Durée"
           }
         }
       }
     },
-    "edit" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Edit"
+    "edit": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Modifier"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modifier"
           }
         }
       }
     },
-    "edit-playlist" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Edit Playlist"
+    "edit-playlist": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit Playlist"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Modifier la playlist"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modifier la playlist"
           }
         }
       }
     },
-    "ep" : {
-      "comment" : "release type abbreviation, kept as-is for both languages (AlbumDetailView)",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "EP"
+    "ep": {
+      "comment": "release type abbreviation, kept as-is for both languages (AlbumDetailView)",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "EP"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "EP"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "EP"
           }
         }
       }
     },
-    "error" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Error"
+    "error": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Error"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Erreur"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erreur"
           }
         }
       }
     },
-    "error-apple-music-denied" : {
-      "comment" : "shown when Apple Music library access permission is denied during import (AppleMusicImportSheet)",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Apple Music access was denied. Allow access in Settings to import your library."
+    "error-apple-music-denied": {
+      "comment": "shown when Apple Music library access permission is denied during import (AppleMusicImportSheet)",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple Music access was denied. Allow access in Settings to import your library."
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "L'accès à Apple Music a été refusé. Autorisez l'accès dans Réglages pour importer votre bibliothèque."
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L'accès à Apple Music a été refusé. Autorisez l'accès dans Réglages pour importer votre bibliothèque."
           }
         }
       }
     },
-    "error-import-isrc" : {
-      "comment" : "shown when fetching ISRC codes fails during Apple Music import (AppleMusicImportSheet)",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Failed to fetch track identifiers. Please try again."
+    "error-import-isrc": {
+      "comment": "shown when fetching ISRC codes fails during Apple Music import (AppleMusicImportSheet)",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Failed to fetch track identifiers. Please try again."
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Échec de la récupération des identifiants des titres. Veuillez réessayer."
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Échec de la récupération des identifiants des titres. Veuillez réessayer."
           }
         }
       }
     },
-    "error-unauthenticated" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "You are not signed in."
+    "error-unauthenticated": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You are not signed in."
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vous n'êtes pas connecté."
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vous n'êtes pas connecté."
           }
         }
       }
     },
-    "everyone-library" : {
-      "comment" : "navigation title for the shared library view showing all users' tracks (AllLibraryView)",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Everyone's Library"
+    "everyone-library": {
+      "comment": "navigation title for the shared library view showing all users' tracks (AllLibraryView)",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Everyone's Library"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bibliothèque de tous"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bibliothèque de tous"
           }
         }
       }
     },
-    "filter" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Filter"
+    "filter": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filter"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Filtrer"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filtrer"
           }
         }
       }
     },
-    "home" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Home"
+    "home": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Home"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Accueil"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accueil"
           }
         }
       }
     },
-    "hour" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Hour"
+    "hour": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hour"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Heure"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heure"
           }
         }
       }
     },
-    "import" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Import"
+    "import": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Importer"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Importer"
           }
         }
       }
     },
-    "import-apple-music" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Import Apple Music"
+    "import-apple-music": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import Apple Music"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Importer depuis Apple Music"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Importer depuis Apple Music"
           }
         }
       }
     },
-    "import-apple-music-footer" : {
-      "comment" : "footer explaining the Apple Music library import feature (AppleMusicImportSection)",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Import your Apple Music library and request matching tracks from the server."
+    "import-apple-music-footer": {
+      "comment": "footer explaining the Apple Music library import feature (AppleMusicImportSection)",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import your Apple Music library and request matching tracks from the server."
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Importez votre bibliothèque Apple Music et demandez les titres correspondants sur le serveur."
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Importez votre bibliothèque Apple Music et demandez les titres correspondants sur le serveur."
           }
         }
       }
     },
-    "import-complete" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Import Complete"
+    "import-complete": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import Complete"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Importation terminée"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Importation terminée"
           }
         }
       }
     },
-    "import-step-create-requests" : {
-      "comment" : "Apple Music import progress step label (AppleMusicImportSheet)",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Creating requests…"
+    "import-step-create-requests": {
+      "comment": "Apple Music import progress step label (AppleMusicImportSheet)",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Creating requests…"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Création des demandes…"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Création des demandes…"
           }
         }
       }
     },
-    "import-step-fetch-isrc" : {
-      "comment" : "Apple Music import progress step label (AppleMusicImportSheet)",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fetching track identifiers…"
+    "import-step-fetch-isrc": {
+      "comment": "Apple Music import progress step label (AppleMusicImportSheet)",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fetching track identifiers…"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Récupération des identifiants des titres…"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Récupération des identifiants des titres…"
           }
         }
       }
     },
-    "import-step-fetch-songs" : {
-      "comment" : "Apple Music import progress step label (AppleMusicImportSheet)",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fetching songs…"
+    "import-step-fetch-songs": {
+      "comment": "Apple Music import progress step label (AppleMusicImportSheet)",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fetching songs…"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Récupération des titres…"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Récupération des titres…"
           }
         }
       }
     },
-    "insights" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Insights"
+    "insights": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Insights"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Statistiques"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Statistiques"
           }
         }
       }
     },
-    "insights-by-day" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "By day"
+    "insights-by-day": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "By day"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Par jour"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Par jour"
           }
         }
       }
     },
-    "insights-by-hour" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "By hour"
+    "insights-by-hour": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "By hour"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Par heure"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Par heure"
           }
         }
       }
     },
-    "insights-by-month" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "By month"
+    "insights-by-month": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "By month"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Par mois"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Par mois"
           }
         }
       }
     },
-    "insights-compare" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Compare years"
+    "insights-compare": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compare years"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Comparer les années"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comparer les années"
           }
         }
       }
     },
-    "insights-delete-history" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Delete listening history"
+    "insights-delete-history": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete listening history"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Supprimer l’historique d’écoute"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Supprimer l’historique d’écoute"
           }
         }
       }
     },
-    "insights-delete-history-confirm" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "This permanently erases every play, ranking, Replay Mix and highlight reel. It can’t be undone."
+    "insights-delete-history-confirm": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This permanently erases every play, ranking, Replay Mix and highlight reel. It can’t be undone."
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cela efface définitivement toutes les écoutes, classements, Replay Mix et temps forts. C’est irréversible."
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cela efface définitivement toutes les écoutes, classements, Replay Mix et temps forts. C’est irréversible."
           }
         }
       }
     },
-    "insights-delete-history-footer" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Deleting your history is irreversible. Turning the setting off stops new plays being recorded but keeps what’s already there."
+    "insights-delete-history-footer": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deleting your history is irreversible. Turning the setting off stops new plays being recorded but keeps what’s already there."
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "La suppression de l’historique est irréversible. Désactiver l’option arrête l’enregistrement des nouvelles écoutes sans effacer les précédentes."
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La suppression de l’historique est irréversible. Désactiver l’option arrête l’enregistrement des nouvelles écoutes sans effacer les précédentes."
           }
         }
       }
     },
-    "insights-export" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Export listening data"
+    "insights-export": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Export listening data"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Exporter les données d’écoute"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exporter les données d’écoute"
           }
         }
       }
     },
-    "insights-first-ever" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "First heard this period"
+    "insights-first-ever": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "First heard this period"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Découvert sur cette période"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Découvert sur cette période"
           }
         }
       }
     },
-    "insights-gate-minutes" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Minutes listened"
+    "insights-gate-minutes": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Minutes listened"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Minutes écoutées"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Minutes écoutées"
           }
         }
       }
     },
-    "insights-gate-tracks" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Different tracks"
+    "insights-gate-tracks": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Different tracks"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Titres différents"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Titres différents"
           }
         }
       }
     },
-    "insights-history-deleted" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Listening history deleted"
+    "insights-history-deleted": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Listening history deleted"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Historique d’écoute supprimé"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Historique d’écoute supprimé"
           }
         }
       }
     },
-    "insights-longest-streak" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Longest streak"
+    "insights-longest-streak": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Longest streak"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Plus longue série"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plus longue série"
           }
         }
       }
     },
-    "insights-no-data" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No listening data yet."
+    "insights-no-data": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No listening data yet."
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aucune donnée d’écoute pour l’instant."
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucune donnée d’écoute pour l’instant."
           }
         }
       }
     },
-    "insights-not-enough-body" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "There isn’t enough listening yet to build a ranking for this period."
+    "insights-not-enough-body": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "There isn’t enough listening yet to build a ranking for this period."
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Il n’y a pas encore assez d’écoutes pour établir un classement sur cette période."
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il n’y a pas encore assez d’écoutes pour établir un classement sur cette période."
           }
         }
       }
     },
-    "insights-not-enough-title" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Keep listening"
+    "insights-not-enough-title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep listening"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Continuez d’écouter"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continuez d’écouter"
           }
         }
       }
     },
-    "insights-peak-hour-%@" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "You listen most around %@."
+    "insights-peak-hour-%@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You listen most around %@."
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vous écoutez surtout vers %@."
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vous écoutez surtout vers %@."
           }
         }
       }
     },
-    "insights-play-reel" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Play highlights"
+    "insights-play-reel": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Play highlights"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Voir les temps forts"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voir les temps forts"
           }
         }
       }
     },
-    "insights-reel-failed" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "The video couldn’t be created."
+    "insights-reel-failed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The video couldn’t be created."
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "La vidéo n’a pas pu être créée."
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La vidéo n’a pas pu être créée."
           }
         }
       }
     },
-    "insights-reel-rendering" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Your video is being created…"
+    "insights-reel-rendering": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your video is being created…"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Votre vidéo est en cours de création…"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Votre vidéo est en cours de création…"
           }
         }
       }
     },
-    "insights-render-video" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Create video"
+    "insights-render-video": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Create video"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Créer la vidéo"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Créer la vidéo"
           }
         }
       }
     },
-    "insights-share" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Share"
+    "insights-share": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Share"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Partager"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Partager"
           }
         }
       }
     },
-    "insights-share-video" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Share video"
+    "insights-share-video": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Share video"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Partager la vidéo"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Partager la vidéo"
           }
         }
       }
     },
-    "insights-snapshot" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Final results for this year"
+    "insights-snapshot": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Final results for this year"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Résultats définitifs de cette année"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Résultats définitifs de cette année"
           }
         }
       }
     },
-    "insights-total-listening" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Listening time"
+    "insights-total-listening": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Listening time"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Temps d’écoute"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Temps d’écoute"
           }
         }
       }
     },
-    "insights-total-plays" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Plays"
+    "insights-total-plays": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plays"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Écoutes"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Écoutes"
           }
         }
       }
     },
-    "insights-totals" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Totals"
+    "insights-totals": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Totals"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Totaux"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Totaux"
           }
         }
       }
     },
-    "insights-unique-albums" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Albums"
+    "insights-unique-albums": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Albums"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Albums"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Albums"
           }
         }
       }
     },
-    "insights-unique-artists" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Artists"
+    "insights-unique-artists": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Artists"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Artistes"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Artistes"
           }
         }
       }
     },
-    "insights-unique-tracks" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tracks"
+    "insights-unique-tracks": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tracks"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Titres"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Titres"
           }
         }
       }
     },
-    "lastfm-username" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Last.fm Username"
+    "lastfm-username": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last.fm Username"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nom d'utilisateur Last.fm"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nom d'utilisateur Last.fm"
           }
         }
       }
     },
-    "leave" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Leave"
+    "leave": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leave"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Quitter"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quitter"
           }
         }
       }
     },
-    "leave-playlist-confirm" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Leave this playlist? You will lose access unless invited again."
+    "leave-playlist-confirm": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leave this playlist? You will lose access unless invited again."
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Quitter cette playlist ? Vous perdrez l'accès sauf si vous êtes invité à nouveau."
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quitter cette playlist ? Vous perdrez l'accès sauf si vous êtes invité à nouveau."
           }
         }
       }
     },
-    "library" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Library"
+    "library": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Library"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bibliothèque"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bibliothèque"
           }
         }
       }
     },
-    "listeners %lld" : {
-      "comment" : "artist page: number of listeners, e.g. \"1,204 listeners\" (ArtistDetailView)",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$lld listeners"
+    "listeners %lld": {
+      "comment": "artist page: number of listeners, e.g. \"1,204 listeners\" (ArtistDetailView)",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld listeners"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$lld auditeurs"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld auditeurs"
           }
         }
       }
     },
-    "listening-history" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Listening history"
+    "listening-history": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Listening history"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Historique d’écoute"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Historique d’écoute"
           }
         }
       }
     },
-    "listening-history-footer" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Records what you play so Nafyn can build your monthly and yearly summaries, and your Replay Mixes."
+    "listening-history-footer": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Records what you play so Nafyn can build your monthly and yearly summaries, and your Replay Mixes."
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Enregistre vos écoutes pour que Nafyn puisse établir vos bilans mensuels et annuels, ainsi que vos Replay Mix."
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enregistre vos écoutes pour que Nafyn puisse établir vos bilans mensuels et annuels, ainsi que vos Replay Mix."
           }
         }
       }
     },
-    "lyrics-system-font" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "System Font for Lyrics"
+    "lyrics-system-font": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "System Font for Lyrics"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Police système pour les paroles"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Police système pour les paroles"
           }
         }
       }
     },
-    "manage-users" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Manage Users"
+    "manage-users": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manage Users"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Gérer les utilisateurs"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gérer les utilisateurs"
           }
         }
       }
     },
-    "manual" : {
-      "comment" : "playlist sort mode: manual/custom order (PlaylistDetailView, PlaylistEditSheet)",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Manual"
+    "manual": {
+      "comment": "playlist sort mode: manual/custom order (PlaylistDetailView, PlaylistEditSheet)",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manual"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Manuel"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manuel"
           }
         }
       }
     },
-    "members" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Members"
+    "members": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Members"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Membres"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Membres"
           }
         }
       }
     },
-    "minutes" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Minutes"
+    "minutes": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Minutes"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Minutes"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Minutes"
           }
         }
       }
     },
-    "month" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Month"
+    "month": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Month"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mois"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mois"
           }
         }
       }
     },
-    "monthly-summary" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Monthly summary"
+    "monthly-summary": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Monthly summary"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bilan mensuel"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bilan mensuel"
           }
         }
       }
     },
-    "music-year" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "My Year"
+    "music-year": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My Year"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mon année"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mon année"
           }
         }
       }
     },
-    "music-year-subtitle" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "The music you listened to most."
+    "music-year-subtitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The music you listened to most."
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "La musique que vous avez le plus écoutée."
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La musique que vous avez le plus écoutée."
           }
         }
       }
     },
-    "new-playlist" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "New Playlist"
+    "new-playlist": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New Playlist"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nouvelle playlist"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nouvelle playlist"
           }
         }
       }
     },
-    "no-playlists" : {
-      "comment" : "empty state when the user has no Apple Music playlists to import (AppleMusicImportSheet)",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No Playlists"
+    "no-playlists": {
+      "comment": "empty state when the user has no Apple Music playlists to import (AppleMusicImportSheet)",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No Playlists"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aucune playlist"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucune playlist"
           }
         }
       }
     },
-    "no-results" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No Results"
+    "no-results": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No Results"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aucun résultat"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucun résultat"
           }
         }
       }
     },
-    "nothing-playing" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nothing Playing"
+    "nothing-playing": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nothing Playing"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aucune lecture en cours"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucune lecture en cours"
           }
         }
       }
     },
-    "onboarding.complete" : {
-      "comment" : "onboarding final step: description text",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "You're all set. Start exploring your library."
+    "onboarding.complete": {
+      "comment": "onboarding final step: description text",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You're all set. Start exploring your library."
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tout est prêt. Commencez à explorer votre bibliothèque."
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tout est prêt. Commencez à explorer votre bibliothèque."
           }
         }
       }
     },
-    "onboarding.complete.title" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "All Set"
+    "onboarding.complete.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All Set"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tout est prêt"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tout est prêt"
           }
         }
       }
     },
-    "onboarding.login" : {
-      "comment" : "onboarding login step: description text",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sign in with your account to continue."
+    "onboarding.login": {
+      "comment": "onboarding login step: description text",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in with your account to continue."
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Connectez-vous avec votre compte pour continuer."
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connectez-vous avec votre compte pour continuer."
           }
         }
       }
     },
-    "onboarding.login.title" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sign In"
+    "onboarding.login.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign In"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Connexion"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connexion"
           }
         }
       }
     },
-    "onboarding.next" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Next"
+    "onboarding.next": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Next"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Suivant"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suivant"
           }
         }
       }
     },
-    "onboarding.server" : {
-      "comment" : "onboarding server step: description text",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Enter the address of your Nafyn server to get started."
+    "onboarding.server": {
+      "comment": "onboarding server step: description text",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter the address of your Nafyn server to get started."
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Entrez l'adresse de votre serveur Nafyn pour commencer."
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entrez l'adresse de votre serveur Nafyn pour commencer."
           }
         }
       }
     },
-    "onboarding.server.title" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Server"
+    "onboarding.server.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Server"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Serveur"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Serveur"
           }
         }
       }
     },
-    "onboarding.welcome" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Welcome"
+    "onboarding.welcome": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Welcome"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bienvenue"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bienvenue"
           }
         }
       }
     },
-    "open-registration" : {
-      "comment" : "server admin toggle: allow anyone to self-register without an invite token (AccountsSettingsSection)",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Open Registration"
+    "open-registration": {
+      "comment": "server admin toggle: allow anyone to self-register without an invite token (AccountsSettingsSection)",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open Registration"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Inscription ouverte"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inscription ouverte"
           }
         }
       }
     },
-    "owner" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Owner"
+    "owner": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Owner"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Propriétaire"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Propriétaire"
           }
         }
       }
     },
-    "password" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Password"
+    "password": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Password"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mot de passe"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mot de passe"
           }
         }
       }
     },
-    "permissions" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Permissions"
+    "permissions": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Permissions"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Autorisations"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Autorisations"
           }
         }
       }
     },
-    "play" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Play"
+    "play": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Play"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Lecture"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lecture"
           }
         }
       }
     },
-    "playing-from" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "machine_translated",
-            "value" : "Playing From"
+    "playing-from": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "machine_translated",
+            "value": "Playing From"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "machine_translated",
-            "value" : "Lecture depuis"
+        "fr": {
+          "stringUnit": {
+            "state": "machine_translated",
+            "value": "Lecture depuis"
           }
         }
       }
     },
-    "playing-next" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "machine_translated",
-            "value" : "Playing Next"
+    "playing-next": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "machine_translated",
+            "value": "Playing Next"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "machine_translated",
-            "value" : "À suivre"
+        "fr": {
+          "stringUnit": {
+            "state": "machine_translated",
+            "value": "À suivre"
           }
         }
       }
     },
-    "playlist" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Playlist"
+    "playlist": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Playlist"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Playlist"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Playlist"
           }
         }
       }
     },
-    "playlists" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Playlists"
+    "playlists": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Playlists"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Playlists"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Playlists"
           }
         }
       }
     },
-    "privacy" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Privacy"
+    "privacy": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Privacy"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Confidentialité"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confidentialité"
           }
         }
       }
     },
-    "private" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Private"
+    "private": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Private"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Privé"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Privé"
           }
         }
       }
     },
-    "profile" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Profile"
+    "profile": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profile"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Profil"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profil"
           }
         }
       }
     },
-    "public" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Public"
+    "public": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Public"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Public"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Public"
           }
         }
       }
     },
-    "recently-played" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Recently Played"
+    "recently-played": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recently Played"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Écoutés récemment"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Écoutés récemment"
           }
         }
       }
     },
-    "remove" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Remove"
+    "remove": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Retirer"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retirer"
           }
         }
       }
     },
-    "replay-mix" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Replay Mix"
+    "replay-mix": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Replay Mix"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Replay Mix"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Replay Mix"
           }
         }
       }
     },
-    "replay-mix-all-time" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "All-Time"
+    "replay-mix-all-time": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All-Time"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Depuis toujours"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Depuis toujours"
           }
         }
       }
     },
-    "replay-mix-frozen-%@" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Frozen %@"
+    "replay-mix-frozen-%@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Frozen %@"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Figé %@"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Figé %@"
           }
         }
       }
     },
-    "replay-mix-readonly" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Replay Mixes are built automatically and can’t be edited."
+    "replay-mix-readonly": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Replay Mixes are built automatically and can’t be edited."
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Les Replay Mix sont générés automatiquement et ne peuvent pas être modifiés."
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les Replay Mix sont générés automatiquement et ne peuvent pas être modifiés."
           }
         }
       }
     },
-    "replay-mix-refreshed-%@" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Updated %@"
+    "replay-mix-refreshed-%@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Updated %@"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mis à jour %@"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mis à jour %@"
           }
         }
       }
     },
-    "replay-mix-unavailable" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No longer in your library"
+    "replay-mix-unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No longer in your library"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "N’est plus dans votre bibliothèque"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "N’est plus dans votre bibliothèque"
           }
         }
       }
     },
-    "request" : {
-      "comment" : "button to request a track/album be added to the server library (AlbumDetailView, TrackDetailView)",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Request"
+    "request": {
+      "comment": "button to request a track/album be added to the server library (AlbumDetailView, TrackDetailView)",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Request"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Demander"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Demander"
           }
         }
       }
     },
-    "request-sent" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Request Sent"
+    "request-sent": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Request Sent"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Demande envoyée"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Demande envoyée"
           }
         }
       }
     },
-    "requests" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Requests"
+    "requests": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Requests"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Demandes"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Demandes"
           }
         }
       }
     },
-    "retry" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Retry"
+    "retry": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Réessayer"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Réessayer"
           }
         }
       }
     },
-    "save" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Save"
+    "save": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Enregistrer"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enregistrer"
           }
         }
       }
     },
-    "saved" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Saved"
+    "saved": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Enregistré"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enregistré"
           }
         }
       }
     },
-    "search" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Search"
+    "search": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Rechercher"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rechercher"
           }
         }
       }
     },
-    "see-all" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "See all"
+    "see-all": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "See all"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tout voir"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tout voir"
           }
         }
       }
     },
-    "server.url" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Server URL"
+    "server.url": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Server URL"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "URL du serveur"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "URL du serveur"
           }
         }
       }
     },
-    "settings" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Settings"
+    "settings": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settings"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Réglages"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Réglages"
           }
         }
       }
     },
-    "show-duration" : {
-      "comment" : "Settings toggle: show track duration in track lists",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Show Duration"
+    "show-duration": {
+      "comment": "Settings toggle: show track duration in track lists",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show Duration"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Afficher la durée"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Afficher la durée"
           }
         }
       }
     },
-    "show-file-size" : {
-      "comment" : "Settings toggle: show track file size in track lists",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Show File Size"
+    "show-file-size": {
+      "comment": "Settings toggle: show track file size in track lists",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show File Size"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Afficher la taille du fichier"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Afficher la taille du fichier"
           }
         }
       }
     },
-    "shuffle" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Shuffle"
+    "shuffle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shuffle"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aléatoire"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aléatoire"
           }
         }
       }
     },
-    "sort" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sort"
+    "sort": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sort"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Trier"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trier"
           }
         }
       }
     },
-    "status-completed" : {
-      "comment" : "download request status badge (RequestRow)",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Completed"
+    "status-completed": {
+      "comment": "download request status badge (RequestRow)",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Completed"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Terminé"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Terminé"
           }
         }
       }
     },
-    "status-downloading" : {
-      "comment" : "download request status badge (RequestRow)",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Downloading"
+    "status-downloading": {
+      "comment": "download request status badge (RequestRow)",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Downloading"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Téléchargement"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Téléchargement"
           }
         }
       }
     },
-    "status-failed" : {
-      "comment" : "download request status badge (RequestRow)",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Failed"
+    "status-failed": {
+      "comment": "download request status badge (RequestRow)",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Failed"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Échoué"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Échoué"
           }
         }
       }
     },
-    "status-processing" : {
-      "comment" : "download request status badge (RequestRow)",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Processing"
+    "status-processing": {
+      "comment": "download request status badge (RequestRow)",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Processing"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Traitement"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Traitement"
           }
         }
       }
     },
-    "status-searching" : {
-      "comment" : "download request status badge (RequestRow)",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Searching"
+    "status-searching": {
+      "comment": "download request status badge (RequestRow)",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Searching"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Recherche"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recherche"
           }
         }
       }
     },
-    "status-waiting" : {
-      "comment" : "download request status badge (RequestRow)",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Waiting"
+    "status-waiting": {
+      "comment": "download request status badge (RequestRow)",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waiting"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "En attente"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En attente"
           }
         }
       }
     },
-    "storage" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Storage"
+    "storage": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Storage"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Stockage"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stockage"
           }
         }
       }
     },
-    "switch" : {
-      "comment" : "button to switch to another saved account (SettingsView)",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Switch"
+    "switch": {
+      "comment": "button to switch to another saved account (SettingsView)",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Switch"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Changer"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Changer"
           }
         }
       }
     },
-    "theme" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Theme"
+    "theme": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Theme"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Thème"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Thème"
           }
         }
       }
     },
-    "theme-default" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Default"
+    "theme-default": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Default"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Par défaut"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Par défaut"
           }
         }
       }
     },
-    "theme-system" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "System"
+    "theme-system": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "System"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Système"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Système"
           }
         }
       }
     },
-    "title" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Title"
+    "title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Title"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Titre"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Titre"
           }
         }
       }
     },
-    "top-albums" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Top albums"
+    "top-albums": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Top albums"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Albums les plus écoutés"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Albums les plus écoutés"
           }
         }
       }
     },
-    "top-artists" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Top artists"
+    "top-artists": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Top artists"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Artistes les plus écoutés"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Artistes les plus écoutés"
           }
         }
       }
     },
-    "top-playlists" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Top playlists"
+    "top-playlists": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Top playlists"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Playlists les plus écoutées"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Playlists les plus écoutées"
           }
         }
       }
     },
-    "top-tracks" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Top tracks"
+    "top-tracks": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Top tracks"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Titres les plus écoutés"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Titres les plus écoutés"
           }
         }
       }
     },
-    "track-progress %lld %lld" : {
-      "comment" : "Apple Music import progress, e.g. \"Track 3 of 20\" (RequestRow)",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Track %1$lld of %2$lld"
+    "track-progress %lld %lld": {
+      "comment": "Apple Music import progress, e.g. \"Track 3 of 20\" (RequestRow)",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Track %1$lld of %2$lld"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Titre %1$lld sur %2$lld"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Titre %1$lld sur %2$lld"
           }
         }
       }
     },
-    "tracks" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tracks"
+    "tracks": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tracks"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Titres"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Titres"
           }
         }
       }
     },
-    "unnamed-token" : {
-      "comment" : "fallback name for an API token with no name (ApiTokensSettingsSection)",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Unnamed Token"
+    "unity": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nafyn Unity"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Jeton sans nom"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nafyn Unity"
           }
         }
       }
     },
-    "user" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "User"
+    "unity-enabled": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enable Nafyn Unity"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Utilisateur"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activer Nafyn Unity"
           }
         }
       }
     },
-    "username" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Username"
+    "unity-footer": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep playback in sync across all your devices — one plays, the rest can watch and remote-control it."
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nom d'utilisateur"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Synchronisez la lecture entre tous vos appareils — l'un joue, les autres peuvent suivre et le contrôler à distance."
           }
         }
       }
     },
-    "users" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Users"
+    "unity-nobody-playing": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nobody is playing anything"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Utilisateurs"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Personne ne joue de musique"
           }
         }
       }
     },
-    "view-album" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "View Album"
+    "unity-play-here": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Play Here"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Voir l'album"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jouer ici"
           }
         }
       }
     },
-    "view-artist" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "machine_translated",
-            "value" : "View Artist"
+    "unity-playing-here": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Playing on this device"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "machine_translated",
-            "value" : "Voir l'artiste"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lecture sur cet appareil"
           }
         }
       }
     },
-    "view-on-musicbrainz" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "View on MusicBrainz"
+    "unity-playing-on": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Playing on %@"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Voir sur MusicBrainz"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lecture sur %@"
           }
         }
       }
     },
-    "view-track" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "View Track"
+    "unnamed-token": {
+      "comment": "fallback name for an API token with no name (ApiTokensSettingsSection)",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unnamed Token"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Voir la piste"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jeton sans nom"
           }
         }
       }
     },
-    "year" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Year"
+    "user": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "User"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Année"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Utilisateur"
           }
         }
       }
+    },
+    "username": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Username"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nom d'utilisateur"
+          }
+        }
+      }
+    },
+    "users": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Users"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Utilisateurs"
+          }
+        }
+      }
+    },
+    "view-album": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View Album"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voir l'album"
+          }
+        }
+      }
+    },
+    "view-artist": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "machine_translated",
+            "value": "View Artist"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "machine_translated",
+            "value": "Voir l'artiste"
+          }
+        }
+      }
+    },
+    "view-on-musicbrainz": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View on MusicBrainz"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voir sur MusicBrainz"
+          }
+        }
+      }
+    },
+    "view-track": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View Track"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voir la piste"
+          }
+        }
+      }
+    },
+    "year": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Year"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Année"
+          }
+        }
+      }
+    },
+    "·": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "·"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "·"
+          }
+        }
+      },
+      "shouldTranslate": false
+    },
+    "•": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "•"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "•"
+          }
+        }
+      },
+      "shouldTranslate": false
     }
   },
-  "version" : "1.3"
+  "version": "1.3"
 }

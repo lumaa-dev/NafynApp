@@ -43,6 +43,24 @@ enum RepeatMode {
 			case .track: .off
 		}
 	}
+
+	/// The Nafyn Unity wire value for this mode (how the master's player names it), used when
+	/// publishing/receiving `UnityPlaybackState.repeatMode`/`UnityCommand.setRepeat`.
+	var wireValue: String {
+		switch self {
+			case .off: "off"
+			case .queue: "all"
+			case .track: "one"
+		}
+	}
+
+	init(wireValue: String) {
+		switch wireValue {
+			case "all": self = .queue
+			case "one": self = .track
+			default: self = .off
+		}
+	}
 }
 
 /// Global singleton audio engine, mirroring the web app's `usePlayer.ts`: one shared player that
@@ -70,9 +88,14 @@ final class PlayerEngine: NSObject {
 	private(set) var lastError: String? = nil
 	var isExpanded = false
 	var repeatMode: RepeatMode = .off {
-		didSet { self.mirrorRepeatShuffleToRemoteCommands() }
+		didSet {
+			self.mirrorRepeatShuffleToRemoteCommands()
+			UnityEngine.shared.playerDidChange()
+		}
 	}
 	private(set) var shuffleEnabled = false
+	private(set) var volume: Double = 1
+	private(set) var isMuted = false
 
 	/// Queue indices in shuffled playback order, current track pinned first — only consulted by
 	/// `next()`/`prev()` while `shuffleEnabled` is `true`. Recomputed on toggle and on any queue mutation
@@ -221,6 +244,7 @@ final class PlayerEngine: NSObject {
 		}
 		self.updateNowPlayingInfo()
 		self.reassertNowPlayingSession()
+		UnityEngine.shared.playerDidChange()
 	}
 
 	func next() {
@@ -285,6 +309,7 @@ final class PlayerEngine: NSObject {
 			self.reshuffle()
 		}
 		self.mirrorRepeatShuffleToRemoteCommands()
+		UnityEngine.shared.playerDidChange()
 	}
 
 	/// Fisher-Yates-shuffles every queue index except the currently-playing one, which stays pinned first
@@ -316,12 +341,14 @@ final class PlayerEngine: NSObject {
 		if self.shuffleEnabled {
 			self.reshuffle()
 		}
+		UnityEngine.shared.playerDidChange()
 	}
 
 	func seek(to time: TimeInterval) {
 		self.player?.seek(to: CMTime(seconds: time, preferredTimescale: 600))
 		self.currentTime = time
 		self.updateNowPlayingInfo()
+		UnityEngine.shared.playerDidChange()
 	}
 
 	func removeFromQueue(at index: Int) {
@@ -342,6 +369,37 @@ final class PlayerEngine: NSObject {
 		if self.shuffleEnabled {
 			self.reshuffle()
 		}
+
+		UnityEngine.shared.playerDidChange()
+	}
+
+	/// Appends a track to the end of the queue, e.g. from a Nafyn Unity `addToQueue` remote command.
+	func appendToQueue(_ track: MediaRow) {
+		self.queue.append(track)
+		if self.shuffleEnabled {
+			self.reshuffle()
+		}
+		UnityEngine.shared.playerDidChange()
+	}
+
+	/// Jumps directly to a queue index and plays it, e.g. from a Nafyn Unity `playFromQueue` remote command.
+	func playQueueIndex(_ index: Int) {
+		guard self.queue.indices.contains(index) else { return }
+		self.currentIndex = index
+		self.startCurrentItem()
+	}
+
+	/// Sets playback volume, `0...1`, e.g. from a Nafyn Unity `setVolume` remote command.
+	func setVolume(_ value: Double) {
+		self.volume = min(max(value, 0), 1)
+		self.player?.volume = Float(self.volume)
+		UnityEngine.shared.playerDidChange()
+	}
+
+	func toggleMute() {
+		self.isMuted.toggle()
+		self.player?.isMuted = self.isMuted
+		UnityEngine.shared.playerDidChange()
 	}
 
 	func stop() {
@@ -369,6 +427,8 @@ final class PlayerEngine: NSObject {
 			MPNowPlayingInfoCenter.default().playbackState = .stopped
 			MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
 		}
+
+		UnityEngine.shared.playerDidChange()
 	}
 
 	// MARK: - Item loading
@@ -411,6 +471,8 @@ final class PlayerEngine: NSObject {
 		self.duration = track.duration
 		self.lastError = nil
 
+		self.player?.volume = Float(self.volume)
+		self.player?.isMuted = self.isMuted
 		self.activateAudioSession()
 		self.player?.play()
 		self.isPlaying = true
@@ -419,6 +481,7 @@ final class PlayerEngine: NSObject {
 
 		self.addTimeObserver()
 		self.updateNowPlayingInfo()
+		UnityEngine.shared.playerDidChange()
 
 		// On iOS 27+, `Artwork`'s provider closure (in the `content` conformance below) fetches
 		// artwork lazily and on-demand — no need for the legacy path's manual prefetch/cache.

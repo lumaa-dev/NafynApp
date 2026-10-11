@@ -49,6 +49,7 @@ struct RootView: View {
 				.onAppear {
 					PlayerEngine.shared.configure(server: server)
 					PlayTracker.shared.configure(server: server)
+					UnityEngine.shared.configure(server: server)
 				}
 			} else {
 				OnboardingView(onboarding: $onboarding)
@@ -118,7 +119,7 @@ struct RootView: View {
 
 	private func tryLogin(auth: AuthInfo) async throws -> NafynServer? {
 		guard let url: URL = URL(string: auth.server) else { return nil }
-		let inst: NafynInstance = try await NafynInstance.connect(to: url)
+		let inst: NafynInstance = try await NafynInstance.connect(appName: "Nafyn", to: url)
 		let server: NafynServer = .init(instance: inst, authToken: auth.token)
 
 		if Date.now > auth.tokenExpire {

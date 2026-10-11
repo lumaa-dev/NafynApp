@@ -63,6 +63,8 @@ private struct SettingsForm: View {
 
 			InsightsSettingsSection()
 
+			UnitySettingsSection()
+
 			AppleMusicImportSection()
 
 			ApiTokensSettingsSection()
@@ -321,7 +323,7 @@ private struct AddLocalAccountSheet: View {
 				}
 
 				let normalizedServerURL = try self.normalizedServerURL()
-				let instance = try await NafynInstance.connect(to: normalizedServerURL)
+				let instance = try await NafynInstance.connect(appName: "Nafyn", to: normalizedServerURL)
 				let server = NafynServer(instance: instance)
 				let response: AuthResponse = try await server.send(Auth.login(username: self.username, password: self.password))
 
