@@ -29,7 +29,7 @@ struct UnitySettingsSection: View {
 	var body: some View {
 		Section {
 			Toggle(String(localized: "unity-enabled"), isOn: self.enabledBinding)
-				.disabled(self.isUpdating)
+				.disabled(self.isUpdating || NetworkMonitor.shared.isOffline)
 
 			if UnityEngine.shared.isSettingEnabled {
 				self.statusRow
@@ -66,18 +66,21 @@ struct UnitySettingsSection: View {
 					} label: {
 						Image(systemName: "backward.fill")
 					}
+					.disabled(NetworkMonitor.shared.isOffline)
 
 					Button {
 						UnityEngine.shared.sendCommand(.togglePlay)
 					} label: {
 						Image(systemName: (UnityEngine.shared.remoteState?.isPlaying ?? false) ? "pause.fill" : "play.fill")
 					}
+					.disabled(NetworkMonitor.shared.isOffline)
 
 					Button {
 						UnityEngine.shared.sendCommand(.next)
 					} label: {
 						Image(systemName: "forward.fill")
 					}
+					.disabled(NetworkMonitor.shared.isOffline)
 
 					Spacer()
 

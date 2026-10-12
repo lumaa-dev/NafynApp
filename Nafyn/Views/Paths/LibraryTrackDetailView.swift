@@ -44,11 +44,27 @@ private struct LibraryTrackDetailContent: View {
 		.toolbar {
 			ToolbarItem(placement: .primaryAction) {
 				Menu {
+					if DownloadManager.shared.isDownloaded(trackId: self.track.id) {
+						Button(role: .destructive) {
+							self.removeDownload()
+						} label: {
+							Label(String(localized: "remove-download"), systemImage: "arrow.down.circle.fill")
+						}
+					} else {
+						Button {
+							DownloadManager.shared.downloadTrack(self.track)
+						} label: {
+							Label(String(localized: "download"), systemImage: "arrow.down.circle")
+						}
+						.disabled(DownloadManager.shared.isDownloading(trackId: self.track.id) || NetworkMonitor.shared.isOffline)
+					}
+
 					Button(role: .destructive) {
 						self.showDeleteConfirm = true
 					} label: {
 						Label(String(localized: "delete"), systemImage: "trash")
 					}
+					.disabled(NetworkMonitor.shared.isOffline)
 				} label: {
 					Image(systemName: "ellipsis")
 				}
@@ -119,6 +135,11 @@ private struct LibraryTrackDetailContent: View {
 
 	private func play() {
 		PlayerEngine.shared.play(self.track, recordContext: RecordContext(type: .track, refId: self.track.id))
+	}
+
+	private func removeDownload() {
+		guard let entry = DownloadManager.shared.downloads.first(where: { $0.id == self.track.id }) else { return }
+		DownloadManager.shared.delete(entry)
 	}
 
 	private func delete() {

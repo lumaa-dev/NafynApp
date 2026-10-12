@@ -148,6 +148,7 @@ private struct EditUserSheet: View {
 					Button(String(localized: "delete-account"), role: .destructive) {
 						self.showDeleteConfirm = true
 					}
+					.disabled(NetworkMonitor.shared.isOffline)
 				}
 			}
 			.scrollEdgeEffectStyle(.soft, for: .all)
@@ -161,7 +162,7 @@ private struct EditUserSheet: View {
 					Button(String(localized: "save")) {
 						self.save()
 					}
-					.disabled(self.isSaving)
+					.disabled(self.isSaving || NetworkMonitor.shared.isOffline)
 					.tint(Color.primary)
 				}
 			}

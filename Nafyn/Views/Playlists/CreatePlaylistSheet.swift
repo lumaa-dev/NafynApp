@@ -41,7 +41,7 @@ struct CreatePlaylistSheet: View {
 					Button(String(localized: "create")) {
 						self.create()
 					}
-					.disabled(self.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || self.isCreating)
+					.disabled(self.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || self.isCreating || NetworkMonitor.shared.isOffline)
 					.tint(Color.primary)
 				}
 			}

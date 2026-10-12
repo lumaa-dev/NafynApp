@@ -60,7 +60,7 @@ struct PlaylistEditSheet: View {
 					Button(String(localized: "save")) {
 						self.save()
 					}
-					.disabled(self.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || self.isSaving)
+					.disabled(self.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || self.isSaving || NetworkMonitor.shared.isOffline)
 					.tint(Color.primary)
 				}
 			}

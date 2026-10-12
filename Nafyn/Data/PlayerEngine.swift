@@ -510,6 +510,12 @@ final class PlayerEngine: NSObject {
 	}
 
 	private func streamURL(for track: MediaRow) -> URL? {
+		// Offline-downloaded tracks play straight from disk — this is what makes airplane-mode
+		// playback actually work, and it skips the network entirely even when it isn't needed.
+		if let localURL = DownloadManager.shared.localFileURL(for: track.id) {
+			return localURL
+		}
+
 		guard let server = self.server else { return nil }
 
 		let endpoint = Library.stream(id: track.id, token: server.authToken)

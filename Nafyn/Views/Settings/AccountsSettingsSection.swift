@@ -18,6 +18,7 @@ struct AccountsSettingsSection: View {
 			}
 
 			Toggle(String(localized: "open-registration"), isOn: Binding(get: { self.isOpen }, set: { self.setOpen($0) }))
+				.disabled(NetworkMonitor.shared.isOffline)
 
 			ForEach(self.tokens, id: \.id) { token in
 				if let url = self.registerURL(for: token) {
@@ -31,6 +32,7 @@ struct AccountsSettingsSection: View {
 			Button(String(localized: "create-invite-token")) {
 				self.createToken()
 			}
+			.disabled(NetworkMonitor.shared.isOffline)
 		}
 		.task {
 			guard !self.isLoaded, let server else { return }

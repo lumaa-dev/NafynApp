@@ -13,8 +13,43 @@ struct MyTracksView: View {
 	var body: some View {
 		Group {
 			if let paginator {
-				PaginatedList(paginator: paginator) { track in
-					self.row(track)
+				List {
+					ForEach(self.mergedTracks) { track in
+						self.row(track)
+							.listRowBackground(Color.clear)
+							.onAppear { paginator.loadNextPageIfNeeded(currentItem: track) }
+					}
+
+					if paginator.isLoadingPage {
+						SkeletonTrackRows(count: self.mergedTracks.isEmpty ? 8 : 2)
+							.listRowSeparator(.hidden)
+							.listRowBackground(Color.clear)
+					}
+
+					if let error = paginator.error, self.mergedTracks.isEmpty {
+						VStack(spacing: 12) {
+							Text(error.localizedDescription)
+								.font(DTFont.system(16))
+								.foregroundStyle(DTColor.textPrimary.opacity(0.7))
+								.multilineTextAlignment(.center)
+
+							Button(String(localized: "retry")) {
+								Task { await paginator.reset() }
+							}
+							.buttonStyle(.hollow())
+						}
+						.frame(maxWidth: .infinity)
+						.padding()
+						.listRowSeparator(.hidden)
+						.listRowBackground(Color.clear)
+					}
+				}
+				.listStyle(.plain)
+				.scrollContentBackground(.hidden)
+				.scrollEdgeEffectStyle(.soft, for: .all)
+				.background(DTColor.background.ignoresSafeArea())
+				.refreshable {
+					await paginator.reset()
 				}
 			} else {
 				List {
@@ -27,9 +62,11 @@ struct MyTracksView: View {
 		}
 		.task {
 			guard self.paginator == nil, let server else { return }
-			self.paginator = Paginator<MediaRow> { page, limit in
+			let paginator = Paginator<MediaRow> { page, limit in
 				try await server.fetchPaginated(path: "/api/v1/library/tracks", page: page, limit: limit)
 			}
+			self.paginator = paginator
+			await paginator.reset()
 		}
 		.navigationTitle(String(localized: "tracks"))
 		.toast(self.toast)
@@ -44,10 +81,31 @@ struct MyTracksView: View {
 		}
 	}
 
+	/// `paginator.items` merged with every downloaded track, so offline tracks stay visible in the same
+	/// list instead of the screen falling back to a bare network-error message while offline.
+	private var mergedTracks: [MediaRow] {
+		var seen: Set<String> = []
+		var result: [MediaRow] = []
+
+		for track in self.paginator?.items ?? [] where seen.insert(track.id).inserted {
+			result.append(track)
+		}
+		for entry in DownloadManager.shared.downloads where seen.insert(entry.id).inserted {
+			result.append(entry.mediaRow)
+		}
+
+		return result.sorted { $0.addedAtDate > $1.addedAtDate }
+	}
+
 	@ViewBuilder
 	private func row(_ track: MediaRow) -> some View {
-		TrackRow(coverURL: track.coverArt.flatMap { URL(string: $0) }, title: track.title, subtitle: track.artistName, duration: track.duration, fileSize: track.fileSize) {
+		TrackRow(coverURL: track.coverArt.flatMap { URL(string: $0) }, title: track.title, subtitle: track.artistName, duration: track.duration, fileSize: track.fileSize, onTap: {
 			PlayerEngine.shared.play(track, recordContext: RecordContext(type: .track, refId: track.id))
+		}) {
+			if DownloadManager.shared.isDownloaded(trackId: track.id) {
+				Image(systemName: "arrow.down.circle.fill")
+					.foregroundStyle(DTColor.textPrimary.opacity(0.4))
+			}
 		}
 		.swipeActions(edge: .trailing) {
 			Button(role: .destructive) {
@@ -56,6 +114,7 @@ struct MyTracksView: View {
 				Label(String(localized: "delete"), systemImage: "trash")
 			}
 			.tint(DTColor.buttonDanger)
+			.disabled(NetworkMonitor.shared.isOffline)
 		}
 		.swipeActions(edge: .leading) {
 			Button {

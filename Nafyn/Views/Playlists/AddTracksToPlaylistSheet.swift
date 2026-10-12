@@ -86,7 +86,7 @@ struct AddTracksToPlaylistSheet: View {
 				}
 			}
 		}
-		.disabled(alreadyIn || self.addingId != nil)
+		.disabled(alreadyIn || self.addingId != nil || NetworkMonitor.shared.isOffline)
 	}
 
 	private func add(_ track: MediaRow) {

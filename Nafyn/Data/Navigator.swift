@@ -82,6 +82,7 @@ final class Navigator {
 		case settings
 		case settingsAccounts
 		case settingsStorage
+		case settingsDownloads
 		case users
 		case musicYear(year: Int?)
 		case monthlyInsights(month: String?)
@@ -121,6 +122,10 @@ final class Navigator {
 				case .settingsStorage:
 					AnyView(SettingsSectionScreen(title: String(localized: "storage")) {
 						StorageSettingsSection()
+					})
+				case .settingsDownloads:
+					AnyView(SettingsSectionScreen(title: String(localized: "downloads")) {
+						DownloadsSettingsSection()
 					})
 				case .users:
 					AnyView(UsersAdminView())

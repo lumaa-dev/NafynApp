@@ -14,6 +14,12 @@ struct AsyncContentView<Value, Content: View>: View {
 
 	let load: () async throws -> Value
 	var skeleton: () -> AnyView = { AnyView(SkeletonDetailScreen()) }
+
+	/// Paints `DTColor.background` behind loading/error/content. Set to `false` when this view is
+	/// nested inside a parent that already paints its own background (e.g. `LyricsPanel`/`QueuePanel`
+	/// inside `NowPlayingView`'s `CoverMeshBackground`) — otherwise this opaque fill covers it.
+	var showsBackground: Bool = true
+
 	@ViewBuilder let content: (Value, _ reload: @escaping () async -> Void) -> Content
 
 	var body: some View {
@@ -40,7 +46,11 @@ struct AsyncContentView<Value, Content: View>: View {
 					.frame(maxWidth: .infinity, maxHeight: .infinity)
 			}
 		}
-		.background(DTColor.background.ignoresSafeArea())
+		.background {
+			if self.showsBackground {
+				DTColor.background.ignoresSafeArea()
+			}
+		}
 		.task { await self.reload() }
 	}
 

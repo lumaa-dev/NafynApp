@@ -43,7 +43,7 @@ private struct PlaylistDetailContent: View {
 	}
 
 	private var canReorder: Bool {
-		self.detail.viewer.isOwner && self.detail.playlist.sortMode == .manual && (self.paginator?.hasMore == false)
+		self.detail.viewer.isOwner && self.detail.playlist.sortMode == .manual && (self.paginator?.hasMore == false) && !NetworkMonitor.shared.isOffline
 	}
 
 	private var coverURL: URL? {
@@ -86,6 +86,7 @@ private struct PlaylistDetailContent: View {
 						} label: {
 							Label(String(localized: "edit"), systemImage: "pencil")
 						}
+						.disabled(NetworkMonitor.shared.isOffline)
 					}
 
 					Button {
@@ -100,7 +101,15 @@ private struct PlaylistDetailContent: View {
 						} label: {
 							Label(String(localized: "add-tracks"), systemImage: "plus")
 						}
+						.disabled(NetworkMonitor.shared.isOffline)
 					}
+
+					Button {
+						DownloadManager.shared.downloadPlaylist(id: self.playlistId, title: self.detail.playlist.title)
+					} label: {
+						Label(String(localized: "download-playlist"), systemImage: "arrow.down.circle")
+					}
+					.disabled(NetworkMonitor.shared.isOffline)
 
 					if self.detail.viewer.isOwner {
 						Button(role: .destructive) {
@@ -108,12 +117,14 @@ private struct PlaylistDetailContent: View {
 						} label: {
 							Label(String(localized: "delete"), systemImage: "trash")
 						}
+						.disabled(NetworkMonitor.shared.isOffline)
 					} else if self.detail.viewer.isMember {
 						Button(role: .destructive) {
 							self.showLeaveConfirm = true
 						} label: {
 							Label(String(localized: "leave"), systemImage: "rectangle.portrait.and.arrow.right")
 						}
+						.disabled(NetworkMonitor.shared.isOffline)
 					}
 				} label: {
 					Image(systemName: "ellipsis")
@@ -182,6 +193,26 @@ private struct PlaylistDetailContent: View {
 			}
 			.listRowBackground(Color.clear)
 			.onAppear { paginator.loadNextPageIfNeeded(currentItem: entry) }
+			.swipeActions(edge: .leading) {
+				if DownloadManager.shared.isDownloaded(trackId: entry.media.id) {
+					Button {
+						if let download = DownloadManager.shared.downloads.first(where: { $0.id == entry.media.id }) {
+							DownloadManager.shared.delete(download)
+						}
+					} label: {
+						Label(String(localized: "remove-download"), systemImage: "arrow.down.circle.fill")
+					}
+					.tint(DTColor.textPrimary.opacity(0.4))
+				} else {
+					Button {
+						DownloadManager.shared.downloadTrack(entry.media)
+					} label: {
+						Label(String(localized: "download"), systemImage: "arrow.down.circle")
+					}
+					.tint(DTColor.accentStart)
+					.disabled(DownloadManager.shared.isDownloading(trackId: entry.media.id) || NetworkMonitor.shared.isOffline)
+				}
+			}
 			.swipeActions(edge: .trailing) {
 				if self.canRemove(entry) {
 					Button(role: .destructive) {
@@ -190,6 +221,7 @@ private struct PlaylistDetailContent: View {
 						Label(String(localized: "remove"), systemImage: "trash")
 					}
 					.tint(DTColor.buttonDanger)
+					.disabled(NetworkMonitor.shared.isOffline)
 				}
 			}
 		}
@@ -206,7 +238,7 @@ private struct PlaylistDetailContent: View {
 						.frame(width: 120, height: 120)
 				}
 				.buttonStyle(.plain)
-				.disabled(!self.detail.viewer.isOwner)
+				.disabled(!self.detail.viewer.isOwner || NetworkMonitor.shared.isOffline)
 
 				VStack(alignment: .leading, spacing: 4) {
 					Text(self.detail.playlist.title)
@@ -253,6 +285,7 @@ private struct PlaylistDetailContent: View {
 					Text("added-by").tag(PlaylistSortMode.addedBy)
 					Text("duration").tag(PlaylistSortMode.duration)
 				}
+				.disabled(NetworkMonitor.shared.isOffline)
 				.pickerStyle(.menu)
 			}
 		}

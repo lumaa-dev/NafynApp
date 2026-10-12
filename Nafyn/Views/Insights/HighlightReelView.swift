@@ -268,7 +268,7 @@ private struct HighlightReelPlayer: View {
 			}
 		}
 		.buttonStyle(.hollow())
-		.disabled(self.isRequestingVideo)
+		.disabled(self.isRequestingVideo || NetworkMonitor.shared.isOffline)
 	}
 
 	private func requestVideo() {

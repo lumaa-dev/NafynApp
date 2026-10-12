@@ -32,7 +32,7 @@ struct AddToPlaylistSheet: View {
 								}
 							}
 						}
-						.disabled(self.addingTo != nil)
+						.disabled(self.addingTo != nil || NetworkMonitor.shared.isOffline)
 						.onAppear { paginator.loadNextPageIfNeeded(currentItem: playlist) }
 					}
 					.listStyle(.plain)

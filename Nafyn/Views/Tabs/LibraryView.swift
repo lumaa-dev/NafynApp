@@ -11,34 +11,33 @@ struct LibraryView: View {
 	private let colItems: [GridItem] = [GridItem(.flexible()), GridItem(.flexible())]
 
     var body: some View {
-		if let server {
-			NavigationStack(path: Binding(get: { Navigator.shared.currentPath[Navigator.Tabs.library] ?? [] }, set: { Navigator.shared.currentPath[Navigator.Tabs.library] = $0 } )) {
-				ScrollView {
-					self.navItems
-						.padding(.top)
-						.padding(.horizontal)
+		NavigationStack(path: Binding(get: { Navigator.shared.currentPath[Navigator.Tabs.library] ?? [] }, set: { Navigator.shared.currentPath[Navigator.Tabs.library] = $0 } )) {
+			ScrollView {
+				self.navItems
+					.padding(.top)
+					.padding(.horizontal)
 
-					self.recents
-						.padding(.horizontal)
-						.padding(.vertical)
-				}
-				.scrollEdgeEffectStyle(.soft, for: .all)
-				.background(DTColor.background.ignoresSafeArea())
-				.navigationDestination(for: Navigator.Paths.self) { $0.view }
-				.navigationTitle(String(localized: "library"))
-				.toolbar {
-					ToolbarItem(placement: .primaryAction) {
-						Button {
-							Navigator.shared.send(to: .settings)
-						} label: {
-							Image(systemName: "gearshape")
-						}
-						.tint(Color.primary)
+				self.recents
+					.padding(.horizontal)
+					.padding(.vertical)
+			}
+			.scrollEdgeEffectStyle(.soft, for: .all)
+			.background(DTColor.background.ignoresSafeArea())
+			.navigationDestination(for: Navigator.Paths.self) { $0.view }
+			.navigationTitle(String(localized: "library"))
+			.toolbar {
+				ToolbarItem(placement: .primaryAction) {
+					Button {
+						Navigator.shared.send(to: .settings)
+					} label: {
+						Image(systemName: "gearshape")
 					}
+					.tint(Color.primary)
 				}
-				.task {
-					self.recntPlays = (try? await server.send(Library.recentlyPlayed)) ?? []
-				}
+			}
+			.task {
+				guard let server else { return }
+				self.recntPlays = (try? await server.send(Library.recentlyPlayed)) ?? []
 			}
 		}
     }
@@ -62,15 +61,16 @@ struct LibraryView: View {
 
 	@ContentBuilder
 	private var recents: some View {
-		if !recntPlays.isEmpty {
+		let entries = self.mergedRecents
+		if !entries.isEmpty {
 			LazyVStack(alignment: .leading) {
 				Text("recently-played")
 					.font(DTFont.serifItalic(25))
 
 				LazyVGrid(columns: colItems, alignment: .leading) {
-					ForEach(recntPlays, id: \.refId) { elm in
+					ForEach(entries) { elm in
 						NavigationLink(value: elm.destination) {
-							MusicCard(.recentlyPlayed(elm))
+							MusicCard(elm.cardEntry)
 								.frame(maxWidth: .infinity, alignment: .leading)
 						}
 						.buttonStyle(.plain)
@@ -79,6 +79,32 @@ struct LibraryView: View {
 			}
 			.frame(maxWidth: .infinity, alignment: .leading)
 		}
+	}
+
+	/// `recntPlays` as-is while online. Downloaded tracks only get folded in while offline — online,
+	/// server history is always reachable and authoritative, and downloads are just a local cache of
+	/// tracks already represented there, so unconditionally merging them pushed every downloaded track
+	/// to the top of the grid ahead of genuinely more-recent online plays.
+	private var mergedRecents: [RecentGridEntry] {
+		var result: [RecentGridEntry] = self.recntPlays.map { entry in
+			RecentGridEntry(id: "recent-\(entry.refId)-\(entry.playedAt)", timestamp: entry.playedAtDate, cardEntry: .recentlyPlayed(entry), destination: entry.destination)
+		}
+
+		if NetworkMonitor.shared.isOffline {
+			let seenTrackIds = Set(self.recntPlays.filter { $0.type == .track }.map(\.refId))
+			for track in DownloadManager.shared.downloads where !seenTrackIds.contains(track.id) {
+				result.append(RecentGridEntry(id: "download-\(track.id)", timestamp: track.downloadedAt, cardEntry: .media(track.mediaRow), destination: .libraryTrack(id: track.id)))
+			}
+		}
+
+		return result.sorted { $0.timestamp > $1.timestamp }
+	}
+
+	private struct RecentGridEntry: Identifiable {
+		let id: String
+		let timestamp: Date
+		let cardEntry: MusicCardEntry
+		let destination: Navigator.Paths
 	}
 
 	@ContentBuilder

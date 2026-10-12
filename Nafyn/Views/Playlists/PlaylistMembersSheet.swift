@@ -35,6 +35,7 @@ struct PlaylistMembersSheet: View {
 										Label(String(localized: "remove"), systemImage: "trash")
 									}
 									.tint(DTColor.buttonDanger)
+									.disabled(NetworkMonitor.shared.isOffline)
 								}
 							}
 					}
@@ -54,7 +55,7 @@ struct PlaylistMembersSheet: View {
 								Image(systemName: "plus.circle.fill")
 							}
 							.buttonStyle(.plain)
-							.disabled(self.newUsername.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || self.isAdding)
+							.disabled(self.newUsername.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || self.isAdding || NetworkMonitor.shared.isOffline)
 						}
 					}
 				}

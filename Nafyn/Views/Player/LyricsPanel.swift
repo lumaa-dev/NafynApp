@@ -31,12 +31,14 @@ struct LyricsPanel: View {
 	@AppStorage(LyricsPanel.useSystemFontKey) private var useSystemFont = false
 
 	var body: some View {
-		AsyncContentView {
-			guard let server else { throw NafynError.unauthenticated }
-			return try await server.send(Library.lyrics(id: self.trackId)) as Lyrics
-		} skeleton: {
-			AnyView(SkeletonTextLines())
-		} content: { lyrics, _ in
+		AsyncContentView(
+			load: {
+				guard let server else { throw NafynError.unauthenticated }
+				return try await server.send(Library.lyrics(id: self.trackId)) as Lyrics
+			},
+			skeleton: { AnyView(SkeletonTextLines()) },
+			showsBackground: false
+		) { lyrics, _ in
 			ScrollViewReader { proxy in
 				ScrollView {
 					VStack(alignment: .leading, spacing: 18) {

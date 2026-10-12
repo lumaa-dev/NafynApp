@@ -18,6 +18,15 @@ struct RootView: View {
 		self.auth.first(where: { $0.defaultAuth })?.id
 	}
 
+	/// Whether to show the library/tabs UI with `server == nil` instead of `OnboardingView`: there's at
+	/// least one saved account, but `attemptLogin()` couldn't reach the server because the device itself
+	/// has no route to the internet (airplane mode, no SIM, Wi-Fi off). Without this, losing connectivity
+	/// at launch looked identical to never having logged in, dropping a returning user into onboarding
+	/// instead of their offline-downloaded library.
+	private var showOfflineLibrary: Bool {
+		!self.auth.isEmpty && NetworkMonitor.shared.isOffline
+	}
+
 	@State private var onboarding: OnboardingView.OnboardingSteps = .welcome
 	@Namespace private var playerZoomNamespace
 
@@ -37,12 +46,12 @@ struct RootView: View {
 				ProgressView()
 					.progressViewStyle(.circular)
 					.tint(DTColor.textPrimary)
-			} else if let server {
+			} else if self.server != nil || self.showOfflineLibrary {
 				self.tabs
-				.environment(\.server, server)
+				.environment(\.server, self.server)
 				.fullScreenCover(isPresented: self.$isPlayerExpanded) {
 					NowPlayingView(namespace: self.playerZoomNamespace)
-						.environment(\.server, server)
+						.environment(\.server, self.server)
 				}
 				.onChange(of: PlayerEngine.shared.isExpanded) { _, newValue in
 					self.isPlayerExpanded = newValue
@@ -52,7 +61,7 @@ struct RootView: View {
 				}
 				.sheet(isPresented: Binding(get: { Navigator.shared.sheet != nil }, set: { if !$0 { Navigator.shared.sheet = nil } })) {
 					Navigator.shared.sheet?.view
-						.environment(\.server, server)
+						.environment(\.server, self.server)
 				}
 			} else {
 				OnboardingView(onboarding: $onboarding)
@@ -62,6 +71,15 @@ struct RootView: View {
 		.preferredColorScheme(ThemeManager.shared.preferredColorScheme)
 		.task {
 			await self.attemptLogin()
+		}
+		.onChange(of: NetworkMonitor.shared.isOffline) { wasOffline, isOffline in
+			// Came back online while stuck in offline mode (no `server` yet, saved accounts present) —
+			// retry the handshake so the app transitions from offline-only library to the real session
+			// without requiring a relaunch.
+			guard wasOffline, !isOffline, self.server == nil, !self.auth.isEmpty else { return }
+			Task {
+				await self.attemptLogin()
+			}
 		}
 		.onChange(of: self.onboarding) { _, newValue in
 			guard newValue == .complete else { return }
@@ -178,6 +196,7 @@ struct RootView: View {
 			PlayerEngine.shared.configure(server: s)
 			PlayTracker.shared.configure(server: s)
 			UnityEngine.shared.configure(server: s)
+			DownloadManager.shared.configure(server: s)
 		}
 	}
 

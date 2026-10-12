@@ -63,7 +63,7 @@ struct ProfileSettingsSection: View {
 							}
 						}
 					}
-					.disabled(self.isUploadingAvatar)
+					.disabled(self.isUploadingAvatar || NetworkMonitor.shared.isOffline)
 
 					Spacer()
 				}
@@ -80,7 +80,7 @@ struct ProfileSettingsSection: View {
 				Button(String(localized: "save")) {
 					self.saveProfile()
 				}
-				.disabled(self.isSaving)
+				.disabled(self.isSaving || NetworkMonitor.shared.isOffline)
 			}
 		}
 		.toast(self.toast)

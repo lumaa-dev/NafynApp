@@ -34,7 +34,7 @@ struct AlbumDetailView: View {
 							.frame(maxWidth: .infinity)
 					}
 					.buttonStyle(.filled())
-					.disabled(self.isRequesting)
+					.disabled(self.isRequesting || NetworkMonitor.shared.isOffline)
 
 					VStack(spacing: 0) {
 						ForEach(Array(album.tracks.enumerated()), id: \.element.id) { index, track in
@@ -119,6 +119,7 @@ struct AlbumDetailView: View {
 						.foregroundStyle(DTColor.textPrimary.opacity(0.7))
 				}
 				.buttonStyle(.plain)
+				.disabled(NetworkMonitor.shared.isOffline)
 			}
 		}
 		.contextMenu {

@@ -6,17 +6,67 @@ import Safyn
 
 struct SettingsView: View {
 	@Environment(\.server) private var server: NafynServer?
+	@Query private var auths: [AuthInfo]
+
+	/// The account settings should show, independent of whether `server` connected: the default saved
+	/// account, or whichever one happens to be saved if none is marked default.
+	private var activeAuth: AuthInfo? {
+		self.auths.first(where: { $0.defaultAuth }) ?? self.auths.first
+	}
 
 	var body: some View {
 		AsyncContentView {
-			guard let server else { throw NafynError.unauthenticated }
-			return try await server.send(User.me) as NafynUser
+			// Settings (crucially, `DownloadsSettingsSection` and the theme picker — entirely local, no
+			// network of their own) shouldn't become unreachable just because the profile fetch can't
+			// reach the server, e.g. offline/airplane mode — including the case where `RootView` never
+			// got a live `server` at all because the device had no connectivity at launch. Falling back
+			// to the last-known `NafynUser` (keyed by the saved account, not the live `server`, so it's
+			// reachable even without one) lets the rest of the screen render from cache instead of a
+			// hard error wall.
+			if let server {
+				do {
+					let user: NafynUser = try await server.send(User.me)
+					if let activeAuth {
+						CachedUserStore.save(user, for: activeAuth)
+					}
+					return user
+				} catch {
+					if let activeAuth, let cached = CachedUserStore.load(for: activeAuth) {
+						return cached
+					}
+					throw error
+				}
+			} else if let activeAuth, let cached = CachedUserStore.load(for: activeAuth) {
+				return cached
+			} else {
+				throw NafynError.unauthenticated
+			}
 		} skeleton: {
 			AnyView(SkeletonFormRows())
 		} content: { user, _ in
 			SettingsForm(initialUser: user)
 		}
 		.navigationTitle(String(localized: "settings"))
+	}
+}
+
+/// Persists the last successfully-fetched `NafynUser` per account (keyed by the saved account's server
+/// URL + username rather than the live `NafynServer`/token, so it's readable even when there's no
+/// connected `server` at all — see `RootView`'s offline-library mode), purely so `SettingsView` can
+/// still render offline.
+private enum CachedUserStore {
+	private static func key(for auth: AuthInfo) -> String {
+		"nafyn.cachedUser.\(auth.server)|\(auth.username)"
+	}
+
+	static func save(_ user: NafynUser, for auth: AuthInfo) {
+		guard let data = try? JSONEncoder().encode(user) else { return }
+		UserDefaults.standard.set(data, forKey: self.key(for: auth))
+	}
+
+	static func load(for auth: AuthInfo) -> NafynUser? {
+		guard let data = UserDefaults.standard.data(forKey: self.key(for: auth)) else { return nil }
+		return try? JSONDecoder().decode(NafynUser.self, from: data)
 	}
 }
 
@@ -60,6 +110,14 @@ private struct SettingsForm: View {
 			}
 
 			AppearanceSettingsSection(canManageFileSize: self.user.permissions.has(.manageMusic))
+
+			Section {
+				NavigationLink(value: Navigator.Paths.settingsDownloads) {
+					Label(String(localized: "downloads"), systemImage: "arrow.down.circle")
+						.foregroundStyle(Color.primary)
+				}
+				.tint(Color.primary)
+			}
 
 			InsightsSettingsSection()
 

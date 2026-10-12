@@ -12,12 +12,46 @@ struct LibraryAlbumDetailView: View {
 
 	var body: some View {
 		AsyncContentView {
-			guard let server else { throw NafynError.unauthenticated }
-			return try await server.send(Library.album(id: self.albumId)) as LibraryAlbumResponse
+			if let server {
+				do {
+					return try await server.send(Library.album(id: self.albumId)) as LibraryAlbumResponse
+				} catch {
+					if let offline = Self.offlineResponse(albumId: self.albumId) { return offline }
+					throw error
+				}
+			} else if let offline = Self.offlineResponse(albumId: self.albumId) {
+				return offline
+			} else {
+				throw NafynError.unauthenticated
+			}
 		} content: { response, _ in
 			LibraryAlbumDetailContent(response: response)
 		}
 		.navigationBarTitleDisplayMode(.inline)
+	}
+
+	/// Reconstructs a `LibraryAlbumResponse` from this album's downloaded tracks, so an album the user
+	/// downloaded for offline listening still opens when there's no `server` to ask (airplane mode) or
+	/// the live fetch fails — mirrors the synthesis `MyAlbumsView` does for its own offline grid entries.
+	private static func offlineResponse(albumId: String) -> LibraryAlbumResponse? {
+		let tracks = DownloadManager.shared.downloads.filter { $0.albumId == albumId }
+		guard let first = tracks.first else { return nil }
+
+		let row = AlbumRow(
+			id: albumId,
+			mbId: "",
+			title: first.album ?? first.artistName,
+			artistName: first.artistName,
+			artistMbid: nil,
+			coverArt: first.coverArt,
+			releaseDate: nil,
+			duration: tracks.reduce(0) { $0 + $1.duration },
+			trackCount: tracks.count,
+			addedAt: Int64((tracks.map(\.downloadedAt).max() ?? .now).timeIntervalSince1970 * 1000)
+		)
+		let album = LibraryAlbumResponse.Album(row: row, imageColors: [], textColor: "#FFFFFF")
+		let mediaRows = tracks.map(\.mediaRow).sorted { $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending }
+		return LibraryAlbumResponse(album: album, tracks: mediaRows)
 	}
 }
 
@@ -49,6 +83,21 @@ private struct LibraryAlbumDetailContent: View {
 		.scrollEdgeEffectStyle(.soft, for: .all)
 		.background(DTColor.background.ignoresSafeArea())
 		.toast(self.toast)
+		.toolbar {
+			ToolbarItem(placement: .primaryAction) {
+				Menu {
+					Button {
+						DownloadManager.shared.downloadAlbum(id: self.response.album.row.id, title: self.response.album.row.title)
+					} label: {
+						Label(String(localized: "download-album"), systemImage: "arrow.down.circle")
+					}
+					.disabled(NetworkMonitor.shared.isOffline)
+				} label: {
+					Image(systemName: "ellipsis")
+				}
+				.tint(Color.primary)
+			}
+		}
 	}
 
 	@ViewBuilder
@@ -102,6 +151,23 @@ private struct LibraryAlbumDetailContent: View {
 				Navigator.shared.send(to: .libraryTrack(id: track.id))
 			} label: {
 				Label(String(localized: "view-track"), systemImage: "info.circle")
+			}
+
+			if DownloadManager.shared.isDownloaded(trackId: track.id) {
+				Button(role: .destructive) {
+					if let entry = DownloadManager.shared.downloads.first(where: { $0.id == track.id }) {
+						DownloadManager.shared.delete(entry)
+					}
+				} label: {
+					Label(String(localized: "remove-download"), systemImage: "arrow.down.circle.fill")
+				}
+			} else {
+				Button {
+					DownloadManager.shared.downloadTrack(track)
+				} label: {
+					Label(String(localized: "download"), systemImage: "arrow.down.circle")
+				}
+				.disabled(DownloadManager.shared.isDownloading(trackId: track.id) || NetworkMonitor.shared.isOffline)
 			}
 		}
 	}

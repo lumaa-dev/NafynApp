@@ -116,6 +116,7 @@ struct AppleMusicImportSheet: View {
 					}
 				}
 				.tint(Color.primary)
+				.disabled(NetworkMonitor.shared.isOffline)
 			}
 			.listStyle(.plain)
 			.scrollContentBackground(.hidden)

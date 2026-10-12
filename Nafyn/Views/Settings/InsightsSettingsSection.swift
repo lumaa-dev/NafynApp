@@ -28,7 +28,7 @@ struct InsightsSettingsSection: View {
 	var body: some View {
 		Section {
 			Toggle(String(localized: "listening-history"), isOn: self.historyBinding)
-				.disabled(self.settings == nil || self.isUpdating)
+				.disabled(self.settings == nil || self.isUpdating || NetworkMonitor.shared.isOffline)
 
 			if let exportURL {
 				ShareLink(item: exportURL) {
@@ -52,7 +52,7 @@ struct InsightsSettingsSection: View {
 					}
 				}
 				.tint(Color.primary)
-				.disabled(self.isExporting)
+				.disabled(self.isExporting || NetworkMonitor.shared.isOffline)
 			}
 
 			Button(role: .destructive) {
@@ -62,7 +62,7 @@ struct InsightsSettingsSection: View {
 					.foregroundStyle(DTColor.buttonDanger)
 			}
 			.tint(DTColor.buttonDanger)
-			.disabled(self.isDeleting)
+			.disabled(self.isDeleting || NetworkMonitor.shared.isOffline)
 		}
 		header: {
 			Text(String(localized: "insights"))

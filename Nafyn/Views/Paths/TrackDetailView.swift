@@ -63,7 +63,7 @@ struct TrackDetailView: View {
 						Text("request")
 					}
 					.buttonStyle(.filled())
-					.disabled(self.isRequesting)
+					.disabled(self.isRequesting || NetworkMonitor.shared.isOffline)
 					.padding(.top, 6)
 				}
 			}

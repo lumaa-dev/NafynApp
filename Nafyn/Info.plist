@@ -8,5 +8,9 @@
 	</array>
 	<key>NSAppleMusicUsageDescription</key>
 	<string>Nafyn uses your Apple Music library to import playlists.</string>
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>fr.lumaa.Nafyn.offlineDownload</string>
+	</array>
 </dict>
 </plist>

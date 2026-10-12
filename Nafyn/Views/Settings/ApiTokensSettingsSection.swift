@@ -22,6 +22,7 @@ struct ApiTokensSettingsSection: View {
 							Label(String(localized: "delete"), systemImage: "trash")
 						}
 						.tint(DTColor.buttonDanger)
+						.disabled(NetworkMonitor.shared.isOffline)
 					}
 			}
 
@@ -34,6 +35,7 @@ struct ApiTokensSettingsSection: View {
 			Button(String(localized: "create-api-token")) {
 				self.create()
 			}
+			.disabled(NetworkMonitor.shared.isOffline)
 		}
 		.task {
 			guard !self.isLoaded, let server else { return }

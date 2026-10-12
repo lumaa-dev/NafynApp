@@ -49,6 +49,7 @@ struct AllLibraryView: View {
 						} label: {
 							Label(String(localized: "remove"), systemImage: "trash")
 						}
+						.disabled(NetworkMonitor.shared.isOffline)
 					} label: {
 						Text(owner.username)
 							.font(DTFont.system(14))
