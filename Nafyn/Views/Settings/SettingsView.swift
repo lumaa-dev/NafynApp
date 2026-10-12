@@ -119,6 +119,14 @@ private struct SettingsForm: View {
 				.tint(Color.primary)
 			}
 
+			Section {
+				NavigationLink(value: Navigator.Paths.settingsPrivacy) {
+					Label(String(localized: "privacy"), systemImage: "lock.shield")
+						.foregroundStyle(Color.primary)
+				}
+				.tint(Color.primary)
+			}
+
 			InsightsSettingsSection()
 
 			UnitySettingsSection()
@@ -305,10 +313,15 @@ private struct AddLocalAccountSheet: View {
 	@State private var username = ""
 	@State private var password = ""
 	@State private var isSaving = false
+	@State private var isPasskeyAuthenticating = false
 	@State private var errorMessage: String? = nil
 
 	private var canSubmit: Bool {
 		!self.serverURL.isEmpty && !self.username.isEmpty && !self.password.isEmpty && !self.isSaving
+	}
+
+	private var canUsePasskey: Bool {
+		!self.serverURL.isEmpty && !self.isSaving && !self.isPasskeyAuthenticating
 	}
 
 	var body: some View {
@@ -333,6 +346,20 @@ private struct AddLocalAccountSheet: View {
 
 					SecureField(String(localized: "password"), text: self.$password)
 						.textContentType(.password)
+				}
+
+				Section {
+					Button {
+						self.signInWithPasskey()
+					} label: {
+						if self.isPasskeyAuthenticating {
+							ProgressView()
+								.tint(DTColor.textPrimary)
+						} else {
+							Label(String(localized: "sign-in-with-passkey"), systemImage: "person.badge.key")
+						}
+					}
+					.disabled(!self.canUsePasskey)
 				}
 
 				if let errorMessage {
@@ -412,6 +439,52 @@ private struct AddLocalAccountSheet: View {
 				withAnimation {
 					self.errorMessage = error.localizedDescription
 					self.isSaving = false
+				}
+			}
+		}
+	}
+
+	private func signInWithPasskey() {
+		Task {
+			withAnimation {
+				self.isPasskeyAuthenticating = true
+				self.errorMessage = nil
+			}
+			defer { withAnimation { self.isPasskeyAuthenticating = false } }
+
+			do {
+				let normalizedServerURL = try self.normalizedServerURL()
+				let instance = try await NafynInstance.connect(appName: "Nafyn", to: normalizedServerURL)
+				let response = try await PasskeyAuth.login(instance: instance)
+
+				for auth in self.auths {
+					auth.defaultAuth = false
+				}
+
+				// Passkey sign-in has no password to persist, so token refresh on expiry (`RootView`'s
+				// `tryLogin`) can't silently re-authenticate this account — the user re-authenticates via
+				// passkey or password once the 7-day token lapses, same as any revoked session.
+				if let existingAuth = self.auths.first(where: { $0.server == normalizedServerURL.absoluteString && $0.username == response.user.username }) {
+					existingAuth.token = response.token
+					existingAuth.tokenExpire = Date.now.addingTimeInterval(60 * 60 * 24 * 7)
+					existingAuth.defaultAuth = true
+				} else {
+					let auth = AuthInfo(
+						server: normalizedServerURL.absoluteString,
+						username: response.user.username,
+						password: "",
+						token: response.token,
+						tokenExpire: Date.now.addingTimeInterval(60 * 60 * 24 * 7),
+						defaultAuth: true
+					)
+					self.modelContext.insert(auth)
+				}
+
+				try self.modelContext.save()
+				self.dismiss()
+			} catch {
+				withAnimation {
+					self.errorMessage = error.localizedDescription
 				}
 			}
 		}

@@ -3310,9 +3310,7 @@
         }
       }
     },
-    "unknown" : {
-
-    },
+    "unknown" : {},
     "unnamed-token" : {
       "comment" : "fallback name for an API token with no name (ApiTokensSettingsSection)",
       "localizations" : {
@@ -3454,6 +3452,267 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Année"
+          }
+        }
+      }
+    },
+    "add" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajouter"
+          }
+        }
+      }
+    },
+    "sessions" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sessions"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sessions"
+          }
+        }
+      }
+    },
+    "sessions-footer" : {
+      "comment" : "footer for the sessions list in PrivacySettingsSection",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Every device currently signed into your account. Sign out any you don't recognize."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chaque appareil actuellement connecté à votre compte. Déconnectez ceux que vous ne reconnaissez pas."
+          }
+        }
+      }
+    },
+    "passkeys" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passkeys"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clés d'accès"
+          }
+        }
+      }
+    },
+    "passkeys-footer" : {
+      "comment" : "footer for PasskeysSettingsSection",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passkeys let you sign in with Face ID or Touch ID instead of a password."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les clés d'accès vous permettent de vous connecter avec Face ID ou Touch ID au lieu d'un mot de passe."
+          }
+        }
+      }
+    },
+    "add-passkey" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add Passkey"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajouter une clé d'accès"
+          }
+        }
+      }
+    },
+    "unnamed-passkey" : {
+      "comment" : "fallback name for a passkey with no label (PasskeysSettingsSection)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unnamed Passkey"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clé d'accès sans nom"
+          }
+        }
+      }
+    },
+    "passkey-label" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Label"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nom"
+          }
+        }
+      }
+    },
+    "passkey-label-footer" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Give this passkey a name to recognize it later, e.g. the device it's stored on."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Donnez un nom à cette clé d'accès pour la reconnaître plus tard, par exemple l'appareil sur lequel elle est stockée."
+          }
+        }
+      }
+    },
+    "passkey-added" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passkey added"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clé d'accès ajoutée"
+          }
+        }
+      }
+    },
+    "passkey-malformed-options" : {
+      "comment" : "PasskeyAuth.PasskeyError.malformedOptions",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The server returned an unexpected passkey response."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le serveur a renvoyé une réponse de clé d'accès inattendue."
+          }
+        }
+      }
+    },
+    "passkey-cancelled" : {
+      "comment" : "PasskeyAuth.PasskeyError.cancelled",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passkey sign-in was cancelled."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La connexion par clé d'accès a été annulée."
+          }
+        }
+      }
+    },
+    "export-account-data" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Export My Data"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exporter mes données"
+          }
+        }
+      }
+    },
+    "export-account-data-footer" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Download everything the server holds about your account: profile, settings, credentials metadata, library, playlists, and listening history."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Téléchargez tout ce que le serveur conserve sur votre compte : profil, réglages, métadonnées des identifiants, bibliothèque, playlists et historique d'écoute."
+          }
+        }
+      }
+    },
+    "export-account-data-share" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Share Export"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Partager l'export"
+          }
+        }
+      }
+    },
+    "sign-in-with-passkey" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sign in with Passkey"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se connecter avec une clé d'accès"
           }
         }
       }
