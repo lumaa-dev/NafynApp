@@ -3212,7 +3212,8 @@
             "value" : "Nafyn Unity"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "unity-enabled" : {
       "localizations" : {

@@ -45,8 +45,12 @@ struct UnitySettingsSection: View {
 	@ViewBuilder
 	private var statusRow: some View {
 		if UnityEngine.shared.isMaster {
-			Label(String(localized: "unity-playing-here"), systemImage: "hifispeaker.fill")
-				.foregroundStyle(DTColor.textPrimary.opacity(0.6))
+			Label {
+				Text(String(localized: "unity-playing-here"))
+			} icon: {
+				Image(.nafynUnity)
+			}
+			.foregroundStyle(DTColor.textPrimary.opacity(0.6))
 		} else if let track = self.remoteTrack {
 			VStack(alignment: .leading, spacing: 10) {
 				VStack(alignment: .leading, spacing: 2) {
@@ -94,8 +98,12 @@ struct UnitySettingsSection: View {
 			}
 			.buttonStyle(.plain)
 		} else {
-			Label(String(localized: "unity-nobody-playing"), systemImage: "hifispeaker.slash")
-				.foregroundStyle(DTColor.textPrimary.opacity(0.6))
+			Label {
+				Text(String(localized: "unity-nobody-playing"))
+			} icon: {
+				Image(.nafynUnity)
+			}
+			.foregroundStyle(DTColor.textPrimary.opacity(0.6))
 		}
 	}
 }
