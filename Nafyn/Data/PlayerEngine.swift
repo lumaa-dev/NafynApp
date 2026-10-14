@@ -114,6 +114,14 @@ final class PlayerEngine: NSObject {
 	private var itemObservers: [any NSObjectProtocol] = []
 	private var interruptionObservers: [NotificationCenter.ObservationToken] = []
 
+	/// Tracks whether the playback audio session is currently active, so `activateAudioSession()` only
+	/// calls into `AVAudioSession` when there's actually a state change to make. Calling `activate(options:
+	/// completionHandler:)`/`setActive(true)` again while already active is a harmless no-op as far as
+	/// playback goes, but each call re-registers a completion handler with CoreAudio's session-core HAL
+	/// dispatch table, and that's what was spamming the console with "cannot add handler to 0 from 0 -
+	/// dropping" on every play/pause/resume.
+	private var isAudioSessionActive = false
+
 	/// Type-erased storage for `MediaSession<PlayerEngine>` (iOS 27+ only) — the concrete generic type
 	/// can't be named in a stored property that must also compile on older OS versions, since
 	/// `PlayerEngine`'s conformance to `MediaSessionRepresentable` is itself `@available`-gated below.
@@ -152,6 +160,9 @@ final class PlayerEngine: NSObject {
 	/// than only once at launch, and it is never deactivated on pause.
 	private func activateAudioSession() {
 		#if canImport(UIKit) || canImport(AVFAudio)
+		guard !self.isAudioSessionActive else { return }
+		self.isAudioSessionActive = true
+
 		// `setCategory`/`setActive` can block for disk/IPC work under the hood; SessionCore warns if
 		// they're called on the main thread while the session is active, so they run off it here.
 		Task.detached(priority: .userInitiated) {
@@ -183,7 +194,9 @@ final class PlayerEngine: NSObject {
 			of: session,
 			for: AVAudioSession.DidBecomeInactiveMessage.self
 		) { [weak self] _ in
-			guard let self, self.isPlaying else { return }
+			guard let self else { return }
+			self.isAudioSessionActive = false
+			guard self.isPlaying else { return }
 			self.isPlaying = false
 			PlayTracker.shared.paused()
 			self.updateNowPlayingInfo()

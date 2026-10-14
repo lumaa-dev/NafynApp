@@ -20,7 +20,6 @@ struct OnboardingView: View {
 	@State private var onboardingBusy: Bool = false
 	@State private var showError: Bool = false
 	@State private var errorMessage: String = ""
-	@State private var passkeyBusy: Bool = false
 
 	private var isStepCompleted: Bool {
 		switch self.onboarding {
@@ -129,19 +128,6 @@ struct OnboardingView: View {
 							guard self.isStepCompleted && !self.onboardingBusy else { return }
 							self.nextStep()
 						}
-
-					Button {
-						self.signInWithPasskey()
-					} label: {
-						if self.passkeyBusy {
-							ProgressView()
-								.tint(DTColor.textPrimary)
-						} else {
-							Label(String(localized: "sign-in-with-passkey"), systemImage: "person.badge.key")
-						}
-					}
-					.buttonStyle(.hollow())
-					.disabled(self.onboardingBusy || self.passkeyBusy)
 				}
 			default:
 				EmptyView()
@@ -187,7 +173,7 @@ struct OnboardingView: View {
 				}
 
 				guard let serverUrl: URL = URL(string: url) else { throw NafynError.invalidURL }
-				let instance: NafynInstance = try await NafynInstance.connect(appName: "Nafyn", to: serverUrl)
+				let instance: NafynInstance = try await NafynInstance.connect(appName: "Nafyn on iOS", to: serverUrl)
 
 				self.serverUrl = url
 				self.instance = instance
