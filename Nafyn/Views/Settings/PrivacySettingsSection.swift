@@ -47,8 +47,6 @@ struct PrivacySettingsSection: View {
 				Text(String(localized: "sessions-footer"))
 			}
 
-			PasskeysSettingsSection()
-
 			Section {
 				if let exportedFileURL {
 					ShareLink(item: exportedFileURL) {

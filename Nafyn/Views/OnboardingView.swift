@@ -148,46 +148,6 @@ struct OnboardingView: View {
 		}
 	}
 
-	private func signInWithPasskey() {
-		guard let instance = self.instance else { return }
-
-		Task {
-			withAnimation {
-				self.passkeyBusy = true
-				self.showError = false
-			}
-			defer { withAnimation { self.passkeyBusy = false } }
-
-			do {
-				let response = try await PasskeyAuth.login(instance: instance)
-
-				// See `signInWithPasskey()` in `SettingsView`'s `AddLocalAccountSheet`: no password to
-				// store, so token refresh on expiry needs a fresh passkey/password sign-in.
-				let auth = AuthInfo(
-					server: self.serverUrl,
-					username: response.user.username,
-					password: "",
-					token: response.token,
-					tokenExpire: Date.now.addingTimeInterval(60 * 60 * 24 * 7),
-					defaultAuth: self.existingAuths.isEmpty
-				)
-
-				self.modelContext.insert(auth)
-				try self.modelContext.save()
-
-				UserDefaults.standard.set(true, forKey: "onboarded")
-				withAnimation {
-					self.onboarding = .complete
-				}
-			} catch {
-				withAnimation {
-					self.errorMessage = error.localizedDescription
-					self.showError = true
-				}
-			}
-		}
-	}
-
 	private func nextStep() {
 		let allCases: [OnboardingView.OnboardingSteps] = OnboardingView.OnboardingSteps.allCases
 		let curI: Int = allCases.firstIndex(of: self.onboarding) ?? 0
