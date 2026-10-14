@@ -84,6 +84,9 @@ final class Navigator {
 		case settingsStorage
 		case settingsDownloads
 		case settingsPrivacy
+		case settingsAppearance
+		case settingsInsights
+		case settingsUnity
 		case users
 		case musicYear(year: Int?)
 		case monthlyInsights(month: String?)
@@ -131,6 +134,18 @@ final class Navigator {
 				case .settingsPrivacy:
 					AnyView(SettingsSectionScreen(title: String(localized: "privacy")) {
 						PrivacySettingsSection()
+					})
+				case .settingsAppearance:
+					AnyView(SettingsSectionScreen(title: String(localized: "appearance")) {
+						AppearanceSettingsSection()
+					})
+				case .settingsInsights:
+					AnyView(SettingsSectionScreen(title: String(localized: "insights")) {
+						InsightsSettingsSection()
+					})
+				case .settingsUnity:
+					AnyView(SettingsSectionScreen(title: String(localized: "unity")) {
+						UnitySettingsSection()
 					})
 				case .users:
 					AnyView(UsersAdminView())

@@ -8,15 +8,6 @@ import SwiftUI
 struct DownloadsSettingsSection: View {
 	@State private var showingDeleteAllConfirmation = false
 
-	private var groupedByAlbum: [(albumId: String, albumTitle: String, tracks: [DownloadedTrack])] {
-		let groups = Dictionary(grouping: DownloadManager.shared.downloads, by: \.albumId)
-		return groups
-			.map { albumId, tracks in
-				(albumId: albumId, albumTitle: tracks.first?.album ?? tracks.first?.artistName ?? String(localized: "unknown"), tracks: tracks)
-			}
-			.sorted { $0.albumTitle.localizedCaseInsensitiveCompare($1.albumTitle) == .orderedAscending }
-	}
-
 	var body: some View {
 		Group {
 			Section {
@@ -38,48 +29,40 @@ struct DownloadsSettingsSection: View {
 				}
 			}
 
-			if DownloadManager.shared.downloads.isEmpty {
-				Section {
+			Section {
+				if DownloadManager.shared.downloads.isEmpty {
 					Text(String(localized: "downloads-empty"))
 						.foregroundStyle(DTColor.textPrimary.opacity(0.5))
-				}
-			} else {
-				ForEach(self.groupedByAlbum, id: \.albumId) { group in
-					Section(group.albumTitle) {
-						ForEach(group.tracks) { track in
-							Button {
-								self.play(track, in: group.tracks)
+				} else {
+					ForEach(DownloadManager.shared.downloads, id: \.albumId) { track in
+						HStack(spacing: 12) {
+							CoverImage(url: track.coverArt.flatMap { URL(string: $0) })
+								.frame(width: 40, height: 40)
+
+							VStack(alignment: .leading, spacing: 2) {
+								Text(track.title)
+									.foregroundStyle(DTColor.textPrimary)
+									.lineLimit(1)
+								
+								Text(track.artistName)
+									.font(.footnote)
+									.foregroundStyle(DTColor.textPrimary.opacity(0.55))
+									.lineLimit(1)
+							}
+
+							Spacer()
+
+							Text(Self.formattedSize(track.fileSize))
+								.font(.footnote)
+								.foregroundStyle(DTColor.textPrimary.opacity(0.45))
+						}
+						.swipeActions {
+							Button(role: .destructive) {
+								DownloadManager.shared.delete(track)
 							} label: {
-								HStack(spacing: 12) {
-									CoverImage(url: track.coverArt.flatMap { URL(string: $0) })
-										.frame(width: 40, height: 40)
-
-									VStack(alignment: .leading, spacing: 2) {
-										Text(track.title)
-											.foregroundStyle(DTColor.textPrimary)
-											.lineLimit(1)
-										Text(track.artistName)
-											.font(.footnote)
-											.foregroundStyle(DTColor.textPrimary.opacity(0.55))
-											.lineLimit(1)
-									}
-
-									Spacer()
-
-									Text(Self.formattedSize(track.fileSize))
-										.font(.footnote)
-										.foregroundStyle(DTColor.textPrimary.opacity(0.45))
-								}
+								Label(String(localized: "delete"), systemImage: "trash")
 							}
-							.buttonStyle(.plain)
-							.swipeActions {
-								Button(role: .destructive) {
-									DownloadManager.shared.delete(track)
-								} label: {
-									Label(String(localized: "delete"), systemImage: "trash")
-								}
-								.tint(DTColor.buttonDanger)
-							}
+							.tint(DTColor.buttonDanger)
 						}
 					}
 				}
