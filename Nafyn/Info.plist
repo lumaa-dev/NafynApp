@@ -2,15 +2,10 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>UIBackgroundModes</key>
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
 	<array>
-		<string>audio</string>
-		<string>remote-notification</string>
+		<string>fr.lumaa.Nafyn.offlineDownload</string>
 	</array>
-	<key>NSSupportsLiveActivities</key>
-	<true/>
-	<key>NSSupportsLiveActivitiesFrequentUpdates</key>
-	<true/>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -22,11 +17,10 @@
 			</array>
 		</dict>
 	</array>
-	<key>NSAppleMusicUsageDescription</key>
-	<string>Nafyn uses your Apple Music library to import playlists.</string>
-	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<key>UIBackgroundModes</key>
 	<array>
-		<string>fr.lumaa.Nafyn.offlineDownload</string>
+		<string>audio</string>
+		<string>remote-notification</string>
 	</array>
 </dict>
 </plist>
