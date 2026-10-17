@@ -5,6 +5,7 @@ import SwiftData
 import Safyn
 
 struct LocalAccountsSettingsSection: View {
+	@Environment(\.server) private var server: NafynServer?
 	@Environment(\.modelContext) private var modelContext: ModelContext
 	@Query private var auths: [AuthInfo]
 
@@ -83,6 +84,11 @@ struct LocalAccountsSettingsSection: View {
 
 	private func delete(_ auth: AuthInfo) {
 		let wasDefault = auth.defaultAuth
+
+		// removing the account in use signs it out server-side too, which drops this login's push tokens
+		if wasDefault {
+			PushManager.shared.signOut(server: self.server)
+		}
 		self.modelContext.delete(auth)
 
 		if wasDefault, let nextAuth = self.auths.first(where: { $0.id != auth.id }) {

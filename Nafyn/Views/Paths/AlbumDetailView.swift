@@ -16,7 +16,7 @@ struct AlbumDetailView: View {
 		AsyncContentView {
 			guard let server else { throw NafynError.unauthenticated }
 			return try await server.fetchAlbumDetail(aid: self.albumId)
-		} content: { album, _ in
+		} content: { album, reload in
 			ScrollView {
 				VStack(alignment: .leading, spacing: 16) {
 					self.header(album)
@@ -27,18 +27,24 @@ struct AlbumDetailView: View {
 							.foregroundStyle(DTColor.textPrimary.opacity(0.8))
 					}
 
-					Button {
-						self.request(album: album)
-					} label: {
-						Text("request")
-							.frame(maxWidth: .infinity)
+					if album.released {
+						Button {
+							self.request(album: album, reload: reload)
+						} label: {
+							Text("request")
+								.frame(maxWidth: .infinity)
+						}
+						.buttonStyle(.filled())
+						.disabled(self.isRequesting || NetworkMonitor.shared.isOffline)
+					} else {
+						UnreleasedSection(mbid: album.id, kind: .album, releaseDate: album.releaseDate, precision: album.releaseDatePrecision, subscribed: album.subscribed, toast: self.toast) {
+							Task { await reload() }
+						}
 					}
-					.buttonStyle(.filled())
-					.disabled(self.isRequesting || NetworkMonitor.shared.isOffline)
 
 					VStack(spacing: 0) {
 						ForEach(Array(album.tracks.enumerated()), id: \.element.id) { index, track in
-							self.trackRow(track, album: album)
+							self.trackRow(track, album: album, reload: reload)
 
 							if index < album.tracks.count - 1 {
 								Divider()
@@ -102,7 +108,7 @@ struct AlbumDetailView: View {
 	}
 
 	@ViewBuilder
-	private func trackRow(_ track: TrackInfo, album: AlbumDetail) -> some View {
+	private func trackRow(_ track: TrackInfo, album: AlbumDetail, reload: @escaping () async -> Void) -> some View {
 		TrackRow(
 			index: String(Int(track.trackNumber)),
 			title: track.title,
@@ -111,9 +117,14 @@ struct AlbumDetailView: View {
 			verticalPadding: 12,
 			onTap: track.mediaId != nil ? { self.play(track, album: album) } : nil
 		) {
-			if !track.requested && !track.inLibrary && track.released {
+			if !track.released, let releaseDate = track.releaseDate {
+				// a track that's still unreleased on an album that is: no download, just when it lands
+				ReleaseCountdown(releaseDate: releaseDate, compact: true) {
+					Task { await reload() }
+				}
+			} else if !track.requested && !track.inLibrary && track.released {
 				Button {
-					self.request(track: track)
+					self.request(track: track, reload: reload)
 				} label: {
 					Image(systemName: "arrow.down.circle")
 						.foregroundStyle(DTColor.textPrimary.opacity(0.7))
@@ -150,7 +161,7 @@ struct AlbumDetailView: View {
 		.foregroundStyle(DTColor.textPrimary.opacity(0.5))
 	}
 
-	private func request(album: AlbumDetail) {
+	private func request(album: AlbumDetail, reload: @escaping () async -> Void) {
 		guard let server, !self.isRequesting else { return }
 		self.isRequesting = true
 
@@ -159,22 +170,35 @@ struct AlbumDetailView: View {
 			do {
 				_ = try await server.send(Request.create(id: album.id, type: .album)) as NafynRequest
 				self.toast.success(String(localized: "request-sent"))
+				await PushManager.shared.requestAuthorizationIfNeeded()
 			} catch {
-				self.toast.failure(error)
+				await self.handleRequestFailure(error, reload: reload)
 			}
 		}
 	}
 
-	private func request(track: TrackInfo) {
+	private func request(track: TrackInfo, reload: @escaping () async -> Void) {
 		guard let server else { return }
 
 		Task {
 			do {
 				_ = try await server.send(Request.create(id: track.id, type: .track)) as NafynRequest
 				self.toast.success(String(localized: "request-sent"))
+				await PushManager.shared.requestAuthorizationIfNeeded()
 			} catch {
-				self.toast.failure(error)
+				await self.handleRequestFailure(error, reload: reload)
 			}
+		}
+	}
+
+	/// A release the server still considers unreleased (our clock was ahead, or the date moved): say so and
+	/// reload, which swaps Request for the countdown.
+	private func handleRequestFailure(_ error: Error, reload: () async -> Void) async {
+		if let error = error as? NafynError, error.isNotReleasedYet {
+			self.toast.failure(error)
+			await reload()
+		} else {
+			self.toast.failure(error)
 		}
 	}
 

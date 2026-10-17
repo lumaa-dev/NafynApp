@@ -14,12 +14,12 @@ struct TrackDetailView: View {
 	var body: some View {
 		AsyncContentView {
 			guard let server else { throw NafynError.unauthenticated }
-			return try await server.send(Track.get(tid: self.trackId)) as TrackDetail
-		} content: { track, _ in
+			return try await server.fetchTrackRelease(tid: self.trackId)
+		} content: { track, reload in
 			ScrollView {
 				VStack(alignment: .leading, spacing: 20) {
-					self.head(track)
-					self.footer(track)
+					self.head(track, reload: reload)
+					self.footer(track.detail)
 				}
 				.padding()
 			}
@@ -31,7 +31,8 @@ struct TrackDetailView: View {
 	}
 
 	@ViewBuilder
-	private func head(_ track: TrackDetail) -> some View {
+	private func head(_ release: TrackRelease, reload: @escaping () async -> Void) -> some View {
+		let track = release.detail
 		HStack(alignment: .top, spacing: 16) {
 			CoverImage(url: track.info.coverArt.flatMap { URL(string: $0) })
 				.frame(width: 130, height: 130)
@@ -56,9 +57,14 @@ struct TrackDetailView: View {
 					.foregroundStyle(DTColor.textPrimary.opacity(0.5))
 				}
 
-				if track.info.inLibrary != true {
+				if !release.released {
+					UnreleasedSection(mbid: track.info.id, kind: .track, releaseDate: track.info.releaseDate, precision: release.precision, subscribed: release.subscribed, toast: self.toast) {
+						Task { await reload() }
+					}
+					.padding(.top, 6)
+				} else if track.info.inLibrary != true {
 					Button {
-						self.request(track: track)
+						self.request(track: track, reload: reload)
 					} label: {
 						Text("request")
 					}
@@ -112,7 +118,7 @@ struct TrackDetailView: View {
 		.foregroundStyle(DTColor.textPrimary.opacity(0.5))
 	}
 
-	private func request(track: TrackDetail) {
+	private func request(track: TrackDetail, reload: @escaping () async -> Void) {
 		guard let server, !self.isRequesting else { return }
 		self.isRequesting = true
 
@@ -121,8 +127,13 @@ struct TrackDetailView: View {
 			do {
 				_ = try await server.send(Request.create(id: track.info.id, type: .track)) as NafynRequest
 				self.toast.success(String(localized: "request-sent"))
+				await PushManager.shared.requestAuthorizationIfNeeded()
 			} catch {
 				self.toast.failure(error)
+				// the server still considers it unreleased: reload swaps Request for the countdown
+				if let error = error as? NafynError, error.isNotReleasedYet {
+					await reload()
+				}
 			}
 		}
 	}

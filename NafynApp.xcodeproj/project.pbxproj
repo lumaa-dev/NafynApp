@@ -7,16 +7,94 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		5A0000000000000000000A02 /* Safyn in Frameworks */ = {isa = PBXBuildFile; productRef = B9AD82C2303604B3004CEC7B /* Safyn */; };
+		B968C40A3083277900BB01AB /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B968C4093083277900BB01AB /* WidgetKit.framework */; };
+		B968C40C3083277900BB01AB /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B968C40B3083277900BB01AB /* SwiftUI.framework */; };
+		B968C4173083277A00BB01AB /* NafynWidgetsExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = B968C4073083277900BB01AB /* NafynWidgetsExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		B968C4283083277A00BB01AB /* NafynNotificationService.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = B968C4213083277A00BB01AB /* NafynNotificationService.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		B968C4393083277B00BB01AB /* RemoteMediaSessionExtension.appex in Embed ExtensionKit Extensions */ = {isa = PBXBuildFile; fileRef = B968C4323083277B00BB01AB /* RemoteMediaSessionExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		B9AD82C3303604B3004CEC7B /* Safyn in Frameworks */ = {isa = PBXBuildFile; productRef = B9AD82C2303604B3004CEC7B /* Safyn */; };
 		B9AD82DE30360D3D004CEC7B /* UnionToast in Frameworks */ = {isa = PBXBuildFile; productRef = B9AD82DD30360D3D004CEC7B /* UnionToast */; };
 		B9C187A7303C757F000A4ABB /* TextFlowKit in Frameworks */ = {isa = PBXBuildFile; productRef = B9C187A6303C757F000A4ABB /* TextFlowKit */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		B968C4153083277A00BB01AB /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 000000000000000000000000 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = B968C4063083277900BB01AB;
+			remoteInfo = NafynWidgetsExtension;
+		};
+		B968C4263083277A00BB01AB /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 000000000000000000000000 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = B968C4203083277A00BB01AB;
+			remoteInfo = NafynNotificationService;
+		};
+		B968C4373083277B00BB01AB /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 000000000000000000000000 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = B968C4313083277B00BB01AB;
+			remoteInfo = RemoteMediaSessionExtension;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		B968C4183083277A00BB01AB /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			dstPath = "";
+			dstSubfolder = PlugIns;
+			files = (
+				B968C4173083277A00BB01AB /* NafynWidgetsExtension.appex in Embed Foundation Extensions */,
+				B968C4283083277A00BB01AB /* NafynNotificationService.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+		};
+		B968C42D3083277A00BB01AB /* Embed ExtensionKit Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			dstPath = "$(EXTENSIONS_FOLDER_PATH)";
+			dstSubfolder = Product;
+			files = (
+				B968C4393083277B00BB01AB /* RemoteMediaSessionExtension.appex in Embed ExtensionKit Extensions */,
+			);
+			name = "Embed ExtensionKit Extensions";
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		000000000000000000000120 /* Nafyn.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Nafyn.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B968C4073083277900BB01AB /* NafynWidgetsExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = NafynWidgetsExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		B968C4093083277900BB01AB /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = /System/Library/Frameworks/WidgetKit.framework; sourceTree = "<absolute>"; };
+		B968C40B3083277900BB01AB /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = /System/Library/Frameworks/SwiftUI.framework; sourceTree = "<absolute>"; };
+		B968C4213083277A00BB01AB /* NafynNotificationService.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = NafynNotificationService.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		B968C4323083277B00BB01AB /* RemoteMediaSessionExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.extensionkit-extension"; includeInIndex = 0; path = RemoteMediaSessionExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		B968C41C3083277A00BB01AB /* Exceptions for "NafynWidgets" folder in "NafynWidgetsExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = B968C4063083277900BB01AB /* NafynWidgetsExtension */;
+		};
+		B968C42C3083277A00BB01AB /* Exceptions for "NafynNotificationService" folder in "NafynNotificationService" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = B968C4203083277A00BB01AB /* NafynNotificationService */;
+		};
+		B968C43D3083277B00BB01AB /* Exceptions for "RemoteMediaSessionExtension" folder in "RemoteMediaSessionExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = B968C4313083277B00BB01AB /* RemoteMediaSessionExtension */;
+		};
 		B9C187A4303C730E000A4ABB /* Exceptions for "Nafyn" folder in "Nafyn" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -35,6 +113,35 @@
 			path = Nafyn;
 			sourceTree = "<group>";
 		};
+		5A0000000000000000000A01 /* Shared */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Shared;
+			sourceTree = "<group>";
+		};
+		B968C40D3083277900BB01AB /* NafynWidgets */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				B968C41C3083277A00BB01AB /* Exceptions for "NafynWidgets" folder in "NafynWidgetsExtension" target */,
+			);
+			path = NafynWidgets;
+			sourceTree = "<group>";
+		};
+		B968C4223083277A00BB01AB /* NafynNotificationService */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				B968C42C3083277A00BB01AB /* Exceptions for "NafynNotificationService" folder in "NafynNotificationService" target */,
+			);
+			path = NafynNotificationService;
+			sourceTree = "<group>";
+		};
+		B968C4333083277B00BB01AB /* RemoteMediaSessionExtension */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				B968C43D3083277B00BB01AB /* Exceptions for "RemoteMediaSessionExtension" folder in "RemoteMediaSessionExtension" target */,
+			);
+			path = RemoteMediaSessionExtension;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -46,6 +153,24 @@
 				B9AD82C3303604B3004CEC7B /* Safyn in Frameworks */,
 			);
 		};
+		B968C4043083277900BB01AB /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			files = (
+				B968C40C3083277900BB01AB /* SwiftUI.framework in Frameworks */,
+				B968C40A3083277900BB01AB /* WidgetKit.framework in Frameworks */,
+			);
+		};
+		B968C41E3083277A00BB01AB /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			files = (
+			);
+		};
+		B968C42F3083277B00BB01AB /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			files = (
+				5A0000000000000000000A02 /* Safyn in Frameworks */,
+			);
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -53,6 +178,11 @@
 			isa = PBXGroup;
 			children = (
 				000000000000000000000010 /* Nafyn */,
+				5A0000000000000000000A01 /* Shared */,
+				B968C40D3083277900BB01AB /* NafynWidgets */,
+				B968C4223083277A00BB01AB /* NafynNotificationService */,
+				B968C4333083277B00BB01AB /* RemoteMediaSessionExtension */,
+				B968C4083083277900BB01AB /* Frameworks */,
 				000000000000000000000020 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -61,8 +191,20 @@
 			isa = PBXGroup;
 			children = (
 				000000000000000000000120 /* Nafyn.app */,
+				B968C4073083277900BB01AB /* NafynWidgetsExtension.appex */,
+				B968C4213083277A00BB01AB /* NafynNotificationService.appex */,
+				B968C4323083277B00BB01AB /* RemoteMediaSessionExtension.appex */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		B968C4083083277900BB01AB /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				B968C4093083277900BB01AB /* WidgetKit.framework */,
+				B968C40B3083277900BB01AB /* SwiftUI.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -75,11 +217,19 @@
 				000000000000000120000000 /* Sources */,
 				000000000000000130000000 /* Frameworks */,
 				000000000000000140000000 /* Resources */,
+				B968C4183083277A00BB01AB /* Embed Foundation Extensions */,
+				B968C42D3083277A00BB01AB /* Embed ExtensionKit Extensions */,
 			);
 			buildRules = (
 			);
+			dependencies = (
+				B968C4163083277A00BB01AB /* PBXTargetDependency */,
+				B968C4273083277A00BB01AB /* PBXTargetDependency */,
+				B968C4383083277B00BB01AB /* PBXTargetDependency */,
+			);
 			fileSystemSynchronizedGroups = (
 				000000000000000000000010 /* Nafyn */,
+				5A0000000000000000000A01 /* Shared */,
 			);
 			name = Nafyn;
 			packageProductDependencies = (
@@ -91,6 +241,65 @@
 			productReference = 000000000000000000000120 /* Nafyn.app */;
 			productType = "com.apple.product-type.application";
 		};
+		B968C4063083277900BB01AB /* NafynWidgetsExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B968C41B3083277A00BB01AB /* Build configuration list for PBXNativeTarget "NafynWidgetsExtension" */;
+			buildPhases = (
+				B968C4033083277900BB01AB /* Sources */,
+				B968C4043083277900BB01AB /* Frameworks */,
+				B968C4053083277900BB01AB /* Resources */,
+			);
+			buildRules = (
+			);
+			fileSystemSynchronizedGroups = (
+				5A0000000000000000000A01 /* Shared */,
+				B968C40D3083277900BB01AB /* NafynWidgets */,
+			);
+			name = NafynWidgetsExtension;
+			productName = NafynWidgetsExtension;
+			productReference = B968C4073083277900BB01AB /* NafynWidgetsExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		B968C4203083277A00BB01AB /* NafynNotificationService */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B968C4293083277A00BB01AB /* Build configuration list for PBXNativeTarget "NafynNotificationService" */;
+			buildPhases = (
+				B968C41D3083277A00BB01AB /* Sources */,
+				B968C41E3083277A00BB01AB /* Frameworks */,
+				B968C41F3083277A00BB01AB /* Resources */,
+			);
+			buildRules = (
+			);
+			fileSystemSynchronizedGroups = (
+				B968C4223083277A00BB01AB /* NafynNotificationService */,
+			);
+			name = NafynNotificationService;
+			productName = NafynNotificationService;
+			productReference = B968C4213083277A00BB01AB /* NafynNotificationService.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		B968C4313083277B00BB01AB /* RemoteMediaSessionExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B968C43A3083277B00BB01AB /* Build configuration list for PBXNativeTarget "RemoteMediaSessionExtension" */;
+			buildPhases = (
+				B968C42E3083277B00BB01AB /* Sources */,
+				B968C42F3083277B00BB01AB /* Frameworks */,
+				B968C4303083277B00BB01AB /* Resources */,
+			);
+			buildRules = (
+			);
+			fileSystemSynchronizedGroups = (
+				5A0000000000000000000A01 /* Shared */,
+				B968C4333083277B00BB01AB /* RemoteMediaSessionExtension */,
+			);
+			name = RemoteMediaSessionExtension;
+			packageProductDependencies = (
+				B9AD82C2303604B3004CEC7B /* Safyn */,
+			);
+			productName = RemoteMediaSessionExtension;
+			productReference = B968C4323083277B00BB01AB /* RemoteMediaSessionExtension.appex */;
+			productType = "com.apple.product-type.extensionkit-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -98,12 +307,21 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 2630;
+				LastSwiftUpdateCheck = 2700;
 				LastUpgradeCheck = 2700;
 				TargetAttributes = {
 					000000000000000100000000 = {
 						CreatedOnToolsVersion = 26.3;
 						LastSwiftMigration = 2700;
+					};
+					B968C4063083277900BB01AB = {
+						CreatedOnToolsVersion = 27.0;
+					};
+					B968C4203083277A00BB01AB = {
+						CreatedOnToolsVersion = 27.0;
+					};
+					B968C4313083277B00BB01AB = {
+						CreatedOnToolsVersion = 27.0;
 					};
 				};
 			};
@@ -128,12 +346,30 @@
 			projectRoot = "";
 			targets = (
 				000000000000000100000000 /* Nafyn */,
+				B968C4063083277900BB01AB /* NafynWidgetsExtension */,
+				B968C4203083277A00BB01AB /* NafynNotificationService */,
+				B968C4313083277B00BB01AB /* RemoteMediaSessionExtension */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		000000000000000140000000 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			files = (
+			);
+		};
+		B968C4053083277900BB01AB /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			files = (
+			);
+		};
+		B968C41F3083277A00BB01AB /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			files = (
+			);
+		};
+		B968C4303083277B00BB01AB /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			files = (
 			);
@@ -146,7 +382,40 @@
 			files = (
 			);
 		};
+		B968C4033083277900BB01AB /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			files = (
+			);
+		};
+		B968C41D3083277A00BB01AB /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			files = (
+			);
+		};
+		B968C42E3083277B00BB01AB /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			files = (
+			);
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		B968C4163083277A00BB01AB /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = B968C4063083277900BB01AB /* NafynWidgetsExtension */;
+			targetProxy = B968C4153083277A00BB01AB /* PBXContainerItemProxy */;
+		};
+		B968C4273083277A00BB01AB /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = B968C4203083277A00BB01AB /* NafynNotificationService */;
+			targetProxy = B968C4263083277A00BB01AB /* PBXContainerItemProxy */;
+		};
+		B968C4383083277B00BB01AB /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = B968C4313083277B00BB01AB /* RemoteMediaSessionExtension */;
+			targetProxy = B968C4373083277B00BB01AB /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		000000000000000011000000 /* Debug configuration for PBXProject "NafynApp" */ = {
@@ -288,6 +557,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = Entitlements/Nafyn.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = Nafyn/Assets.xcassets;
@@ -303,7 +573,7 @@
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
-				INFOPLIST_KEY_UIBackgroundModes = audio;
+				INFOPLIST_KEY_UIBackgroundModes = "audio remote-notification";
 				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
@@ -335,6 +605,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = Entitlements/Nafyn.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = Nafyn/Assets.xcassets;
@@ -350,7 +621,7 @@
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
-				INFOPLIST_KEY_UIBackgroundModes = audio;
+				INFOPLIST_KEY_UIBackgroundModes = "audio remote-notification";
 				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
@@ -376,6 +647,228 @@
 			};
 			name = Release;
 		};
+		B968C4193083277A00BB01AB /* Debug configuration for PBXNativeTarget "NafynWidgetsExtension" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = HB5P3BML86;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = NafynWidgets/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = NafynWidgets;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = fr.lumaa.Nafyn.NafynWidgets;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		B968C41A3083277A00BB01AB /* Release configuration for PBXNativeTarget "NafynWidgetsExtension" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = HB5P3BML86;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = NafynWidgets/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = NafynWidgets;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = fr.lumaa.Nafyn.NafynWidgets;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		B968C42A3083277A00BB01AB /* Debug configuration for PBXNativeTarget "NafynNotificationService" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = HB5P3BML86;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = NafynNotificationService/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = NafynNotificationService;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = fr.lumaa.Nafyn.NafynNotificationService;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		B968C42B3083277A00BB01AB /* Release configuration for PBXNativeTarget "NafynNotificationService" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = HB5P3BML86;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = NafynNotificationService/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = NafynNotificationService;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = fr.lumaa.Nafyn.NafynNotificationService;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		B968C43B3083277B00BB01AB /* Debug configuration for PBXNativeTarget "RemoteMediaSessionExtension" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = Entitlements/RemoteMediaSessionExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = HB5P3BML86;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = RemoteMediaSessionExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = RemoteMediaSessionExtension;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = fr.lumaa.Nafyn.RemoteMediaSessionExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		B968C43C3083277B00BB01AB /* Release configuration for PBXNativeTarget "RemoteMediaSessionExtension" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = Entitlements/RemoteMediaSessionExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = HB5P3BML86;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = RemoteMediaSessionExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = RemoteMediaSessionExtension;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = fr.lumaa.Nafyn.RemoteMediaSessionExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -392,6 +885,30 @@
 			buildConfigurations = (
 				000000000000000111000000 /* Debug configuration for PBXNativeTarget "Nafyn" */,
 				000000000000000112000000 /* Release configuration for PBXNativeTarget "Nafyn" */,
+			);
+			defaultConfigurationName = Release;
+		};
+		B968C41B3083277A00BB01AB /* Build configuration list for PBXNativeTarget "NafynWidgetsExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B968C4193083277A00BB01AB /* Debug configuration for PBXNativeTarget "NafynWidgetsExtension" */,
+				B968C41A3083277A00BB01AB /* Release configuration for PBXNativeTarget "NafynWidgetsExtension" */,
+			);
+			defaultConfigurationName = Release;
+		};
+		B968C4293083277A00BB01AB /* Build configuration list for PBXNativeTarget "NafynNotificationService" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B968C42A3083277A00BB01AB /* Debug configuration for PBXNativeTarget "NafynNotificationService" */,
+				B968C42B3083277A00BB01AB /* Release configuration for PBXNativeTarget "NafynNotificationService" */,
+			);
+			defaultConfigurationName = Release;
+		};
+		B968C43A3083277B00BB01AB /* Build configuration list for PBXNativeTarget "RemoteMediaSessionExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B968C43B3083277B00BB01AB /* Debug configuration for PBXNativeTarget "RemoteMediaSessionExtension" */,
+				B968C43C3083277B00BB01AB /* Release configuration for PBXNativeTarget "RemoteMediaSessionExtension" */,
 			);
 			defaultConfigurationName = Release;
 		};

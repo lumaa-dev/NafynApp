@@ -12,9 +12,13 @@ struct QueuePanel: View {
 				.listRowSeparator(.hidden)
 
 			Section {
-				ForEach(Array(PlayerEngine.shared.queue.enumerated()), id: \.element.id) { index, track in
+				ForEach(Array(PlaybackSource.queue.enumerated()), id: \.element.id) { index, track in
 					Button {
-						PlayerEngine.shared.play(track, queue: PlayerEngine.shared.queue)
+						if PlaybackSource.isRemote {
+							UnityEngine.shared.sendCommand(.playFromQueue(index: index))
+						} else {
+							PlayerEngine.shared.play(track, queue: PlayerEngine.shared.queue)
+						}
 					} label: {
 						HStack(spacing: 10) {
 							CoverImage(url: track.highResCoverURL, cornerRadius: 6)
@@ -23,7 +27,7 @@ struct QueuePanel: View {
 							VStack(alignment: .leading, spacing: 2) {
 								Text(track.title)
 									.font(DTFont.serif(18))
-									.foregroundStyle(index == PlayerEngine.shared.currentIndex ? DTColor.accentStart : DTColor.textPrimary)
+									.foregroundStyle(index == PlaybackSource.currentIndex ? DTColor.accentStart : DTColor.textPrimary)
 									.lineLimit(1)
 								Text(track.artistName)
 									.font(DTFont.serif(15))
@@ -37,14 +41,19 @@ struct QueuePanel: View {
 					.listRowBackground(Color.clear)
 					.swipeActions {
 						Button(role: .destructive) {
-							PlayerEngine.shared.removeFromQueue(at: index)
+							if PlaybackSource.isRemote {
+								UnityEngine.shared.sendCommand(.removeFromQueue(index: index))
+							} else {
+								PlayerEngine.shared.removeFromQueue(at: index)
+							}
 						} label: {
 							Label(String(localized: "remove"), systemImage: "trash")
 						}
 						.tint(DTColor.buttonDanger)
 					}
 				}
-				.onMove(perform: PlayerEngine.shared.shuffleEnabled ? nil : { source, destination in
+				// Unity has no reorder command, so the remote queue is not movable
+				.onMove(perform: PlaybackSource.isRemote || PlayerEngine.shared.shuffleEnabled ? nil : { source, destination in
 					PlayerEngine.shared.moveInQueue(from: source, to: destination)
 				})
 			} header: {
@@ -64,7 +73,7 @@ struct QueuePanel: View {
 	/// `PlayerEngine` only retains that source's ID for play-event reporting, not a display name.
 	@ViewBuilder
 	private var header: some View {
-		if let track = PlayerEngine.shared.currentTrack {
+		if let track = PlaybackSource.track {
 			HStack(spacing: 10) {
 				RoundedRectangle(cornerRadius: 8, style: .continuous)
 					.fill(DTColor.surfaceSelect)

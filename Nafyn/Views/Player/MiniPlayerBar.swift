@@ -10,7 +10,7 @@ struct MiniPlayerBar: View {
 	let namespace: Namespace.ID
 
 	var body: some View {
-		if let track = PlayerEngine.shared.currentTrack, !PlayerEngine.shared.isExpanded {
+		if let track = PlaybackSource.track, !PlayerEngine.shared.isExpanded {
 			HStack(spacing: 12) {
 				self.cover(track)
 
@@ -27,6 +27,13 @@ struct MiniPlayerBar: View {
 
 				Spacer()
 
+				// another device is the one actually playing: this bar only mirrors and controls it
+				if let host = PlaybackSource.hostLabel {
+					Image(.nafynUnity)
+						.foregroundStyle(DTColor.textPrimary.opacity(0.6))
+						.accessibilityLabel(String(format: String(localized: "unity-playing-on"), host))
+				}
+
 //				Button {
 //					PlayerEngine.shared.prev()
 //				} label: {
@@ -34,14 +41,14 @@ struct MiniPlayerBar: View {
 //				}
 
 				Button {
-					PlayerEngine.shared.togglePlay()
+					PlaybackSource.togglePlay()
 				} label: {
-					Image(systemName: PlayerEngine.shared.isPlaying ? "pause.fill" : "play.fill")
+					Image(systemName: PlaybackSource.isPlaying ? "pause.fill" : "play.fill")
 						.frame(width: 20)
 				}
 
 				Button {
-					PlayerEngine.shared.next()
+					PlaybackSource.next()
 				} label: {
 					Image(systemName: "forward.fill")
 				}
@@ -58,8 +65,8 @@ struct MiniPlayerBar: View {
 	}
 
 	private var progressFraction: CGFloat {
-		guard PlayerEngine.shared.duration > 0 else { return 0 }
-		return CGFloat(PlayerEngine.shared.currentTime / PlayerEngine.shared.duration)
+		guard PlaybackSource.duration > 0 else { return 0 }
+		return CGFloat(PlaybackSource.currentTime / PlaybackSource.duration)
 	}
 
 	@ViewBuilder

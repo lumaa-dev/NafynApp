@@ -12,6 +12,12 @@ struct RequestRow: View {
 
 	var request: NafynRequest
 
+	/// Safyn's `RequestStatus` has no `denied` case, so denied requests arrive as `.failed` and are told
+	/// apart through `DeniedRequests` (see `NafynServer+LenientRequests.swift`).
+	private var isDenied: Bool {
+		DeniedRequests.ids.contains(self.request.id)
+	}
+
 	private var effectiveStatus: RequestStatus {
 		self.observer.progress?.stage ?? self.request.status
 	}
@@ -75,7 +81,8 @@ struct RequestRow: View {
 		}
 		.padding(.vertical, 4)
 		.task(id: self.request.id) {
-			guard let server, self.request.status != .completed, self.request.status != .failed else { return }
+			// denied is as terminal as completed/failed: nothing will ever stream for it
+			guard let server, !self.isDenied, self.request.status != .completed, self.request.status != .failed else { return }
 			self.observer.connect(server: server, requestId: self.request.id)
 		}
 		.onDisappear {
@@ -101,7 +108,11 @@ struct RequestRow: View {
 	}
 
 	private var statusStyle: (color: Color, filled: Bool, label: String) {
-		switch self.effectiveStatus {
+		if self.isDenied {
+			return (DTColor.statusFailure, false, String(localized: "status-denied"))
+		}
+
+		return switch self.effectiveStatus {
 			case .waiting:
 				(DTColor.statusWaiting, false, String(localized: "status-waiting"))
 			case .searching:

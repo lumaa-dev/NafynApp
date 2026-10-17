@@ -113,6 +113,7 @@ private struct EditUserSheet: View {
 		(.manageAccounts, "manage-accounts"),
 		(.manageMusic, "manage-music"),
 		(.manageNotifications, "manage-notifications"),
+		(.manageWebhooks, "manage-webhooks"),
 		(.admin, "admin"),
 	]
 

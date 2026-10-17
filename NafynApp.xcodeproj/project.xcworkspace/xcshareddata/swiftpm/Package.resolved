@@ -7,7 +7,7 @@
       "location" : "https://github.com/lumaa-dev/Safyn",
       "state" : {
         "branch" : "main",
-        "revision" : "86af23f4ffc2ebb3c311efe29fff66671024789c"
+        "revision" : "5511dfbd649a1438a16f51088f92529c98ecbe1a"
       }
     },
     {
@@ -51,8 +51,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/unionst/union-toast/",
       "state" : {
-        "revision" : "0a9b4334d93f4eb72bbcb1655a195539dbfb6388",
-        "version" : "2.1.3"
+        "revision" : "74f30526dd18ab19b123d0ef12c896540214a9dc",
+        "version" : "2.1.4"
       }
     }
   ],

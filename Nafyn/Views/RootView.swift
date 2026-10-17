@@ -5,6 +5,7 @@ import SwiftData
 import Safyn
 
 struct RootView: View {
+	@Environment(\.scenePhase) private var scenePhase
 	@Query private var auth: [AuthInfo]
 
 	@State private var isLoading: Bool = false
@@ -72,6 +73,14 @@ struct RootView: View {
 		.task {
 			await self.attemptLogin()
 		}
+		.onOpenURL { url in
+			DeepLink(url: url)?.open()
+		}
+		.onChange(of: self.scenePhase) { _, phase in
+			if phase == .active {
+				PushManager.shared.appDidBecomeActive()
+			}
+		}
 		.onChange(of: NetworkMonitor.shared.isOffline) { wasOffline, isOffline in
 			// Came back online while stuck in offline mode (no `server` yet, saved accounts present) —
 			// retry the handshake so the app transitions from offline-only library to the real session
@@ -101,6 +110,7 @@ struct RootView: View {
 			// streaming/publishing against the server we're about to leave.
 			PlayerEngine.shared.stop()
 			UnityEngine.shared.disconnect()
+			PushManager.shared.signOut(server: nil)
 
 			Task {
 				await self.attemptLogin()
@@ -151,7 +161,7 @@ struct RootView: View {
 			}
 		}
 		.tabViewSearchActivation(.searchTabSelection)
-		.tabViewBottomAccessory(isEnabled: PlayerEngine.shared.currentTrack != nil) {
+		.tabViewBottomAccessory(isEnabled: PlaybackSource.hasTrack) {
 			MiniPlayerBar(namespace: self.playerZoomNamespace)
 		}
 	}
@@ -197,6 +207,7 @@ struct RootView: View {
 			PlayTracker.shared.configure(server: s)
 			UnityEngine.shared.configure(server: s)
 			DownloadManager.shared.configure(server: s)
+			PushManager.shared.configure(server: s)
 		}
 	}
 

@@ -87,6 +87,8 @@ final class Navigator {
 		case settingsAppearance
 		case settingsInsights
 		case settingsUnity
+		case settingsNotifications
+		case settingsWebhooks
 		case users
 		case musicYear(year: Int?)
 		case monthlyInsights(month: String?)
@@ -146,6 +148,14 @@ final class Navigator {
 				case .settingsUnity:
 					AnyView(SettingsSectionScreen(title: String(localized: "unity")) {
 						UnitySettingsSection()
+					})
+				case .settingsNotifications:
+					AnyView(SettingsSectionScreen(title: String(localized: "notifications")) {
+						NotificationsSettingsSection()
+					})
+				case .settingsWebhooks:
+					AnyView(SettingsSectionScreen(title: String(localized: "webhooks")) {
+						InstanceWebhooksSettingsSection()
 					})
 				case .users:
 					AnyView(UsersAdminView())

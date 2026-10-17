@@ -7,6 +7,7 @@ import Safyn
 /// master — a compact remote transport for it straight from Settings.
 struct UnitySettingsSection: View {
 	@State private var isUpdating = false
+	@State private var hasRemoteSession = false
 
 	private var remoteTrack: MediaRow? {
 		guard let state = UnityEngine.shared.remoteState, state.queue.indices.contains(state.currentIndex) else { return nil }
@@ -95,8 +96,21 @@ struct UnitySettingsSection: View {
 				}
 				.foregroundStyle(Color.primary)
 				.tint(Color.primary)
+
+				// the server starts a system Now Playing session for devices other than the master; showing it
+				// on the Lock Screen is only done on an explicit tap, per Apple's guidance
+				if self.hasRemoteSession {
+					Button(String(localized: "unity-show-now-playing")) {
+						Task { await RemoteMediaCoordinator.shared.presentCurrentSession() }
+					}
+					.buttonStyle(.borderless)
+					.font(.subheadline)
+				}
 			}
 			.buttonStyle(.plain)
+			.task(id: track.id) {
+				self.hasRemoteSession = await RemoteMediaCoordinator.shared.hasSession
+			}
 		} else {
 			Label {
 				Text(String(localized: "unity-nobody-playing"))

@@ -22,7 +22,19 @@ final class UnityEngine {
 	private(set) var isMaster = false
 	private(set) var masterStatus: UnityMasterStatus = .empty
 	private(set) var masterDeviceLabel: String? = nil
-	private(set) var remoteState: UnityPlaybackState? = nil
+	private(set) var remoteState: UnityPlaybackState? = nil {
+		didSet { self.refreshRemoteQueue(old: oldValue) }
+	}
+
+	/// `remoteState`'s queue decoded to `MediaRow`s. Cached: the master republishes about once a second, and
+	/// decoding the whole queue on every render would be wasted work while nothing in it changed.
+	private(set) var remoteQueue: [MediaRow] = []
+
+	/// The master's current track, if there is one.
+	var remoteTrack: MediaRow? {
+		guard let state = self.remoteState, self.remoteQueue.indices.contains(state.currentIndex) else { return nil }
+		return self.remoteQueue[state.currentIndex]
+	}
 	private(set) var lastError: String? = nil
 
 	private var socket: NafynUnitySocket?
@@ -88,6 +100,15 @@ final class UnityEngine {
 		self.isMaster = false
 		self.remoteState = nil
 		self.stopPublishTimer()
+	}
+
+	private func refreshRemoteQueue(old: UnityPlaybackState?) {
+		guard let state = self.remoteState else {
+			self.remoteQueue = []
+			return
+		}
+		guard old?.queue != state.queue else { return }
+		self.remoteQueue = state.queue.compactMap { try? $0.decode(MediaRow.self) }
 	}
 
 	private func handleClose(code: Int, reason: String?) {

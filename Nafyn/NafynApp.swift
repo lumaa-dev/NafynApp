@@ -6,8 +6,26 @@ import SwiftData
 import UIKit
 #endif
 
+/// Only here for the two things SwiftUI has no equivalent of: the APNs token callbacks, and installing the
+/// notification delegate before launch finishes (a tap that cold-starts the app is delivered to it).
+final class AppDelegate: NSObject, UIApplicationDelegate {
+	func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
+		PushManager.shared.installDelegate()
+		return true
+	}
+
+	func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+		PushManager.shared.didRegister(deviceToken: deviceToken)
+	}
+
+	// no logging of the failure's details: nothing here is worth the risk of echoing a token
+	func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {}
+}
+
 @main
 struct NafynApp: App {
+	@UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
+
 	/// Shared `ModelContainer` for every SwiftData model in the app — ``AuthInfo`` and
 	/// ``DownloadedTrack``. Exposed at the type level (not just as this struct's `context` below) so
 	/// ``DownloadManager``, a plain singleton with no SwiftUI environment of its own, can open its own

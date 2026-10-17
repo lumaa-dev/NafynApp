@@ -122,6 +122,12 @@ private struct SettingsForm: View {
 				}
 				.tint(Color.primary)
 
+				NavigationLink(value: Navigator.Paths.settingsNotifications) {
+					Label(String(localized: "notifications"), systemImage: "bell.badge")
+						.foregroundStyle(Color.primary)
+				}
+				.tint(Color.primary)
+
 				NavigationLink(value: Navigator.Paths.settingsInsights) {
 					Label(String(localized: "insights"), systemImage: "chart.bar")
 						.foregroundStyle(Color.primary)
@@ -135,6 +141,14 @@ private struct SettingsForm: View {
 						Image(.nafynUnity)
 					}
 					.foregroundStyle(Color.primary)
+				}
+				.tint(Color.primary)
+			}
+
+			if self.user.permissions.has(.manageWebhooks) {
+				NavigationLink(value: Navigator.Paths.settingsWebhooks) {
+					Label(String(localized: "webhooks"), systemImage: "point.3.connected.trianglepath.dotted")
+						.foregroundStyle(Color.primary)
 				}
 				.tint(Color.primary)
 			}

@@ -13,14 +13,14 @@ struct NowPlayingView: View {
 	}
 
 	@State private var activePanel: PanelTab? = nil
-	@State private var sliderValue: Float = Float(PlayerEngine.shared.currentTime)
+	@State private var sliderValue: Float = Float(PlaybackSource.currentTime)
 	@State private var isDraggingSlider = false
 	@State private var isPresentingAddToPlaylist = false
 
 	var body: some View {
 		NavigationStack {
 			Group {
-				if let track = PlayerEngine.shared.currentTrack {
+				if let track = PlaybackSource.track {
 					VStack(spacing: 0) {
 						if let error = PlayerEngine.shared.lastError {
 							Text(error)
@@ -59,7 +59,7 @@ struct NowPlayingView: View {
 				}
 			}
 			.background {
-				if let track = PlayerEngine.shared.currentTrack {
+				if let track = PlaybackSource.track {
 					CoverMeshBackground(coverURL: track.highResCoverURL)
 						.ignoresSafeArea()
 				} else {
@@ -69,7 +69,7 @@ struct NowPlayingView: View {
 		}
 		.navigationTransition(.zoom(sourceID: "miniPlayer", in: self.namespace))
 		.sheet(isPresented: self.$isPresentingAddToPlaylist) {
-			if let trackId = PlayerEngine.shared.currentTrack?.id {
+			if let trackId = PlaybackSource.track?.id {
 				AddToPlaylistSheet(mediaIds: [trackId])
 			}
 		}
@@ -100,13 +100,28 @@ struct NowPlayingView: View {
 		}
 	}
 
+	/// "Playing on {device}" while this screen is only mirroring another device (Nafyn Unity slave).
+	@ViewBuilder
+	private var hostBadge: some View {
+		if let host = PlaybackSource.hostLabel {
+			Label {
+				Text(String(format: String(localized: "unity-playing-on"), host))
+			} icon: {
+				Image(.nafynUnity)
+			}
+			.font(DTFont.system(13, weight: .medium))
+			.foregroundStyle(DTColor.textPrimary.opacity(0.6))
+			.padding(.top, 2)
+		}
+	}
+
 	@ViewBuilder
 	private func panelContent(_ panel: PanelTab) -> some View {
 		switch panel {
 			case .queue:
 				QueuePanel()
 			case .lyrics:
-				if let trackId = PlayerEngine.shared.currentTrack?.id {
+				if let trackId = PlaybackSource.track?.id {
 					LyricsPanel(trackId: trackId)
 						.id(trackId)
 				}
@@ -215,21 +230,21 @@ struct NowPlayingView: View {
 		VStack(spacing: 6) {
 			PlayerSlider(
 				self.$sliderValue,
-				range: 0...Float(max(PlayerEngine.shared.duration, 1)),
+				range: 0...Float(max(PlaybackSource.duration, 1)),
 				isDragging: self.$isDraggingSlider
 			) {
-				PlayerEngine.shared.seek(to: TimeInterval(self.sliderValue))
+				PlaybackSource.seek(to: TimeInterval(self.sliderValue))
 			}
 			.frame(height: 20)
-			.onChange(of: PlayerEngine.shared.currentTime) { _, newValue in
+			.onChange(of: PlaybackSource.currentTime) { _, newValue in
 				guard !self.isDraggingSlider else { return }
 				self.sliderValue = Float(newValue)
 			}
 
 			HStack {
-				Text(Self.formatted(PlayerEngine.shared.currentTime))
+				Text(Self.formatted(PlaybackSource.currentTime))
 				Spacer()
-				Text(Self.formatted(PlayerEngine.shared.duration))
+				Text(Self.formatted(PlaybackSource.duration))
 			}
 			.font(DTFont.system(11))
 			.foregroundStyle(DTColor.textPrimary.opacity(0.5))
@@ -241,12 +256,20 @@ struct NowPlayingView: View {
 	@ViewBuilder
 	private var transportControls: some View {
 		HStack {
-			RoutePickerButton()
-				.frame(width: 22, height: 22)
-				.frame(maxWidth: .infinity)
+			// AirPlay routes this device's own audio, so it means nothing while mirroring another device
+			Group {
+				if PlaybackSource.isRemote {
+					Image(.nafynUnity)
+						.foregroundStyle(DTColor.textPrimary.opacity(0.6))
+				} else {
+					RoutePickerButton()
+						.frame(width: 22, height: 22)
+				}
+			}
+			.frame(maxWidth: .infinity)
 
 			Button {
-				PlayerEngine.shared.prev()
+				PlaybackSource.prev()
 			} label: {
 				Image(systemName: "backward.fill")
 					.font(.title2)
@@ -255,16 +278,16 @@ struct NowPlayingView: View {
 			.frame(maxWidth: .infinity)
 
 			Button {
-				PlayerEngine.shared.togglePlay()
+				PlaybackSource.togglePlay()
 			} label: {
-				Image(systemName: PlayerEngine.shared.isPlaying ? "pause.fill" : "play.fill")
+				Image(systemName: PlaybackSource.isPlaying ? "pause.fill" : "play.fill")
 					.font(.system(size: 38))
 					.foregroundStyle(DTColor.textPrimary)
 			}
 			.frame(maxWidth: .infinity)
 
 			Button {
-				PlayerEngine.shared.next()
+				PlaybackSource.next()
 			} label: {
 				Image(systemName: "forward.fill")
 					.font(.title2)
@@ -283,6 +306,31 @@ struct NowPlayingView: View {
 	/// holding cycles `repeatMode`, taking over the glyph — and the accent tint — while active.
 	@ViewBuilder
 	private var shuffleRepeatButton: some View {
+		if PlaybackSource.isRemote {
+			self.remoteRepeatButton
+		} else {
+			self.localShuffleRepeatButton
+		}
+	}
+
+	/// Unity has no shuffle command, only repeat: tapping cycles the master's repeat mode.
+	@ViewBuilder
+	private var remoteRepeatButton: some View {
+		let mode = UnityEngine.shared.remoteState?.repeatMode ?? "off"
+
+		Image(systemName: mode == "one" ? "repeat.1" : "repeat")
+			.font(.body)
+			.foregroundStyle(mode == "off" ? DTColor.textPrimary.opacity(0.6) : DTColor.accentStart)
+			.frame(width: 44, height: 44)
+			.contentShape(Rectangle())
+			.onTapGesture {
+				UnityEngine.shared.sendCommand(.cycleRepeat)
+			}
+			.sensoryFeedback(.selection, trigger: mode)
+	}
+
+	@ViewBuilder
+	private var localShuffleRepeatButton: some View {
 		let repeatMode = PlayerEngine.shared.repeatMode
 		let showingRepeat = repeatMode != .off
 
