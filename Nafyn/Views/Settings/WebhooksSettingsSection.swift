@@ -377,17 +377,23 @@ private struct AddWebhookSheet: View {
 			.navigationBarTitleDisplayMode(.inline)
 			.toolbar {
 				ToolbarItem(placement: .cancellationAction) {
-					Button(String(localized: "cancel")) {
+					Button {
 						self.dismiss()
+					} label: {
+						Image(systemName: "xmark")
 					}
+					.accessibilityLabel(String(localized: "cancel"))
 					.tint(Color.primary)
 				}
 
 				ToolbarItem(placement: .confirmationAction) {
-					Button(String(localized: "add")) {
+					Button {
 						self.add()
+					} label: {
+						Image(systemName: "checkmark")
 					}
-					.tint(Color.primary)
+					.accessibilityLabel(String(localized: "add"))
+					.tint(Color.accentColor)
 					.disabled(!self.canAdd)
 				}
 			}

@@ -3,14 +3,17 @@
 import SwiftUI
 import Safyn
 
-/// Docked bar shown whenever a track is loaded, except while the full player is open. Tapping the
-/// cover/title expands to ``NowPlayingView``; transport controls sit alongside as sibling buttons so
+/// Docked bar, always present: shows the loaded track (except while the full player is open) and a
+/// "nothing playing" placeholder otherwise. Tapping the cover/title of a loaded track expands to
+/// ``NowPlayingView``; the placeholder is inert. Transport controls sit alongside as sibling buttons so
 /// they don't fight a wrapping `Button`'s gesture.
 struct MiniPlayerBar: View {
 	let namespace: Namespace.ID
 
 	var body: some View {
-		if let track = PlaybackSource.track, !PlayerEngine.shared.isExpanded {
+		if PlaybackSource.track == nil {
+			self.idle
+		} else if let track = PlaybackSource.track, !PlayerEngine.shared.isExpanded {
 			HStack(spacing: 12) {
 				self.cover(track)
 
@@ -62,6 +65,22 @@ struct MiniPlayerBar: View {
 			}
 			.padding(.horizontal)
 		}
+	}
+
+	private var idle: some View {
+		HStack(spacing: 12) {
+			Image(systemName: "music.note")
+				.foregroundStyle(DTColor.textPrimary.opacity(0.6))
+
+			Text("nothing-playing")
+				.font(DTFont.serif(18))
+				.foregroundStyle(DTColor.textPrimary.opacity(0.6))
+				.lineLimit(1)
+
+			Spacer()
+		}
+		.padding(.horizontal)
+		.accessibilityElement(children: .combine)
 	}
 
 	private var progressFraction: CGFloat {

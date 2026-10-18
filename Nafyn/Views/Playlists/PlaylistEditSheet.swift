@@ -53,15 +53,23 @@ struct PlaylistEditSheet: View {
 			.navigationTitle(String(localized: "edit-playlist"))
 			.toolbar {
 				ToolbarItem(placement: .cancellationAction) {
-					Button(String(localized: "cancel")) { self.dismiss() }
-						.tint(Color.primary)
+					Button {
+						self.dismiss()
+					} label: {
+						Image(systemName: "xmark")
+					}
+					.accessibilityLabel(String(localized: "cancel"))
+					.tint(Color.primary)
 				}
 				ToolbarItem(placement: .confirmationAction) {
-					Button(String(localized: "save")) {
+					Button {
 						self.save()
+					} label: {
+						Image(systemName: "checkmark")
 					}
+					.accessibilityLabel(String(localized: "save"))
 					.disabled(self.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || self.isSaving || NetworkMonitor.shared.isOffline)
-					.tint(Color.primary)
+					.tint(Color.accentColor)
 				}
 			}
 			.toast(self.toast)

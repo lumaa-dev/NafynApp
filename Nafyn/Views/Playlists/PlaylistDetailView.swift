@@ -132,6 +132,19 @@ private struct PlaylistDetailContent: View {
 				.tint(Color.primary)
 			}
 		}
+		// attached to the toolbar's host view: both are triggered from the toolbar menu
+		.alert(String(localized: "delete-playlist-confirm"), isPresented: self.$showDeleteConfirm) {
+			Button(String(localized: "cancel"), role: .cancel) {}
+			Button(String(localized: "delete"), role: .destructive) {
+				self.deletePlaylist()
+			}
+		}
+		.alert(String(localized: "leave-playlist-confirm"), isPresented: self.$showLeaveConfirm) {
+			Button(String(localized: "cancel"), role: .cancel) {}
+			Button(String(localized: "leave"), role: .destructive) {
+				self.leavePlaylist()
+			}
+		}
 		.sheet(isPresented: self.$showEdit) {
 			PlaylistEditSheet(playlist: self.detail.playlist) { updated in
 				self.detail = PlaylistDetail(playlist: updated, owner: self.detail.owner, members: self.detail.members, entries: self.detail.entries, entriesTotal: self.detail.entriesTotal, entriesHasMore: self.detail.entriesHasMore, viewer: self.detail.viewer)
@@ -153,16 +166,6 @@ private struct PlaylistDetailContent: View {
 			Task {
 				guard let data = try? await newItem.loadTransferable(type: Data.self) else { return }
 				await self.uploadCover(data: data)
-			}
-		}
-		.confirmationDialog(String(localized: "delete-playlist-confirm"), isPresented: self.$showDeleteConfirm) {
-			Button(String(localized: "delete"), role: .destructive) {
-				self.deletePlaylist()
-			}
-		}
-		.confirmationDialog(String(localized: "leave-playlist-confirm"), isPresented: self.$showLeaveConfirm) {
-			Button(String(localized: "leave"), role: .destructive) {
-				self.leavePlaylist()
 			}
 		}
 	}

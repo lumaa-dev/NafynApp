@@ -17,7 +17,7 @@ struct TrackRow<Trailing: View>: View {
 	var duration: TimeInterval
 	var fileSize: Int64? = nil
 	var dimmed: Bool = false
-	var verticalPadding: CGFloat = 6
+	var verticalPadding: CGFloat = 2
 	var onTap: (() -> Void)? = nil
 	@ViewBuilder var trailing: () -> Trailing
 
@@ -29,7 +29,7 @@ struct TrackRow<Trailing: View>: View {
 				HStack(spacing: 12) {
 					if let coverURL {
 						CoverImage(url: coverURL)
-							.frame(width: 44, height: 44)
+							.frame(width: 40, height: 40)
 					}
 
 					if let index {
@@ -100,7 +100,7 @@ private enum TrackRowFormatting {
 }
 
 extension TrackRow where Trailing == EmptyView {
-	init(coverURL: URL? = nil, index: String? = nil, title: String, subtitle: String? = nil, duration: TimeInterval, fileSize: Int64? = nil, dimmed: Bool = false, verticalPadding: CGFloat = 6, onTap: (() -> Void)? = nil) {
+	init(coverURL: URL? = nil, index: String? = nil, title: String, subtitle: String? = nil, duration: TimeInterval, fileSize: Int64? = nil, dimmed: Bool = false, verticalPadding: CGFloat = 2, onTap: (() -> Void)? = nil) {
 		self.init(coverURL: coverURL, index: index, title: title, subtitle: subtitle, duration: duration, fileSize: fileSize, dimmed: dimmed, verticalPadding: verticalPadding, onTap: onTap, trailing: { EmptyView() })
 	}
 }

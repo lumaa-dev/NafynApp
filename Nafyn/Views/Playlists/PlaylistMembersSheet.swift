@@ -64,8 +64,13 @@ struct PlaylistMembersSheet: View {
 			.navigationTitle(String(localized: "members"))
 			.toolbar {
 				ToolbarItem(placement: .cancellationAction) {
-					Button(String(localized: "done")) { self.dismiss() }
-						.tint(Color.primary)
+					Button {
+						self.dismiss()
+					} label: {
+						Image(systemName: "xmark")
+					}
+					.accessibilityLabel(String(localized: "done"))
+					.tint(Color.primary)
 				}
 			}
 			.toast(self.toast)

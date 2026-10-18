@@ -56,8 +56,13 @@ struct AddToPlaylistSheet: View {
 			.navigationTitle(String(localized: "add-to-playlist"))
 			.toolbar {
 				ToolbarItem(placement: .cancellationAction) {
-					Button(String(localized: "cancel")) { self.dismiss() }
-						.tint(Color.primary)
+					Button {
+						self.dismiss()
+					} label: {
+						Image(systemName: "xmark")
+					}
+					.accessibilityLabel(String(localized: "cancel"))
+					.tint(Color.primary)
 				}
 			}
 			.toast(self.toast)

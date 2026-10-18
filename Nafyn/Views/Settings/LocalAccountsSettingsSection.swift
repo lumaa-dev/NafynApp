@@ -151,9 +151,12 @@ private struct AddLocalAccountSheet: View {
 			.navigationBarTitleDisplayMode(.inline)
 			.toolbar {
 				ToolbarItem(placement: .cancellationAction) {
-					Button(String(localized: "cancel")) {
+					Button {
 						self.dismiss()
+					} label: {
+						Image(systemName: "xmark")
 					}
+					.accessibilityLabel(String(localized: "cancel"))
 					.tint(Color.primary)
 				}
 
@@ -165,11 +168,12 @@ private struct AddLocalAccountSheet: View {
 							ProgressView()
 								.tint(DTColor.textPrimary)
 						} else {
-							Text(String(localized: "save"))
+							Image(systemName: "checkmark")
 						}
 					}
+					.accessibilityLabel(String(localized: "save"))
 					.disabled(!self.canSubmit)
-					.tint(Color.primary)
+					.tint(Color.accentColor)
 				}
 			}
 		}

@@ -157,7 +157,7 @@ struct NowPlayingView: View {
 	private func circleToggle(icon: String, isActive: Bool, action: @escaping () -> Void) -> some View {
 		Button(action: action) {
 			Image(systemName: icon)
-				.font(.system(size: 15))
+				.font(DTFont.system(15))
 				.foregroundStyle(isActive ? DTColor.accentStart : DTColor.textPrimary.opacity(0.75))
 				.frame(width: 36, height: 36)
 				.background(Circle().fill(DTColor.surfaceSelect.opacity(isActive ? 1 : 0.55)))
@@ -281,7 +281,7 @@ struct NowPlayingView: View {
 				PlaybackSource.togglePlay()
 			} label: {
 				Image(systemName: PlaybackSource.isPlaying ? "pause.fill" : "play.fill")
-					.font(.system(size: 38))
+					.font(DTFont.system(38))
 					.foregroundStyle(DTColor.textPrimary)
 			}
 			.frame(maxWidth: .infinity)

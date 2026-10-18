@@ -4119,6 +4119,91 @@
         }
       }
     },
+    "nothing-playing" : {
+      "comment" : "mini player placeholder when no track is loaded (MiniPlayerBar)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nothing playing"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucune lecture en cours"
+          }
+        }
+      }
+    },
+    "accept-request" : {
+      "comment" : "accessibility label of the accept checkmark on a waiting request (RequestRow)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Accept"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Accepter"
+          }
+        }
+      }
+    },
+    "deny-request" : {
+      "comment" : "accessibility label of the deny xmark on a waiting request (RequestRow)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deny"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Refuser"
+          }
+        }
+      }
+    },
+    "delete-request-confirm" : {
+      "comment" : "confirmation alert title when deleting a request (RequestsView)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete this request?"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Supprimer cette demande ?"
+          }
+        }
+      }
+    },
+    "error-import-no-matches" : {
+      "comment" : "Apple Music import: every ISRC lookup failed (AppleMusicImportSheet)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "None of the tracks could be matched to Nafyn."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucun morceau n'a pu être associé à Nafyn."
+          }
+        }
+      }
+    },
     "status-waiting" : {
       "comment" : "download request status badge (RequestRow)",
       "localizations" : {

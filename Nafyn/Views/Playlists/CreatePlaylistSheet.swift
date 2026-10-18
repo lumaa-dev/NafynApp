@@ -34,15 +34,23 @@ struct CreatePlaylistSheet: View {
 			.navigationTitle(String(localized: "new-playlist"))
 			.toolbar {
 				ToolbarItem(placement: .cancellationAction) {
-					Button(String(localized: "cancel")) { self.dismiss() }
-						.tint(Color.primary)
+					Button {
+						self.dismiss()
+					} label: {
+						Image(systemName: "xmark")
+					}
+					.accessibilityLabel(String(localized: "cancel"))
+					.tint(Color.primary)
 				}
 				ToolbarItem(placement: .confirmationAction) {
-					Button(String(localized: "create")) {
+					Button {
 						self.create()
+					} label: {
+						Image(systemName: "checkmark")
 					}
+					.accessibilityLabel(String(localized: "create"))
 					.disabled(self.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || self.isCreating || NetworkMonitor.shared.isOffline)
-					.tint(Color.primary)
+					.tint(Color.accentColor)
 				}
 			}
 			.toast(self.toast)

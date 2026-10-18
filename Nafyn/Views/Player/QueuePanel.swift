@@ -80,7 +80,7 @@ struct QueuePanel: View {
 					.frame(width: 36, height: 36)
 					.overlay {
 						Image(systemName: "music.note")
-							.font(.system(size: 14))
+							.font(DTFont.system(14))
 							.foregroundStyle(DTColor.textPrimary.opacity(0.6))
 					}
 

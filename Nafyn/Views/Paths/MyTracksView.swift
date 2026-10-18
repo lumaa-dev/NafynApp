@@ -70,11 +70,12 @@ struct MyTracksView: View {
 		}
 		.navigationTitle(String(localized: "tracks"))
 		.toast(self.toast)
-		.confirmationDialog(
+		.alert(
 			String(localized: "delete-track-confirm"),
 			isPresented: Binding(get: { self.pendingDelete != nil }, set: { if !$0 { self.pendingDelete = nil } }),
 			presenting: self.pendingDelete
 		) { track in
+			Button(String(localized: "cancel"), role: .cancel) {}
 			Button(String(localized: "delete"), role: .destructive) {
 				self.delete(track)
 			}

@@ -82,7 +82,7 @@ private struct AppleDevicesSection: View {
 	private func row(_ device: AppleDevice) -> some View {
 		VStack(alignment: .leading, spacing: 4) {
 			HStack(spacing: 8) {
-				Text(device.deviceName ?? Self.kindLabel(device.kind))
+				Text(device.deviceName ?? Self.kindsLabel(device.kinds))
 					.foregroundStyle(DTColor.textPrimary)
 					.lineLimit(1)
 
@@ -105,7 +105,7 @@ private struct AppleDevicesSection: View {
 				}
 			}
 
-			Text(Self.kindLabel(device.kind))
+			Text(Self.kindsLabel(device.kinds))
 				.font(.footnote)
 				.foregroundStyle(DTColor.textPrimary.opacity(0.55))
 
@@ -122,6 +122,11 @@ private struct AppleDevicesSection: View {
 			}
 			.tint(DTColor.buttonDanger)
 		}
+	}
+
+	/// A device now carries several token kinds (Safyn `kinds`); list them all.
+	static func kindsLabel(_ kinds: [AppleDeviceKind]) -> String {
+		kinds.map(Self.kindLabel).joined(separator: ", ")
 	}
 
 	static func kindLabel(_ kind: AppleDeviceKind) -> String {

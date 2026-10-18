@@ -44,7 +44,7 @@ struct NafynRequestLiveActivity: Widget {
 			} compactTrailing: {
 				RequestProgressRing(fraction: self.fraction(context), lineWidth: 2.5) {
 					Text("\(context.state.trackIndex ?? 0)")
-						.font(.system(size: 10, weight: .semibold, design: .rounded))
+						.font(.system(.caption2, design: .rounded, weight: .semibold))
 						.monospacedDigit()
 						.minimumScaleFactor(0.5)
 						.lineLimit(1)

@@ -74,19 +74,39 @@ enum DTColor {
 	static var statusFailure: Color { isSystemTheme ? Color.red : Color(hex: "E06666") }
 }
 
+/// Every font scales with the user's Dynamic Type setting: a point size is mapped to the closest system
+/// text style, and that style drives the scaling (`Font.custom(_:size:relativeTo:)` for Instrument Serif,
+/// the style's own font for the system theme). Sizes therefore stay as design-time "base" sizes at the
+/// default content size, and grow/shrink with the accessibility setting.
 enum DTFont {
 	private static var isSystemTheme: Bool { ThemeManager.shared.current == .system }
 
+	/// The text style whose default size is closest to (and not above) `size`.
+	static func textStyle(for size: CGFloat) -> Font.TextStyle {
+		switch size {
+			case 34...: .largeTitle
+			case 28...: .title
+			case 22...: .title2
+			case 20...: .title3
+			case 17...: .body
+			case 16...: .callout
+			case 15...: .subheadline
+			case 13...: .footnote
+			case 12...: .caption
+			default: .caption2
+		}
+	}
+
 	public static func serif(_ size: CGFloat) -> Font {
-		isSystemTheme ? .system(size: size - 5) : .custom("InstrumentSerif-Regular", size: size)
+		isSystemTheme ? .system(textStyle(for: size - 5)) : .custom("InstrumentSerif-Regular", size: size, relativeTo: textStyle(for: size))
 	}
 
 	public static func serifItalic(_ size: CGFloat) -> Font {
-		isSystemTheme ? .system(size: size - 5) : .custom("InstrumentSerif-Italic", size: size)
+		isSystemTheme ? .system(textStyle(for: size - 5)) : .custom("InstrumentSerif-Italic", size: size, relativeTo: textStyle(for: size))
 	}
 
 	public static func system(_ size: CGFloat, weight: Font.Weight = .regular, design: Font.Design = .default, width: Font.Width = .standard) -> Font {
-		return .system(size: size, weight: weight, design: design).width(width)
+		return .system(textStyle(for: size), design: design, weight: weight).width(width)
 	}
 }
 

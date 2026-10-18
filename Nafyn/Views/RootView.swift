@@ -161,7 +161,7 @@ struct RootView: View {
 			}
 		}
 		.tabViewSearchActivation(.searchTabSelection)
-		.tabViewBottomAccessory(isEnabled: PlaybackSource.hasTrack) {
+		.tabViewBottomAccessory {
 			MiniPlayerBar(namespace: self.playerZoomNamespace)
 		}
 	}

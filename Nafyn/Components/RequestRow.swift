@@ -4,19 +4,19 @@ import SwiftUI
 import Safyn
 
 /// Port of the web app's `RequestRow.vue`: cover, title/artist, requester, timestamps, a status pill,
-/// and (while active) a live progress readout over `NafynDownloadSocket`. No action buttons — mirrors
-/// the web app exactly, which has none either.
+/// and (while active) a live progress readout over `NafynDownloadSocket`. Users with `manageRequests` also
+/// get accept (checkmark) / deny (xmark) buttons while the request is waiting.
 struct RequestRow: View {
 	@Environment(\.server) private var server: NafynServer?
 	@State private var observer = RequestProgressObserver()
 
 	var request: NafynRequest
 
-	/// Safyn's `RequestStatus` has no `denied` case, so denied requests arrive as `.failed` and are told
-	/// apart through `DeniedRequests` (see `NafynServer+LenientRequests.swift`).
-	private var isDenied: Bool {
-		DeniedRequests.ids.contains(self.request.id)
-	}
+	/// Whether the logged-in user has `manageRequests`; shows the accept/deny buttons on waiting requests.
+	var canManage: Bool = false
+
+	/// Called with `.searching` (accept) or `.denied` (deny). The owner performs the server call.
+	var onDecision: ((RequestStatus) -> Void)? = nil
 
 	private var effectiveStatus: RequestStatus {
 		self.observer.progress?.stage ?? self.request.status
@@ -26,7 +26,7 @@ struct RequestRow: View {
 		switch self.effectiveStatus {
 			case .searching, .downloading, .processing:
 				true
-			case .waiting, .completed, .failed:
+			case .waiting, .completed, .failed, .denied:
 				false
 		}
 	}
@@ -63,7 +63,13 @@ struct RequestRow: View {
 
 					Spacer()
 
-					self.statusPill
+					VStack(alignment: .trailing, spacing: 6) {
+						self.statusPill
+
+						if self.canManage, self.effectiveStatus == .waiting, let onDecision {
+							self.decisionButtons(onDecision)
+						}
+					}
 				}
 
 				HStack(spacing: 4) {
@@ -82,12 +88,36 @@ struct RequestRow: View {
 		.padding(.vertical, 4)
 		.task(id: self.request.id) {
 			// denied is as terminal as completed/failed: nothing will ever stream for it
-			guard let server, !self.isDenied, self.request.status != .completed, self.request.status != .failed else { return }
+			guard let server, self.request.status != .denied, self.request.status != .completed, self.request.status != .failed else { return }
 			self.observer.connect(server: server, requestId: self.request.id)
 		}
 		.onDisappear {
 			self.observer.disconnect()
 		}
+	}
+
+	private func decisionButtons(_ onDecision: @escaping (RequestStatus) -> Void) -> some View {
+		HStack(spacing: 8) {
+			Button {
+				onDecision(.searching)
+			} label: {
+				Image(systemName: "checkmark")
+			}
+			.tint(DTColor.statusSuccess)
+			.accessibilityLabel(String(localized: "accept-request"))
+
+			Button {
+				onDecision(.denied)
+			} label: {
+				Image(systemName: "xmark")
+			}
+			.tint(DTColor.buttonDanger)
+			.accessibilityLabel(String(localized: "deny-request"))
+		}
+		.buttonStyle(.bordered)
+		.buttonBorderShape(.circle)
+		.controlSize(.small)
+		.disabled(NetworkMonitor.shared.isOffline)
 	}
 
 	@ViewBuilder
@@ -108,11 +138,9 @@ struct RequestRow: View {
 	}
 
 	private var statusStyle: (color: Color, filled: Bool, label: String) {
-		if self.isDenied {
-			return (DTColor.statusFailure, false, String(localized: "status-denied"))
-		}
-
 		return switch self.effectiveStatus {
+			case .denied:
+				(DTColor.statusFailure, false, String(localized: "status-denied"))
 			case .waiting:
 				(DTColor.statusWaiting, false, String(localized: "status-waiting"))
 			case .searching:

@@ -71,7 +71,9 @@ private struct LibraryTrackDetailContent: View {
 				.tint(Color.primary)
 			}
 		}
-		.confirmationDialog(String(localized: "delete-track-confirm"), isPresented: self.$showDeleteConfirm) {
+		// attached to the toolbar's host view: triggered from the toolbar menu
+		.alert(String(localized: "delete-track-confirm"), isPresented: self.$showDeleteConfirm) {
+			Button(String(localized: "cancel"), role: .cancel) {}
 			Button(String(localized: "delete"), role: .destructive) {
 				self.delete()
 			}

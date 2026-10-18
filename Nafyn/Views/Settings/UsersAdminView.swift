@@ -156,19 +156,28 @@ private struct EditUserSheet: View {
 			.navigationTitle(self.user.username)
 			.toolbar {
 				ToolbarItem(placement: .cancellationAction) {
-					Button(String(localized: "cancel")) { self.dismiss() }
-						.tint(Color.primary)
+					Button {
+						self.dismiss()
+					} label: {
+						Image(systemName: "xmark")
+					}
+					.accessibilityLabel(String(localized: "cancel"))
+					.tint(Color.primary)
 				}
 				ToolbarItem(placement: .confirmationAction) {
-					Button(String(localized: "save")) {
+					Button {
 						self.save()
+					} label: {
+						Image(systemName: "checkmark")
 					}
+					.accessibilityLabel(String(localized: "save"))
 					.disabled(self.isSaving || NetworkMonitor.shared.isOffline)
-					.tint(Color.primary)
+					.tint(Color.accentColor)
 				}
 			}
 			.toast(self.toast)
-			.confirmationDialog(String(localized: "delete-account-confirm"), isPresented: self.$showDeleteConfirm) {
+			.alert(String(localized: "delete-account-confirm"), isPresented: self.$showDeleteConfirm) {
+				Button(String(localized: "cancel"), role: .cancel) {}
 				Button(String(localized: "delete"), role: .destructive) {
 					self.delete()
 				}

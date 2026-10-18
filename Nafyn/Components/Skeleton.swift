@@ -56,7 +56,7 @@ struct SkeletonCircle: View {
 /// Mirrors ``TrackRow``'s "cover • title • subtitle • duration" layout.
 struct SkeletonTrackRow: View {
 	var showsCover: Bool = true
-	var verticalPadding: CGFloat = 6
+	var verticalPadding: CGFloat = 2
 
 	var body: some View {
 		HStack(spacing: 12) {

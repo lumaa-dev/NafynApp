@@ -21,25 +21,8 @@ private struct LenientNafynRequest: Decodable {
 	let updatedAt: Date
 
 	var resolved: NafynRequest {
-		// Safyn's `RequestStatus` has no `denied` case yet, so a denied request would fail the whole page
-		// decode. It's mapped to `.failed` (also terminal) and remembered in `DeniedRequests`, which is what
-		// the UI actually reads.
-		let resolvedStatus: RequestStatus
-		if self.status == "denied" {
-			DeniedRequests.ids.insert(self.id)
-			resolvedStatus = .failed
-		} else {
-			DeniedRequests.ids.remove(self.id)
-			resolvedStatus = RequestStatus(rawValue: self.status) ?? .waiting
-		}
-		return NafynRequest(id: id, musicbrainzId: musicbrainzId, info: info, type: type, status: resolvedStatus, requestedBy: requestedBy.resolved, createdAt: createdAt, updatedAt: updatedAt)
+		NafynRequest(id: id, musicbrainzId: musicbrainzId, info: info, type: type, status: RequestStatus(rawValue: self.status) ?? .waiting, requestedBy: requestedBy.resolved, createdAt: createdAt, updatedAt: updatedAt)
 	}
-}
-
-/// IDs of requests the server reports as `denied`. Stand-in until Safyn's `RequestStatus` gains that case;
-/// `RequestRow` reads it to show the "Denied" badge.
-enum DeniedRequests {
-	static var ids: Set<String> = []
 }
 
 extension NafynServer {

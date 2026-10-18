@@ -68,7 +68,8 @@ struct DownloadsSettingsSection: View {
 				}
 			}
 		}
-		.confirmationDialog(String(localized: "downloads-delete-all-confirm"), isPresented: self.$showingDeleteAllConfirmation) {
+		.alert(String(localized: "downloads-delete-all-confirm"), isPresented: self.$showingDeleteAllConfirmation) {
+			Button(String(localized: "cancel"), role: .cancel) {}
 			Button(String(localized: "delete"), role: .destructive) {
 				DownloadManager.shared.deleteAll()
 			}

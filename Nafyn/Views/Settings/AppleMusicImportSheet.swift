@@ -80,9 +80,12 @@ struct AppleMusicImportSheet: View {
 			.navigationBarTitleDisplayMode(.inline)
 			.toolbar {
 				ToolbarItem(placement: .cancellationAction) {
-					Button(String(localized: "close")) {
+					Button {
 						self.dismiss()
+					} label: {
+						Image(systemName: "xmark")
 					}
+					.accessibilityLabel(String(localized: "close"))
 					.tint(Color.primary)
 				}
 			}
@@ -207,41 +210,29 @@ struct AppleMusicImportSheet: View {
 		do {
 			// Step 1: resolve every track's ISRC, splitting matched from missing.
 			self.phase = .importing(step: .fetchingIsrc, progress: 0, total: 1)
-			let detailedPlaylist = try await playlist.with(.tracks)
-			let tracks: [MusicKit.Track] = detailedPlaylist.tracks.map { Array($0) } ?? []
+			let tracks = try await Self.allTracks(of: playlist)
+			let (isrcs, missing) = await self.resolveISRCs(for: tracks)
 
-			var isrcs: [String] = []
-			var missing: [MissingTrack] = []
-
-			for (index, track) in tracks.enumerated() {
-				switch track {
-					case .song(let song):
-						// Library `Song`s frequently have `isrc == nil` — it's populated reliably on the
-						// catalog copy, so look that up by ID (`SongFilter.id`, shared between a library
-						// item and its catalog counterpart when it was matched from Apple Music).
-						let catalogSong = try? await MusicCatalogResourceRequest<Song>(matching: \.id, equalTo: song.id).response().items.first
-//						print("[startImport+forLoop] Fetched song data \(catalogSong?.title ?? "NO TITLE FOUND???????")")
-						if let isrc = catalogSong?.isrc {
-							isrcs.append(isrc)
-						} else {
-							missing.append(MissingTrack(title: song.title, artist: song.artistName))
-						}
-					case .musicVideo(let video):
-						missing.append(MissingTrack(title: video.title, artist: video.artistName))
-					@unknown default:
-						break
+			// Step 2: turn each ISRC into Nafyn track data (a few lookups at a time).
+			var converted: [TrackDetail] = []
+			var unmatched: [MissingTrack] = []
+			let lookups = await Self.concurrentMap(isrcs, width: 6, onProgress: { done in
+				self.phase = .importing(step: .fetchingSongs, progress: Double(done), total: Double(max(isrcs.count, 1)))
+			}) { (isrc: Song.ISRCEntry) -> TrackDetail? in
+				try? await server.send(Safyn.Track.getByIsrc(isrc: isrc.isrc)) as TrackDetail
+			}
+			for (entry, detail) in zip(isrcs, lookups) {
+				if let detail {
+					converted.append(detail)
+				} else {
+					// Apple Music knows the ISRC, Nafyn doesn't: still something the user should see.
+					unmatched.append(MissingTrack(title: entry.title, artist: entry.artist))
 				}
-
-				self.phase = .importing(step: .fetchingIsrc, progress: Double(index + 1), total: Double(tracks.count))
 			}
 
-			// Step 2: turn each ISRC into Nafyn track data.
-			var converted: [TrackDetail] = []
-			for (index, isrc) in isrcs.enumerated() {
-				self.phase = .importing(step: .fetchingSongs, progress: Double(index), total: Double(max(isrcs.count, 1)))
-				if let detail: TrackDetail = try? await server.send(Safyn.Track.getByIsrc(isrc: isrc)) {
-					converted.append(detail)
-				}
+			guard !converted.isEmpty || isrcs.isEmpty else {
+				self.phase = .failed(String(localized: "error-import-no-matches"))
+				return
 			}
 
 			// Step 3: file a download request for each resolved track.
@@ -253,13 +244,179 @@ struct AppleMusicImportSheet: View {
 				}
 			}
 
-			if !missing.isEmpty {
-				self.phase = .missingIsrc(missing)
+			let notImported = missing + unmatched
+			if !notImported.isEmpty {
+				self.phase = .missingIsrc(notImported)
 			} else {
 				self.phase = .finished(importedCount: importedCount)
 			}
 		} catch {
 			self.phase = .failed(error.localizedDescription)
 		}
+	}
+
+	// MARK: - MusicKit lookups
+
+	/// Every track of `playlist`, following `nextBatch()` — `with(.tracks)` only loads the first page, so
+	/// anything past it (~100 songs) used to be silently ignored.
+	private static func allTracks(of playlist: MusicKit.Playlist) async throws -> [MusicKit.Track] {
+		let detailed = try await playlist.with(.tracks)
+		guard var collection = detailed.tracks else { return [] }
+
+		var result = Array(collection)
+		while collection.hasNextBatch, let next = try await collection.nextBatch() {
+			result.append(contentsOf: next)
+			collection = next
+		}
+		return result
+	}
+
+	/// The catalog ID behind a song. A *library* song's own `id` is a library ID (`i.…`) that no catalog
+	/// request understands — looking it up as a catalog ID (the previous approach) always came back empty,
+	/// so every track ended up "missing its ISRC". The catalog ID lives in the song's play parameters.
+	private static func catalogID(of song: Song) -> String? {
+		guard let parameters = song.playParameters,
+			  let data = try? JSONEncoder().encode(parameters),
+			  let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
+		else { return nil }
+
+		if let catalogId = json["catalogId"] as? String { return catalogId }
+		if (json["isLibrary"] as? Bool) != true, let id = json["id"] as? String { return id }
+		return nil
+	}
+
+	private static func normalized(_ text: String) -> String {
+		text.folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current)
+			.filter { $0.isLetter || $0.isNumber }
+	}
+
+	/// ISRC resolution, cheapest first: the song's own `isrc` → batched catalog lookup by catalog ID (from
+	/// the play parameters) → catalog text search on title + artist for anything still unresolved.
+	private func resolveISRCs(for tracks: [MusicKit.Track]) async -> (isrcs: [Song.ISRCEntry], missing: [MissingTrack]) {
+		var songs: [Song] = []
+		var missing: [MissingTrack] = []
+		for track in tracks {
+			switch track {
+				case .song(let song):
+					songs.append(song)
+				case .musicVideo(let video):
+					missing.append(MissingTrack(title: video.title, artist: video.artistName))
+				@unknown default:
+					break
+			}
+		}
+
+		let total = Double(max(songs.count, 1))
+		var resolved: [Int: String] = [:]
+		var catalogIds: [Int: String] = [:]
+
+		for (index, song) in songs.enumerated() {
+			if let isrc = song.isrc, !isrc.isEmpty {
+				resolved[index] = isrc
+			} else if let id = Self.catalogID(of: song) {
+				catalogIds[index] = id
+			}
+		}
+		self.phase = .importing(step: .fetchingIsrc, progress: Double(resolved.count), total: total)
+
+		// Batched catalog lookup by ID.
+		let uniqueIds = Array(Set(catalogIds.values))
+		var isrcByCatalogId: [String: String] = [:]
+		for chunk in stride(from: 0, to: uniqueIds.count, by: 50).map({ Array(uniqueIds[$0..<min($0 + 50, uniqueIds.count)]) }) {
+			do {
+				let request = MusicCatalogResourceRequest<Song>(matching: \.id, memberOf: chunk.map { MusicItemID($0) })
+				for catalogSong in try await request.response().items {
+					if let isrc = catalogSong.isrc { isrcByCatalogId[catalogSong.id.rawValue] = isrc }
+				}
+			} catch {
+				print("[AppleMusicImport] catalog lookup failed for \(chunk.count) ids: \(error)")
+			}
+			self.phase = .importing(step: .fetchingIsrc, progress: Double(resolved.count + isrcByCatalogId.count), total: total)
+		}
+		for (index, id) in catalogIds {
+			if let isrc = isrcByCatalogId[id] { resolved[index] = isrc }
+		}
+
+		// Text search fallback for what's left (songs with no catalog counterpart ID, or no ISRC on it).
+		let unresolved = songs.indices.filter { resolved[$0] == nil }
+		let searched = await Self.concurrentMap(unresolved, width: 5, onProgress: { done in
+			self.phase = .importing(step: .fetchingIsrc, progress: Double(resolved.count + done), total: total)
+		}) { (index: Int) -> String? in
+			await Self.searchISRC(for: songs[index])
+		}
+		for (index, isrc) in zip(unresolved, searched) {
+			if let isrc { resolved[index] = isrc }
+		}
+
+		var seen: Set<String> = []
+		var entries: [Song.ISRCEntry] = []
+		for (index, song) in songs.enumerated() {
+			if let isrc = resolved[index] {
+				if seen.insert(isrc).inserted {
+					entries.append(Song.ISRCEntry(isrc: isrc, title: song.title, artist: song.artistName))
+				}
+			} else {
+				missing.append(MissingTrack(title: song.title, artist: song.artistName))
+			}
+		}
+		return (entries, missing)
+	}
+
+	/// Catalog search for `song` by title + artist; accepts a hit whose normalized title and artist match,
+	/// else one whose title matches and duration is within 3 seconds.
+	private static func searchISRC(for song: Song) async -> String? {
+		var request = MusicCatalogSearchRequest(term: "\(song.title) \(song.artistName)", types: [Song.self])
+		request.limit = 5
+		guard let candidates = try? await request.response().songs else { return nil }
+
+		let title = Self.normalized(song.title)
+		let artist = Self.normalized(song.artistName)
+		let exact = candidates.first { Self.normalized($0.title) == title && Self.normalized($0.artistName) == artist && $0.isrc != nil }
+		let close = candidates.first { candidate in
+			guard Self.normalized(candidate.title) == title, candidate.isrc != nil else { return false }
+			guard let a = candidate.duration, let b = song.duration else { return true }
+			return abs(a - b) <= 3
+		}
+		return (exact ?? close)?.isrc
+	}
+
+	/// `transform` over `items`, `width` at a time, results in input order. `onProgress` gets the running
+	/// count of finished items (on the main actor).
+	private static func concurrentMap<Input: Sendable, Output: Sendable>(
+		_ items: [Input],
+		width: Int,
+		onProgress: @MainActor @escaping (Int) -> Void,
+		_ transform: @escaping @Sendable (Input) async -> Output
+	) async -> [Output] {
+		var results = [Output?](repeating: nil, count: items.count)
+		var done = 0
+
+		await withTaskGroup(of: (Int, Output).self) { group in
+			var next = 0
+			func enqueue() {
+				guard next < items.count else { return }
+				let index = next, item = items[next]
+				next += 1
+				group.addTask { (index, await transform(item)) }
+			}
+
+			for _ in 0..<min(width, items.count) { enqueue() }
+			while let (index, output) = await group.next() {
+				results[index] = output
+				done += 1
+				await onProgress(done)
+				enqueue()
+			}
+		}
+		return results.compactMap { $0 }
+	}
+}
+
+private extension Song {
+	/// A resolved ISRC plus the song it came from, so a failed Nafyn lookup can still be reported by name.
+	struct ISRCEntry: Sendable {
+		let isrc: String
+		let title: String
+		let artist: String
 	}
 }

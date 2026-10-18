@@ -16,9 +16,9 @@ extension RecentlyPlayedEntry {
 
 		switch self.type {
 			case .track:
-				return .track(id: hrefId ?? self.refId)
+				return .recentTrack(mediaId: self.refId, mbid: hrefId ?? self.refId)
 			case .album:
-				return .album(id: hrefId ?? self.refId)
+				return .recentAlbum(id: hrefId ?? self.refId)
 			case .playlist:
 				return .playlist(id: hrefId ?? self.refId)
 		}

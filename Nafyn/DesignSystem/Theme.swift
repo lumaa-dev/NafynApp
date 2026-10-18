@@ -72,8 +72,9 @@ enum AppAppearance {
 				// inconsistent background over content.
 				navAppearance.configureWithTransparentBackground()
 				let titleColor = UIColor(DTColor.textPrimary)
-				let titleFont = UIFont(name: "InstrumentSerif-Italic", size: 20) ?? UIFont.systemFont(ofSize: 20)
-				let largeTitleFont = UIFont(name: "InstrumentSerif-Italic", size: 34) ?? UIFont.systemFont(ofSize: 34)
+				// scaled through UIFontMetrics so the bar titles follow Dynamic Type too
+				let titleFont = UIFontMetrics(forTextStyle: .headline).scaledFont(for: UIFont(name: "InstrumentSerif-Italic", size: 20) ?? UIFont.systemFont(ofSize: 20))
+				let largeTitleFont = UIFontMetrics(forTextStyle: .largeTitle).scaledFont(for: UIFont(name: "InstrumentSerif-Italic", size: 34) ?? UIFont.systemFont(ofSize: 34))
 				navAppearance.titleTextAttributes = [.font: titleFont, .foregroundColor: titleColor]
 				navAppearance.largeTitleTextAttributes = [.font: largeTitleFont, .foregroundColor: titleColor]
 				UINavigationBar.appearance().tintColor = .white
