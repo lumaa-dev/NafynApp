@@ -168,7 +168,7 @@ struct RootView: View {
 
 	private func tryLogin(auth: AuthInfo) async throws -> NafynServer? {
 		guard let url: URL = URL(string: auth.server) else { return nil }
-		let inst: NafynInstance = try await NafynInstance.connect(appName: "Nafyn", to: url)
+		let inst: NafynInstance = try await NafynInstance.connect(appName: "Nafyn on iOS", to: url)
 		let server: NafynServer = .init(instance: inst, authToken: auth.token)
 
 		if Date.now > auth.tokenExpire {
