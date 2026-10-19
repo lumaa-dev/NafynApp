@@ -98,11 +98,11 @@ enum DTFont {
 	}
 
 	public static func serif(_ size: CGFloat) -> Font {
-		isSystemTheme ? .system(textStyle(for: size - 5)) : .custom("InstrumentSerif-Regular", size: size, relativeTo: textStyle(for: size))
+		isSystemTheme ? .system(textStyle(for: size)) : .custom("InstrumentSerif-Regular", size: size, relativeTo: textStyle(for: size))
 	}
 
 	public static func serifItalic(_ size: CGFloat) -> Font {
-		isSystemTheme ? .system(textStyle(for: size - 5)) : .custom("InstrumentSerif-Italic", size: size, relativeTo: textStyle(for: size))
+		isSystemTheme ? .system(textStyle(for: size)) : .custom("InstrumentSerif-Italic", size: size, relativeTo: textStyle(for: size))
 	}
 
 	public static func system(_ size: CGFloat, weight: Font.Weight = .regular, design: Font.Design = .default, width: Font.Width = .standard) -> Font {
