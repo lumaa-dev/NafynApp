@@ -114,6 +114,16 @@
       },
       "shouldTranslate" : false
     },
+    "%lld / %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld / %2$lld"
+          }
+        }
+      }
+    },
     "%lld-days" : {
       "localizations" : {
         "en" : {
@@ -246,6 +256,23 @@
         }
       },
       "shouldTranslate" : false
+    },
+    "accept-request" : {
+      "comment" : "accessibility label of the accept checkmark on a waiting request (RequestRow)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Accept"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Accepter"
+          }
+        }
+      }
     },
     "accounts" : {
       "localizations" : {
@@ -1173,6 +1200,23 @@
         }
       }
     },
+    "delete-request-confirm" : {
+      "comment" : "confirmation alert title when deleting a request (RequestsView)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete this request?"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Supprimer cette demande ?"
+          }
+        }
+      }
+    },
     "delete-track-confirm" : {
       "localizations" : {
         "en" : {
@@ -1185,6 +1229,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Supprimer ce titre ? Cette action est irréversible."
+          }
+        }
+      }
+    },
+    "deny-request" : {
+      "comment" : "accessibility label of the deny xmark on a waiting request (RequestRow)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deny"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Refuser"
           }
         }
       }
@@ -1657,6 +1718,7 @@
     },
     "error-import-isrc" : {
       "comment" : "shown when fetching ISRC codes fails during Apple Music import (AppleMusicImportSheet)",
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1668,6 +1730,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Échec de la récupération des identifiants des titres. Veuillez réessayer."
+          }
+        }
+      }
+    },
+    "error-import-no-matches" : {
+      "comment" : "Apple Music import: every ISRC lookup failed (AppleMusicImportSheet)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "None of the tracks could be matched to Nafyn."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucun morceau n'a pu être associé à Nafyn."
           }
         }
       }
@@ -2043,6 +2122,91 @@
         }
       }
     },
+    "import-confirm-create" : {
+      "comment" : "Apple Music import confirmation: yes button (AppleMusicImportSheet)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Create requests"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Créer les demandes"
+          }
+        }
+      }
+    },
+    "import-confirm-decline" : {
+      "comment" : "Apple Music import confirmation: no button (AppleMusicImportSheet)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No, close"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Non, fermer"
+          }
+        }
+      }
+    },
+    "import-confirm-missing %lld" : {
+      "comment" : "Apple Music import confirmation: tracks without ISRC (AppleMusicImportSheet)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld tracks couldn't be identified and will be skipped."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld titres n'ont pas pu être identifiés et seront ignorés."
+          }
+        }
+      }
+    },
+    "import-confirm-title %lld" : {
+      "comment" : "Apple Music import confirmation: number of ISRCs found (AppleMusicImportSheet)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Create %lld requests?"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Créer %lld demandes ?"
+          }
+        }
+      }
+    },
+    "import-not-imported" : {
+      "comment" : "Apple Music import report: tracks that were skipped or failed (AppleMusicImportSheet)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not imported"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Non importés"
+          }
+        }
+      }
+    },
     "import-step-create-requests" : {
       "comment" : "Apple Music import progress step label (AppleMusicImportSheet)",
       "localizations" : {
@@ -2079,6 +2243,7 @@
     },
     "import-step-fetch-songs" : {
       "comment" : "Apple Music import progress step label (AppleMusicImportSheet)",
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2090,6 +2255,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Récupération des titres…"
+          }
+        }
+      }
+    },
+    "import-step-thirdparty" : {
+      "comment" : "Apple Music import: last-resort Deezer ISRC lookup step (AppleMusicImportSheet)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Searching other sources…"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recherche dans d'autres sources…"
           }
         }
       }
@@ -4115,91 +4297,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Recherche"
-          }
-        }
-      }
-    },
-    "nothing-playing" : {
-      "comment" : "mini player placeholder when no track is loaded (MiniPlayerBar)",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nothing playing"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aucune lecture en cours"
-          }
-        }
-      }
-    },
-    "accept-request" : {
-      "comment" : "accessibility label of the accept checkmark on a waiting request (RequestRow)",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Accept"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Accepter"
-          }
-        }
-      }
-    },
-    "deny-request" : {
-      "comment" : "accessibility label of the deny xmark on a waiting request (RequestRow)",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Deny"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Refuser"
-          }
-        }
-      }
-    },
-    "delete-request-confirm" : {
-      "comment" : "confirmation alert title when deleting a request (RequestsView)",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Delete this request?"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Supprimer cette demande ?"
-          }
-        }
-      }
-    },
-    "error-import-no-matches" : {
-      "comment" : "Apple Music import: every ISRC lookup failed (AppleMusicImportSheet)",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "None of the tracks could be matched to Nafyn."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aucun morceau n'a pu être associé à Nafyn."
           }
         }
       }
