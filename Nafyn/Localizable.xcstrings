@@ -3296,6 +3296,22 @@
         }
       }
     },
+    "best-result" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Best Result"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Meilleur résultat"
+          }
+        }
+      }
+    },
     "no-results" : {
       "localizations" : {
         "en" : {

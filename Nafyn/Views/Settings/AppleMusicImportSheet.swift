@@ -320,10 +320,15 @@ struct AppleMusicImportSheet: View {
 		self.phase = .importing(step: .creatingRequests, progress: 0, total: total)
 		for (index, entry) in plan.entries.enumerated() {
 			var didCreate = false
-			if let detail: TrackDetail = try? await server.send(Safyn.Track.getByIsrc(isrc: entry.isrc)),
-			   let _: NafynRequest = try? await server.send(Safyn.Request.create(id: detail.info.id, type: .track)) {
-				created += 1
-				didCreate = true
+			if let detail: TrackDetail = try? await server.send(Safyn.Track.getByIsrc(isrc: entry.isrc, title: entry.title, artist: entry.artist)) {
+				if detail.info.inLibrary == true || detail.requested == true {
+					// already on this account: nothing to request, nothing missing
+				} else if let _: NafynRequest = try? await server.send(Safyn.Request.create(id: detail.info.id, type: .track)) {
+					created += 1
+					didCreate = true
+				} else {
+					notImported.append(MissingTrack(title: entry.title, artist: entry.artist))
+				}
 			} else {
 				notImported.append(MissingTrack(title: entry.title, artist: entry.artist))
 			}

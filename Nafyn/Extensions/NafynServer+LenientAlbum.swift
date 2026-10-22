@@ -34,6 +34,8 @@ private struct LenientAlbumDetail: Decodable {
 	let releaseDatePrecision: ReleaseDatePrecision?
 	let released: Bool?
 	let subscribed: Bool?
+	let requested: Bool?
+	let inLibrary: Bool?
 	let description: String?
 	let label: String?
 	let tracks: [LenientTrackInfo]
@@ -41,7 +43,7 @@ private struct LenientAlbumDetail: Decodable {
 	let textColor: String?
 
 	var resolved: AlbumDetail {
-		AlbumDetail(id: id, releaseId: releaseId, title: title, artist: artist, type: type, coverArt: coverArt, releaseDate: releaseDate, releaseDatePrecision: releaseDatePrecision, released: released ?? true, subscribed: subscribed ?? false, description: description, label: label, tracks: tracks.compactMap { $0.resolved }, imageColors: imageColors ?? [], textColor: textColor ?? "#FFFFFF")
+		AlbumDetail(id: id, releaseId: releaseId, title: title, artist: artist, type: type, coverArt: coverArt, releaseDate: releaseDate, releaseDatePrecision: releaseDatePrecision, released: released ?? true, subscribed: subscribed ?? false, requested: requested ?? false, inLibrary: inLibrary ?? false, description: description, label: label, tracks: tracks.compactMap { $0.resolved }, imageColors: imageColors ?? [], textColor: textColor ?? "#FFFFFF")
 	}
 }
 

@@ -28,14 +28,16 @@ struct AlbumDetailView: View {
 					}
 
 					if album.released {
-						Button {
-							self.request(album: album, reload: reload)
-						} label: {
-							Text("request")
-								.frame(maxWidth: .infinity)
+						if !album.inLibrary {
+							Button {
+								self.request(album: album, reload: reload)
+							} label: {
+								Text("request")
+									.frame(maxWidth: .infinity)
+							}
+							.buttonStyle(.filled())
+							.disabled(self.isRequesting || album.requested || NetworkMonitor.shared.isOffline)
 						}
-						.buttonStyle(.filled())
-						.disabled(self.isRequesting || NetworkMonitor.shared.isOffline)
 					} else {
 						UnreleasedSection(mbid: album.id, kind: .album, releaseDate: album.releaseDate, precision: album.releaseDatePrecision, subscribed: album.subscribed, toast: self.toast) {
 							Task { await reload() }

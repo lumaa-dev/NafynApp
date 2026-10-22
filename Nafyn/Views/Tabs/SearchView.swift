@@ -9,6 +9,8 @@ struct SearchView: View {
 	@State private var query: String = ""
 	@State private var filter: SearchFilter = .all
 	@State private var result: SearchResult? = nil
+	/// The server's single top-ranked album/track (`MediaInfo.bestResult`), cached so `body` doesn't rescan.
+	@State private var bestResult: MediaInfo? = nil
 	@State private var isSearching = false
 	@State private var searchTask: Task<Void, Never>? = nil
 
@@ -35,10 +37,19 @@ struct SearchView: View {
 							}
 						}
 					} else if let result {
-						if !result.albums.isEmpty {
+						if let best = self.bestResult {
+							self.section(title: "best-result") {
+								self.row(.info(best))
+							}
+							.padding()
+							.background(Material.ultraThin)
+							.clipShape(RoundedRectangle(cornerRadius: 15.0))
+						}
+
+						if result.albums.contains(where: { $0.id != self.bestResult?.id }) {
 							self.section(title: "albums") {
 								LazyVGrid(columns: self.albumColumns, alignment: .leading, spacing: 16) {
-									ForEach(result.albums, id: \.id) { info in
+									ForEach(result.albums.filter { $0.id != self.bestResult?.id }, id: \.id) { info in
 										self.card(.info(info))
 									}
 								}
@@ -55,10 +66,10 @@ struct SearchView: View {
 							}
 						}
 
-						if !result.tracks.isEmpty {
+						if result.tracks.contains(where: { $0.id != self.bestResult?.id }) {
 							self.section(title: "tracks") {
 								LazyVStack(spacing: 12) {
-									ForEach(result.tracks, id: \.id) { info in
+									ForEach(result.tracks.filter { $0.id != self.bestResult?.id }, id: \.id) { info in
 										self.row(.info(info))
 									}
 								}
@@ -135,6 +146,7 @@ struct SearchView: View {
 	private func search() async {
 		guard let server, !self.query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
 			self.result = nil
+			self.bestResult = nil
 			return
 		}
 
@@ -145,9 +157,11 @@ struct SearchView: View {
 			let result: SearchResult = try await server.send(Search.search(q: self.query, filter: self.filter == .all ? nil : self.filter))
 			guard !Task.isCancelled else { return }
 			self.result = result
+			self.bestResult = (result.albums + result.tracks).first { $0.bestResult == true }
 		} catch {
 			guard !Task.isCancelled else { return }
 			self.result = nil
+			self.bestResult = nil
 		}
 	}
 }

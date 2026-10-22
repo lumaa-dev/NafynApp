@@ -76,7 +76,7 @@ struct MusicCard: View {
 			.frame(width: 60, height: 60)
 			.clipShape(self.entry.isArtist ? AnyShape(Circle()) : AnyShape(RoundedRectangle(cornerRadius: 10.0)))
 
-			VStack {
+			VStack(alignment: .leading) {
 				Text(self.entry.title)
 					.foregroundStyle(DTColor.textPrimary)
 					.font(DTFont.serif(18))
