@@ -25,6 +25,7 @@ struct LibraryView: View {
 			.background(DTColor.background.ignoresSafeArea())
 			.navigationDestination(for: Navigator.Paths.self) { $0.view }
 			.navigationTitle(String(localized: "library"))
+			.toolbarTitleDisplayMode(.inlineLarge)
 			.toolbar {
 				ToolbarItem(placement: .primaryAction) {
 					Button {

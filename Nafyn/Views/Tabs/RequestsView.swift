@@ -51,6 +51,7 @@ struct RequestsView: View {
 			}
 			.navigationDestination(for: Navigator.Paths.self) { $0.view }
 			.navigationTitle(String(localized: "requests"))
+			.toolbarTitleDisplayMode(.inlineLarge)
 			.toast(self.toast)
 			.alert(
 				String(localized: "delete-request-confirm"),
