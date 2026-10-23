@@ -203,6 +203,7 @@ struct RootView: View {
 		self.activeAuthId = activatedId
 
 		if let s {
+			CoverArtLoader.shared.configure(server: s)
 			PlayerEngine.shared.configure(server: s)
 			PlayTracker.shared.configure(server: s)
 			UnityEngine.shared.configure(server: s)

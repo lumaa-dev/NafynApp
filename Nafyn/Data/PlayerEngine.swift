@@ -691,11 +691,20 @@ final class PlayerEngine: NSObject {
 		MPNowPlayingInfoCenter.default().playbackState = self.isPlaying ? .playing : .paused
 	}
 
+	/// Cover bytes for Now Playing artwork: Cover Art Archive covers come through the server's cache, any
+	/// other URL (e.g. an uploaded cover) is fetched directly.
+	fileprivate static func artworkData(from url: URL) async -> Data? {
+		if CoverArtReference(url: url) != nil, let data = await CoverArtLoader.shared.data(for: url) {
+			return data
+		}
+		return try? await URLSession.shared.data(from: url).0
+	}
+
 	private func fetchArtwork(for track: MediaRow) {
 		guard self.artworkCache[track.id] == nil, let url = track.highResCoverURL else { return }
 
 		Task {
-			guard let (data, _) = try? await URLSession.shared.data(from: url) else { return }
+			guard let data = await Self.artworkData(from: url) else { return }
 			#if canImport(UIKit)
 			guard let image = UIImage(data: data) else { return }
 			let artwork = MPMediaItemArtwork(boundsSize: image.size) { _ in image }
@@ -764,7 +773,7 @@ extension PlayerEngine: MediaSessionRepresentable {
 			duration: .finite(max(self.duration, track.duration)),
 			artwork: track.highResCoverURL.map { url in
 				Artwork(id: track.id) { _ in
-					let (data, _) = try await URLSession.shared.data(from: url)
+					guard let data = await Self.artworkData(from: url) else { throw URLError(.cannotLoadFromNetwork) }
 					return try ArtworkRepresentation(data: data)
 				}
 			}

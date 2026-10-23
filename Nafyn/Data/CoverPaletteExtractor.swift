@@ -36,7 +36,14 @@ enum CoverPaletteExtractor {
 			return cached.colors
 		}
 
-		guard let (data, _) = try? await URLSession.shared.data(from: url) else { return Self.fallback }
+		let data: Data
+		if CoverArtReference(url: url) != nil, let archived = await CoverArtLoader.shared.data(for: url) {
+			data = archived
+		} else if let fetched = try? await URLSession.shared.data(from: url).0 {
+			data = fetched
+		} else {
+			return Self.fallback
+		}
 		guard let colors = Self.dominantColors(from: data) else { return Self.fallback }
 
 		Self.cache.setObject(PaletteBox(colors), forKey: key)

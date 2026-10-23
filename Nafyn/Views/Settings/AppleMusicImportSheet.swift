@@ -9,9 +9,9 @@ import Safyn
 /// `MusicKit` and `Safyn` both declare `Playlist`, `Track`, and `Request` types, so every reference to
 /// one of those needs an explicit module prefix in this file to disambiguate.
 ///
-/// Flow: (1) resolve an ISRC for every track (see ``resolveISRCs(for:)`` for the fallback chain); (2) ask the
-/// user whether to create one request per ISRC found; (3) for each ISRC, look it up on the Nafyn server
-/// with `Safyn.Track.getByIsrc` and file a `Safyn.Request.create`, pausing 2–4 s between requests so the
+/// Flow: (1) resolve an ISRC for every track where possible (see ``resolveISRCs(for:)`` for the fallback
+/// chain); (2) ask the user whether to create one request per track; (3) for each track, look it up on the Nafyn server
+/// with `Safyn.Track.getByIsrc` (title + artist fallback when the ISRC is unknown or unmatched) and file a `Safyn.Request.create`, pausing 2–4 s between requests so the
 /// server's Soulseek downloads aren't rate limited. Tracks that couldn't be identified or matched are
 /// listed at the end instead of silently dropped.
 struct AppleMusicImportSheet: View {
@@ -53,9 +53,10 @@ struct AppleMusicImportSheet: View {
 		let artist: String
 	}
 
-	/// A resolved ISRC plus the track it came from, so a failed Nafyn lookup can still be reported by name.
+	/// What Nafyn looks up for one track: its ISRC when one was found (`nil` otherwise: the server then
+	/// searches by title + artist only), plus the track's name so a failed lookup can still be reported.
 	private struct ISRCEntry: Sendable {
-		let isrc: String
+		let isrc: String?
 		let title: String
 		let artist: String
 	}
@@ -73,6 +74,10 @@ struct AppleMusicImportSheet: View {
 		if case .importing = self.phase { return true }
 		return false
 	}
+
+	/// `Track.getByIsrc` needs an ISRC in its path. For tracks without one this well-formed, unassigned code
+	/// matches no recording, so the server goes straight to its `title` + `artist` fallback search.
+	private static let placeholderISRC = "ZZZZZ0000000"
 
 	@State private var phase: Phase = .loadingPlaylists
 
@@ -320,7 +325,7 @@ struct AppleMusicImportSheet: View {
 		self.phase = .importing(step: .creatingRequests, progress: 0, total: total)
 		for (index, entry) in plan.entries.enumerated() {
 			var didCreate = false
-			if let detail: TrackDetail = try? await server.send(Safyn.Track.getByIsrc(isrc: entry.isrc, title: entry.title, artist: entry.artist)) {
+			if let detail: TrackDetail = try? await server.send(Safyn.Track.getByIsrc(isrc: entry.isrc ?? Self.placeholderISRC, title: entry.title, artist: entry.artist)) {
 				if detail.info.inLibrary == true || detail.requested == true {
 					// already on this account: nothing to request, nothing missing
 				} else if let _: NafynRequest = try? await server.send(Safyn.Request.create(id: detail.info.id, type: .track)) {
@@ -429,15 +434,18 @@ struct AppleMusicImportSheet: View {
 			for (index, isrc) in zip(deezerIdx, found) where isrc != nil { candidates[index].isrc = isrc }
 		}
 
+		// Tracks without an ISRC are still requested: `getByIsrc` falls back to title + artist. Only a track
+		// with no title has nothing to search with.
 		var seen: Set<String> = []
 		var entries: [ISRCEntry] = []
 		for candidate in candidates {
-			if let isrc = candidate.isrc {
-				if seen.insert(isrc).inserted {
-					entries.append(ISRCEntry(isrc: isrc, title: candidate.title, artist: candidate.artist))
-				}
-			} else {
+			guard !candidate.title.isEmpty else {
 				missing.append(MissingTrack(title: candidate.title, artist: candidate.artist))
+				continue
+			}
+			let key = candidate.isrc ?? "\(Self.normalized(Self.coreTitle(candidate.title)))|\(Self.normalized(candidate.artist))"
+			if seen.insert(key).inserted {
+				entries.append(ISRCEntry(isrc: candidate.isrc, title: candidate.title, artist: candidate.artist))
 			}
 		}
 		return (entries, missing)
