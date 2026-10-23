@@ -24,6 +24,7 @@ private struct PlaylistDetailContent: View {
 	@Environment(\.server) private var server: NafynServer?
 	@Environment(\.dismiss) private var dismiss
 	@Environment(\.horizontalSizeClass) private var horizontalSizeClass
+	@Environment(\.verticalSizeClass) private var verticalSizeClass
 
 	let playlistId: String
 	@State private var detail: PlaylistDetail
@@ -170,8 +171,8 @@ private struct PlaylistDetailContent: View {
 	/// header in one pane and the tracks in a list of their own beside it.
 	@ViewBuilder
 	private var content: some View {
-		if self.horizontalSizeClass == .regular {
-			SplitPanes(fallbackPrimaryWidth: DTLayout.detailCoverWidth(isRegular: true) + 40) {
+		if DTLayout.hasRoomForPanes(horizontal: self.horizontalSizeClass, vertical: self.verticalSizeClass) {
+			SplitPanes(fallbackPrimaryWidth: DTLayout.detailCoverWidth(horizontal: .regular, vertical: .regular) + 40) {
 				PaneScroll { self.header }
 			} secondary: {
 				self.styled(List { self.rows })

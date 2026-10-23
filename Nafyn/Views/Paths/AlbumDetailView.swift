@@ -6,7 +6,6 @@ import Safyn
 struct AlbumDetailView: View {
 	@Environment(\.server) private var server: NafynServer?
 	@Environment(\.zoomNamespace) private var zoomNamespace: Namespace.ID?
-	@Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
 	@State private var toast = ToastState()
 	@State private var isRequesting = false
@@ -97,10 +96,7 @@ struct AlbumDetailView: View {
 	@ViewBuilder
 	private func header(_ album: AlbumDetail) -> some View {
 		VStack(alignment: .leading, spacing: 10) {
-			CoverImage(url: album.coverArt.flatMap { URL(string: $0) })
-				.aspectRatio(1.0, contentMode: .fit)
-				.frame(maxWidth: DTLayout.detailCoverWidth(isRegular: self.horizontalSizeClass == .regular))
-				.frame(maxWidth: .infinity)
+			DetailCover(url: album.coverArt.flatMap { URL(string: $0) })
 
 			HStack(spacing: 8) {
 				if let type = album.type {

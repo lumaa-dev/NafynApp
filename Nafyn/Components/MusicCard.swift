@@ -15,12 +15,17 @@ struct MusicCard: View {
 	}
 
 	var body: some View {
-		switch self.type {
-			case .highlight:
-				self.highlight()
-			case .row:
-				self.row()
+		Group {
+			switch self.type {
+				case .highlight:
+					self.highlight()
+				case .row:
+					self.row()
+			}
 		}
+		// pointer lift on iPad (and the Duo with a mouse); no effect with touch alone
+		.contentShape(.hoverEffect, RoundedRectangle(cornerRadius: 10.0))
+		.hoverEffect()
 	}
 
 	/// Fills the width its container proposes (an adaptive grid cell, see ``GridItem/musicCard``) with a

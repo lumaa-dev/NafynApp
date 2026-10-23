@@ -25,10 +25,7 @@ struct TrackDetailView: View {
 				}
 			} primary: {
 				VStack(alignment: .leading, spacing: 16) {
-					CoverImage(url: track.detail.info.coverArt.flatMap { URL(string: $0) })
-						.aspectRatio(1.0, contentMode: .fit)
-						.frame(maxWidth: DTLayout.detailCoverWidth(isRegular: true))
-						.frame(maxWidth: .infinity)
+					DetailCover(url: track.detail.info.coverArt.flatMap { URL(string: $0) })
 
 					self.titles(track.detail)
 				}

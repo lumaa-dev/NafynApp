@@ -40,10 +40,7 @@ private struct LibraryTrackDetailContent: View {
 			}
 		} primary: {
 			VStack(alignment: .leading, spacing: 16) {
-				CoverImage(url: self.track.coverArt.flatMap { URL(string: $0) })
-					.aspectRatio(1.0, contentMode: .fit)
-					.frame(maxWidth: DTLayout.detailCoverWidth(isRegular: true))
-					.frame(maxWidth: .infinity)
+				DetailCover(url: self.track.coverArt.flatMap { URL(string: $0) })
 
 				self.titles
 			}

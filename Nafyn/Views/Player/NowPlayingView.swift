@@ -13,6 +13,7 @@ struct NowPlayingView: View {
 	}
 
 	@Environment(\.horizontalSizeClass) private var horizontalSizeClass
+	@Environment(\.verticalSizeClass) private var verticalSizeClass
 
 	@State private var activePanel: PanelTab? = nil
 	@State private var sliderValue: Float = Float(PlaybackSource.currentTime)
@@ -25,12 +26,18 @@ struct NowPlayingView: View {
 	/// Whether the device is partly folded: a `division` reserved region (the fold) is active over this view.
 	@State private var isFolded = false
 
+	/// An iPhone held sideways: a window too short for the stacked cover-over-controls layout.
+	private var isShortLandscape: Bool {
+		!self.isFolded && self.verticalSizeClass == .compact
+	}
+
 	/// The artwork and controls sit beside (or, in a taller-than-wide window, stacked with) the queue/lyrics
-	/// when the device is partly folded in either orientation, or when the window is regular width and wider
-	/// than tall (iPhone Duo inner display held sideways, iPad later). A fully open, upright inner display
-	/// keeps the compact layout, where a panel replaces the artwork exactly as on any other iPhone.
+	/// when the device is partly folded in either orientation, or when the window is regular in both
+	/// directions and wider than tall (iPhone Duo inner display held sideways, iPad landscape). A fully open,
+	/// upright inner display keeps the compact layout, where a panel replaces the artwork exactly as on any
+	/// other iPhone; so does an iPhone held sideways, through its own ``landscapeLayout(_:)``.
 	private var isWide: Bool {
-		self.isFolded || (self.horizontalSizeClass == .regular && self.isLandscape)
+		self.isFolded || (self.horizontalSizeClass == .regular && self.isLandscape && self.verticalSizeClass != .compact)
 	}
 
 	/// The panel currently on screen. A wide layout always has room for one, so it falls back to the queue.
@@ -45,6 +52,8 @@ struct NowPlayingView: View {
 			if let track = PlaybackSource.track {
 				if self.isWide {
 					self.wideLayout(track)
+				} else if self.isShortLandscape {
+					self.landscapeLayout(track)
 				} else {
 					self.compactLayout(track)
 				}
@@ -121,6 +130,48 @@ struct NowPlayingView: View {
 		.frame(maxWidth: .infinity)
 	}
 
+	/// An iPhone held sideways. The portrait layout turned on its side: the cover (or, when one is open, the
+	/// lyrics/queue panel in its place) on one side, title, actions, scrubber and transport on the other.
+	@ViewBuilder
+	private func landscapeLayout(_ track: MediaRow) -> some View {
+		SplitPanes {
+			Group {
+				if let panel = self.activePanel {
+					self.panelContent(panel)
+				} else {
+					CoverImage(url: track.setCoverSize(1000))
+						.aspectRatio(1, contentMode: .fit)
+				}
+			}
+			.frame(maxWidth: .infinity, maxHeight: .infinity)
+		} secondary: {
+			VStack(spacing: 0) {
+				if let error = PlayerEngine.shared.lastError {
+					Text(error)
+						.font(DTFont.system(13))
+						.foregroundStyle(DTColor.statusFailure)
+						.padding(.bottom, 8)
+				}
+
+				self.titles(track)
+					.frame(maxWidth: .infinity, alignment: .leading)
+
+				Spacer(minLength: 8)
+
+				self.actionRow(track)
+					.padding(.vertical, 8)
+
+				self.scrubber
+				self.transportControls
+					.padding(.top, 8)
+			}
+			.frame(maxWidth: 460)
+			.frame(maxWidth: .infinity, maxHeight: .infinity)
+		}
+		.padding(.horizontal)
+		.padding(.vertical, 8)
+	}
+
 	/// Cover, actions, scrubber and transport beside (or, in a window taller than wide, stacked with) the
 	/// queue/lyrics. `ArrangementView` picks the side-by-side or stacked placement and respaces the two
 	/// around the fold when an iPhone Duo is partly open. Side by side the controls lead; stacked the
@@ -189,17 +240,22 @@ struct NowPlayingView: View {
 				.aspectRatio(1, contentMode: .fit)
 				.frame(maxWidth: .infinity)
 
-			VStack(alignment: .leading, spacing: 4) {
-				Text(track.title)
-					.font(DTFont.serif(26))
-					.foregroundStyle(DTColor.textPrimary)
-					.lineLimit(1)
-				Text(track.artistName)
-					.font(DTFont.serif(17))
-					.foregroundStyle(DTColor.textPrimary.opacity(0.6))
-					.lineLimit(1)
-			}
-			.frame(maxWidth: .infinity, alignment: .leading)
+			self.titles(track)
+				.frame(maxWidth: .infinity, alignment: .leading)
+		}
+	}
+
+	@ViewBuilder
+	private func titles(_ track: MediaRow) -> some View {
+		VStack(alignment: .leading, spacing: 4) {
+			Text(track.title)
+				.font(DTFont.serif(26))
+				.foregroundStyle(DTColor.textPrimary)
+				.lineLimit(1)
+			Text(track.artistName)
+				.font(DTFont.serif(17))
+				.foregroundStyle(DTColor.textPrimary.opacity(0.6))
+				.lineLimit(1)
 		}
 	}
 
@@ -396,6 +452,7 @@ struct NowPlayingView: View {
 					.font(DTFont.system(38))
 					.foregroundStyle(DTColor.textPrimary)
 			}
+			.keyboardShortcut(.space, modifiers: [])
 			.frame(maxWidth: .infinity)
 
 			Button {

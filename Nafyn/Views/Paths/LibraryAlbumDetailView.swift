@@ -56,15 +56,9 @@ struct LibraryAlbumDetailView: View {
 }
 
 private struct LibraryAlbumDetailContent: View {
-	@Environment(\.horizontalSizeClass) private var horizontalSizeClass
-
 	@State private var toast = ToastState()
 
 	let response: LibraryAlbumResponse
-
-	private var isRegular: Bool {
-		self.horizontalSizeClass == .regular
-	}
 
 	var body: some View {
 		// Regular width (Duo inner display, iPad): cover and details in one pane, Play/Shuffle and the
@@ -125,10 +119,7 @@ private struct LibraryAlbumDetailContent: View {
 	@ViewBuilder
 	private var about: some View {
 		VStack(alignment: .leading, spacing: 10) {
-			CoverImage(url: self.response.album.row.coverArt.flatMap { URL(string: $0) })
-				.aspectRatio(1.0, contentMode: .fit)
-				.frame(maxWidth: DTLayout.detailCoverWidth(isRegular: self.isRegular))
-				.frame(maxWidth: .infinity)
+			DetailCover(url: self.response.album.row.coverArt.flatMap { URL(string: $0) })
 
 			Text(self.response.album.row.title)
 				.font(DTFont.serif(31))

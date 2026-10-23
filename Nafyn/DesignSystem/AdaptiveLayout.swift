@@ -15,9 +15,37 @@ enum DTLayout {
 	/// Widest the onboarding card and other single-purpose panels should grow.
 	static let panelWidth: CGFloat = 520
 
-	/// Cover size on a detail screen's header in a compact vs. a regular-width window.
-	static func detailCoverWidth(isRegular: Bool) -> CGFloat {
-		isRegular ? 340 : 200
+	/// Widest a cover may get next to other content in a window too short for a large one (an iPhone held
+	/// sideways).
+	static let shortWindowCoverWidth: CGFloat = 200
+
+	/// Whether a window has room for two side-by-side panes: it is wide (iPhone Duo inner display, iPad,
+	/// a Pro Max held sideways) or it is short, i.e. an iPhone held sideways, where one tall column would
+	/// leave most of the width empty and little height to scroll in.
+	static func hasRoomForPanes(horizontal: UserInterfaceSizeClass?, vertical: UserInterfaceSizeClass?) -> Bool {
+		horizontal == .regular || vertical == .compact
+	}
+
+	/// Cover size on a detail screen's header: large in a regular-width, regular-height window, small
+	/// everywhere else (a phone's portrait column, or any window that is short).
+	static func detailCoverWidth(horizontal: UserInterfaceSizeClass?, vertical: UserInterfaceSizeClass?) -> CGFloat {
+		horizontal == .regular && vertical != .compact ? 340 : shortWindowCoverWidth
+	}
+}
+
+/// The square cover at the top of a detail screen, sized for the window it is in (see
+/// ``DTLayout/detailCoverWidth(horizontal:vertical:)``) and centered in its column.
+struct DetailCover: View {
+	@Environment(\.horizontalSizeClass) private var horizontalSizeClass
+	@Environment(\.verticalSizeClass) private var verticalSizeClass
+
+	let url: URL?
+
+	var body: some View {
+		CoverImage(url: self.url)
+			.aspectRatio(1.0, contentMode: .fit)
+			.frame(maxWidth: DTLayout.detailCoverWidth(horizontal: self.horizontalSizeClass, vertical: self.verticalSizeClass))
+			.frame(maxWidth: .infinity)
 	}
 }
 
@@ -158,6 +186,7 @@ struct SplitPanes<Primary: View, Secondary: View>: View {
 /// `secondary` are the same content divided between two independently scrolling panes.
 struct AdaptiveDetail<Compact: View, Primary: View, Secondary: View>: View {
 	@Environment(\.horizontalSizeClass) private var horizontalSizeClass
+	@Environment(\.verticalSizeClass) private var verticalSizeClass
 
 	let compact: Compact
 	let primary: Primary
@@ -170,8 +199,8 @@ struct AdaptiveDetail<Compact: View, Primary: View, Secondary: View>: View {
 	}
 
 	var body: some View {
-		if self.horizontalSizeClass == .regular {
-			SplitPanes(fallbackPrimaryWidth: DTLayout.detailCoverWidth(isRegular: true) + 40) {
+		if DTLayout.hasRoomForPanes(horizontal: self.horizontalSizeClass, vertical: self.verticalSizeClass) {
+			SplitPanes(fallbackPrimaryWidth: DTLayout.detailCoverWidth(horizontal: .regular, vertical: .regular) + 40) {
 				PaneScroll { self.primary }
 			} secondary: {
 				PaneScroll { self.secondary }
