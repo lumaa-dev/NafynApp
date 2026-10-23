@@ -45,6 +45,7 @@ struct PaginatedList<Item: Codable & Sendable & Identifiable & Hashable, RowCont
 		.listStyle(.plain)
 		.scrollContentBackground(.hidden)
 		.scrollEdgeEffectStyle(.soft, for: .all)
+		.contentColumn()
 		.background(DTColor.background.ignoresSafeArea())
 		.task {
 			guard self.paginator.items.isEmpty else { return }

@@ -80,12 +80,14 @@ private struct HighlightReelPlayer: View {
 				self.progressBars
 					.padding(.horizontal)
 					.padding(.top, 8)
+					.frame(maxWidth: DTLayout.panelWidth)
 
 				Spacer()
 
 				self.videoControls
 					.padding(.horizontal)
 					.padding(.bottom, 28)
+					.frame(maxWidth: DTLayout.panelWidth)
 			}
 		}
 		.toast(self.toast)
@@ -116,16 +118,10 @@ private struct HighlightReelPlayer: View {
 	@ContentBuilder
 	private func background(for slide: ReelSlide) -> some View {
 		if let cover = slide.cover.flatMap(URL.init(string:)) {
-			AsyncImage(url: cover) { image in
-				image
-					.resizable()
-					.scaledToFill()
-					.blur(radius: 40)
-					.overlay(Color.black.opacity(0.45))
-			} placeholder: {
-				Rectangle().fill(DTColor.accentGradient)
-			}
-			.ignoresSafeArea()
+			CoverImage(url: cover, cornerRadius: 0)
+				.blur(radius: 40)
+				.overlay(Color.black.opacity(0.45))
+				.ignoresSafeArea()
 		} else {
 			Rectangle().fill(DTColor.accentGradient)
 				.ignoresSafeArea()
@@ -181,6 +177,7 @@ private struct HighlightReelPlayer: View {
 			Spacer()
 		}
 		.padding(.horizontal, 32)
+		.frame(maxWidth: DTLayout.panelWidth)
 	}
 
 	@ContentBuilder

@@ -6,6 +6,7 @@ import Safyn
 struct AlbumDetailView: View {
 	@Environment(\.server) private var server: NafynServer?
 	@Environment(\.zoomNamespace) private var zoomNamespace: Namespace.ID?
+	@Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
 	@State private var toast = ToastState()
 	@State private var isRequesting = false
@@ -17,60 +18,88 @@ struct AlbumDetailView: View {
 			guard let server else { throw NafynError.unauthenticated }
 			return try await server.fetchAlbumDetail(aid: self.albumId)
 		} content: { album, reload in
-			ScrollView {
+			// Regular width (Duo inner display, iPad): cover and blurb in one pane, the actions and the
+			// track list in the other, instead of everything stacked in one column.
+			AdaptiveDetail {
 				VStack(alignment: .leading, spacing: 16) {
-					self.header(album)
-
-					if let description = album.description, !description.isEmpty {
-						Text(description)
-							.font(DTFont.system(18))
-							.foregroundStyle(DTColor.textPrimary.opacity(0.8))
-					}
-
-					if album.released {
-						if !album.inLibrary {
-							Button {
-								self.request(album: album, reload: reload)
-							} label: {
-								Text("request")
-									.frame(maxWidth: .infinity)
-							}
-							.buttonStyle(.filled())
-							.disabled(self.isRequesting || album.requested || NetworkMonitor.shared.isOffline)
-						}
-					} else {
-						UnreleasedSection(mbid: album.id, kind: .album, releaseDate: album.releaseDate, precision: album.releaseDatePrecision, subscribed: album.subscribed, toast: self.toast) {
-							Task { await reload() }
-						}
-					}
-
-					VStack(spacing: 0) {
-						ForEach(Array(album.tracks.enumerated()), id: \.element.id) { index, track in
-							self.trackRow(track, album: album, reload: reload)
-
-							if index < album.tracks.count - 1 {
-								Divider()
-									.overlay(DTColor.borderSelect)
-							}
-						}
-					}
-
+					self.about(album)
+					self.actions(album, reload: reload)
+					self.trackList(album, reload: reload)
 					self.footer(album)
 				}
-				.padding()
+			} primary: {
+				VStack(alignment: .leading, spacing: 16) {
+					self.about(album)
+					self.footer(album)
+				}
+			} secondary: {
+				VStack(alignment: .leading, spacing: 16) {
+					self.actions(album, reload: reload)
+					self.trackList(album, reload: reload)
+				}
 			}
-			.scrollEdgeEffectStyle(.soft, for: .all)
 			.background(DTColor.background.ignoresSafeArea())
 			.toast(self.toast)
 		}
 		.navigationBarTitleDisplayMode(.inline)
 	}
 
+	/// Cover, title, artist and blurb.
+	@ViewBuilder
+	private func about(_ album: AlbumDetail) -> some View {
+		VStack(alignment: .leading, spacing: 16) {
+			self.header(album)
+
+			if let description = album.description, !description.isEmpty {
+				Text(description)
+					.font(DTFont.system(18))
+					.foregroundStyle(DTColor.textPrimary.opacity(0.8))
+			}
+		}
+	}
+
+	/// Request button, or the countdown while the album is still unreleased.
+	@ViewBuilder
+	private func actions(_ album: AlbumDetail, reload: @escaping () async -> Void) -> some View {
+		if album.released {
+			if !album.inLibrary {
+				Button {
+					self.request(album: album, reload: reload)
+				} label: {
+					Text("request")
+						.frame(maxWidth: .infinity)
+				}
+				.buttonStyle(.filled())
+				.disabled(self.isRequesting || album.requested || NetworkMonitor.shared.isOffline)
+			}
+		} else {
+			UnreleasedSection(mbid: album.id, kind: .album, releaseDate: album.releaseDate, precision: album.releaseDatePrecision, subscribed: album.subscribed, toast: self.toast) {
+				Task { await reload() }
+			}
+		}
+	}
+
+	@ViewBuilder
+	private func trackList(_ album: AlbumDetail, reload: @escaping () async -> Void) -> some View {
+		VStack(spacing: 0) {
+			ForEach(Array(album.tracks.enumerated()), id: \.element.id) { index, track in
+				self.trackRow(track, album: album, reload: reload)
+
+				if index < album.tracks.count - 1 {
+					Divider()
+						.overlay(DTColor.borderSelect)
+				}
+			}
+		}
+		.frame(maxWidth: .infinity)
+	}
+
 	@ViewBuilder
 	private func header(_ album: AlbumDetail) -> some View {
 		VStack(alignment: .leading, spacing: 10) {
 			CoverImage(url: album.coverArt.flatMap { URL(string: $0) })
-				.frame(width: 200, height: 200)
+				.aspectRatio(1.0, contentMode: .fit)
+				.frame(maxWidth: DTLayout.detailCoverWidth(isRegular: self.horizontalSizeClass == .regular))
 				.frame(maxWidth: .infinity)
 
 			HStack(spacing: 8) {

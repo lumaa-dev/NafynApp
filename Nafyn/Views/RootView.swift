@@ -160,6 +160,9 @@ struct RootView: View {
 				Navigator.Tabs.search.view
 			}
 		}
+		// Compact width keeps the floating tab bar; a regular-width window (iPhone Duo inner display, iPad
+		// later) gets the sidebar-capable top bar instead of a bottom bar stretched across the display.
+		.tabViewStyle(.sidebarAdaptable)
 		.tabViewSearchActivation(.searchTabSelection)
 		.tabViewBottomAccessory {
 			MiniPlayerBar(namespace: self.playerZoomNamespace)

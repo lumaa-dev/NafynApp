@@ -23,6 +23,7 @@ struct PlaylistDetailView: View {
 private struct PlaylistDetailContent: View {
 	@Environment(\.server) private var server: NafynServer?
 	@Environment(\.dismiss) private var dismiss
+	@Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
 	let playlistId: String
 	@State private var detail: PlaylistDetail
@@ -58,13 +59,7 @@ private struct PlaylistDetailContent: View {
 	}
 
 	var body: some View {
-		List {
-			self.listContent
-		}
-		.listStyle(.plain)
-		.scrollContentBackground(.hidden)
-		.scrollEdgeEffectStyle(.soft, for: .all)
-		.padding(.horizontal)
+		self.content
 		.task {
 			guard self.paginator == nil, let server else { return }
 			self.paginator = Paginator<PlaylistEntry>(
@@ -127,7 +122,8 @@ private struct PlaylistDetailContent: View {
 						.disabled(NetworkMonitor.shared.isOffline)
 					}
 				} label: {
-					Image(systemName: "ellipsis")
+					Label(String(localized: "more"), systemImage: "ellipsis")
+						.labelStyle(.iconOnly)
 				}
 				.tint(Color.primary)
 			}
@@ -170,15 +166,43 @@ private struct PlaylistDetailContent: View {
 		}
 	}
 
+	/// Compact: one list with the header as its first row. Regular width (Duo inner display, iPad): the
+	/// header in one pane and the tracks in a list of their own beside it.
 	@ViewBuilder
-	private var listContent: some View {
-		Section {
-			self.header
-		}
-		.listRowInsets(EdgeInsets())
-		.listRowBackground(Color.clear)
-		.listRowSeparator(.hidden)
+	private var content: some View {
+		if self.horizontalSizeClass == .regular {
+			SplitPanes(fallbackPrimaryWidth: DTLayout.detailCoverWidth(isRegular: true) + 40) {
+				PaneScroll { self.header }
+			} secondary: {
+				self.styled(List { self.rows })
+			}
+		} else {
+			self.styled(
+				List {
+					Section {
+						self.header
+					}
+					.listRowInsets(EdgeInsets())
+					.listRowBackground(Color.clear)
+					.listRowSeparator(.hidden)
 
+					self.rows
+				}
+			)
+			.contentColumn()
+			.padding(.horizontal)
+		}
+	}
+
+	private func styled<Content: View>(_ list: Content) -> some View {
+		list
+			.listStyle(.plain)
+			.scrollContentBackground(.hidden)
+			.scrollEdgeEffectStyle(.soft, for: .all)
+	}
+
+	@ViewBuilder
+	private var rows: some View {
 		if let paginator {
 			if self.canReorder {
 				self.trackRows(for: paginator)

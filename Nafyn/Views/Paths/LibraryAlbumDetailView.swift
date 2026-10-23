@@ -56,31 +56,37 @@ struct LibraryAlbumDetailView: View {
 }
 
 private struct LibraryAlbumDetailContent: View {
+	@Environment(\.horizontalSizeClass) private var horizontalSizeClass
+
 	@State private var toast = ToastState()
 
 	let response: LibraryAlbumResponse
 
+	private var isRegular: Bool {
+		self.horizontalSizeClass == .regular
+	}
+
 	var body: some View {
-		ScrollView {
+		// Regular width (Duo inner display, iPad): cover and details in one pane, Play/Shuffle and the
+		// track list in the other.
+		AdaptiveDetail {
 			VStack(alignment: .leading, spacing: 16) {
-				self.header
-
-				VStack(spacing: 0) {
-					ForEach(Array(self.response.tracks.enumerated()), id: \.element.id) { index, track in
-						self.trackRow(track)
-
-						if index < self.response.tracks.count - 1 {
-							Divider()
-								.overlay(DTColor.borderSelect)
-						}
-					}
-				}
-
+				self.about
+				self.actions
+				self.trackList
 				self.footer
 			}
-			.padding()
+		} primary: {
+			VStack(alignment: .leading, spacing: 16) {
+				self.about
+				self.footer
+			}
+		} secondary: {
+			VStack(alignment: .leading, spacing: 16) {
+				self.actions
+				self.trackList
+			}
 		}
-		.scrollEdgeEffectStyle(.soft, for: .all)
 		.background(DTColor.background.ignoresSafeArea())
 		.toast(self.toast)
 		.toolbar {
@@ -93,7 +99,8 @@ private struct LibraryAlbumDetailContent: View {
 					}
 					.disabled(NetworkMonitor.shared.isOffline)
 				} label: {
-					Image(systemName: "ellipsis")
+					Label(String(localized: "more"), systemImage: "ellipsis")
+						.labelStyle(.iconOnly)
 				}
 				.tint(Color.primary)
 			}
@@ -101,10 +108,26 @@ private struct LibraryAlbumDetailContent: View {
 	}
 
 	@ViewBuilder
-	private var header: some View {
+	private var trackList: some View {
+		VStack(spacing: 0) {
+			ForEach(Array(self.response.tracks.enumerated()), id: \.element.id) { index, track in
+				self.trackRow(track)
+
+				if index < self.response.tracks.count - 1 {
+					Divider()
+						.overlay(DTColor.borderSelect)
+				}
+			}
+		}
+		.frame(maxWidth: .infinity)
+	}
+
+	@ViewBuilder
+	private var about: some View {
 		VStack(alignment: .leading, spacing: 10) {
 			CoverImage(url: self.response.album.row.coverArt.flatMap { URL(string: $0) })
-				.frame(width: 200, height: 200)
+				.aspectRatio(1.0, contentMode: .fit)
+				.frame(maxWidth: DTLayout.detailCoverWidth(isRegular: self.isRegular))
 				.frame(maxWidth: .infinity)
 
 			Text(self.response.album.row.title)
@@ -114,27 +137,31 @@ private struct LibraryAlbumDetailContent: View {
 			Text(self.response.album.row.artistName)
 				.font(DTFont.serif(20))
 				.foregroundStyle(DTColor.textPrimary.opacity(0.7))
-
-			HStack {
-				Button {
-					self.playAll(shuffle: false)
-				} label: {
-					Label(String(localized: "play"), systemImage: "play.fill")
-						.frame(maxWidth: .infinity)
-				}
-				.buttonStyle(.filled())
-
-				Button {
-					self.playAll(shuffle: true)
-				} label: {
-					Label(String(localized: "shuffle"), systemImage: "shuffle")
-						.frame(maxWidth: .infinity)
-				}
-				.buttonStyle(.hollow())
-			}
-			.padding(.top, 4)
 		}
 		.frame(maxWidth: .infinity, alignment: .leading)
+	}
+
+	/// Play and shuffle the whole album.
+	@ViewBuilder
+	private var actions: some View {
+		HStack {
+			Button {
+				self.playAll(shuffle: false)
+			} label: {
+				Label(String(localized: "play"), systemImage: "play.fill")
+					.frame(maxWidth: .infinity)
+			}
+			.buttonStyle(.filled())
+
+			Button {
+				self.playAll(shuffle: true)
+			} label: {
+				Label(String(localized: "shuffle"), systemImage: "shuffle")
+					.frame(maxWidth: .infinity)
+			}
+			.buttonStyle(.hollow())
+		}
+		.padding(.top, 4)
 	}
 
 	@ViewBuilder

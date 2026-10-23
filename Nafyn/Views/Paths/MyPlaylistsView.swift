@@ -8,12 +8,10 @@ struct MyPlaylistsView: View {
 	@State private var paginator: Paginator<PlaylistRow>? = nil
 	@State private var showCreate = false
 
-	private let columns: [GridItem] = [GridItem(.flexible()), GridItem(.flexible())]
-
 	var body: some View {
 		ScrollView {
 			if let paginator {
-				LazyVGrid(columns: self.columns, spacing: 16) {
+				FoldGrid(spacing: 16) {
 					ForEach(paginator.items) { playlist in
 						NavigationLink(value: Navigator.Paths.playlist(id: playlist.id)) {
 							MusicCard(.playlist(playlist))
@@ -25,15 +23,16 @@ struct MyPlaylistsView: View {
 				.padding()
 
 				if paginator.isLoadingPage {
-					SkeletonMusicGrid(columns: self.columns, count: 2)
+					SkeletonMusicGrid(count: 2)
 						.padding(.horizontal)
 				}
 			} else {
-				SkeletonMusicGrid(columns: self.columns)
+				SkeletonMusicGrid()
 					.padding()
 			}
 		}
 		.scrollEdgeEffectStyle(.soft, for: .all)
+		.contentColumn(maxWidth: DTLayout.gridWidth)
 		.background(DTColor.background.ignoresSafeArea())
 		.task {
 			guard self.paginator == nil, let server else { return }
@@ -52,7 +51,8 @@ struct MyPlaylistsView: View {
 				Button {
 					self.showCreate = true
 				} label: {
-					Image(systemName: "plus")
+					Label(String(localized: "new-playlist"), systemImage: "plus")
+						.labelStyle(.iconOnly)
 				}
 				.tint(Color.primary)
 			}

@@ -82,6 +82,7 @@ struct InsightsView: View {
 			.padding(.vertical)
 		}
 		.scrollEdgeEffectStyle(.soft, for: .all)
+		.contentColumn()
 		.background(DTColor.background.ignoresSafeArea())
 		.toast(self.toast)
 		.navigationTitle(String(localized: "music-year"))
@@ -121,7 +122,8 @@ struct InsightsView: View {
 						}
 					}
 				} label: {
-					Image(systemName: "calendar")
+					Label(String(localized: "year"), systemImage: "calendar")
+						.labelStyle(.iconOnly)
 				}
 				.tint(Color.primary)
 				.disabled(self.availableYears.count < 1)

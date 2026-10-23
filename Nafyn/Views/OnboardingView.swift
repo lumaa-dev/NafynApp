@@ -85,6 +85,7 @@ struct OnboardingView: View {
 				.padding(.bottom)
 			}
 			.padding(.horizontal)
+			.frame(maxWidth: DTLayout.panelWidth)
 		}
 		.toast(isPresented: $showError) {
 			Label(self.errorMessage, systemImage: "xmark.seal")

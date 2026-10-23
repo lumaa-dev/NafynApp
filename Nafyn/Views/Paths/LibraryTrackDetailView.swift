@@ -31,14 +31,28 @@ private struct LibraryTrackDetailContent: View {
 	let track: MediaRow
 
 	var body: some View {
-		ScrollView {
+		// Regular width (Duo inner display, iPad): cover and titles in one pane, Play and the details
+		// at the top of the other.
+		AdaptiveDetail {
 			VStack(alignment: .leading, spacing: 20) {
 				self.head
 				self.footer
 			}
-			.padding()
+		} primary: {
+			VStack(alignment: .leading, spacing: 16) {
+				CoverImage(url: self.track.coverArt.flatMap { URL(string: $0) })
+					.aspectRatio(1.0, contentMode: .fit)
+					.frame(maxWidth: DTLayout.detailCoverWidth(isRegular: true))
+					.frame(maxWidth: .infinity)
+
+				self.titles
+			}
+		} secondary: {
+			VStack(alignment: .leading, spacing: 20) {
+				self.playButton
+				self.footer
+			}
 		}
-		.scrollEdgeEffectStyle(.soft, for: .all)
 		.background(DTColor.background.ignoresSafeArea())
 		.toast(self.toast)
 		.toolbar {
@@ -66,7 +80,8 @@ private struct LibraryTrackDetailContent: View {
 					}
 					.disabled(NetworkMonitor.shared.isOffline)
 				} label: {
-					Image(systemName: "ellipsis")
+					Label(String(localized: "more"), systemImage: "ellipsis")
+						.labelStyle(.iconOnly)
 				}
 				.tint(Color.primary)
 			}
@@ -87,28 +102,10 @@ private struct LibraryTrackDetailContent: View {
 				.frame(width: 130, height: 130)
 
 			VStack(alignment: .leading, spacing: 6) {
-				Text(self.track.title)
-					.font(DTFont.serif(27))
-					.foregroundStyle(DTColor.textPrimary)
-					.lineLimit(2)
+				self.titles
 
-				Text(self.track.artistName)
-					.font(DTFont.serifItalic(20))
-					.foregroundStyle(DTColor.textPrimary.opacity(0.75))
-
-				NavigationLink(value: Navigator.Paths.libraryAlbum(id: self.track.albumId)) {
-					Text(self.track.album ?? String(localized: "view-album"))
-				}
-				.font(DTFont.system(15))
-				.foregroundStyle(DTColor.textPrimary.opacity(0.5))
-
-				Button {
-					self.play()
-				} label: {
-					Label(String(localized: "play"), systemImage: "play.fill")
-				}
-				.buttonStyle(.filled())
-				.padding(.top, 6)
+				self.playButton
+					.padding(.top, 6)
 			}
 
 			Spacer(minLength: 0)
@@ -116,9 +113,40 @@ private struct LibraryTrackDetailContent: View {
 		.frame(maxWidth: .infinity, alignment: .leading)
 	}
 
+	/// Title, artist and a link to the album.
+	@ViewBuilder
+	private var titles: some View {
+		VStack(alignment: .leading, spacing: 6) {
+			Text(self.track.title)
+				.font(DTFont.serif(27))
+				.foregroundStyle(DTColor.textPrimary)
+				.lineLimit(2)
+
+			Text(self.track.artistName)
+				.font(DTFont.serifItalic(20))
+				.foregroundStyle(DTColor.textPrimary.opacity(0.75))
+
+			NavigationLink(value: Navigator.Paths.libraryAlbum(id: self.track.albumId)) {
+				Text(self.track.album ?? String(localized: "view-album"))
+			}
+			.font(DTFont.system(15))
+			.foregroundStyle(DTColor.textPrimary.opacity(0.5))
+		}
+	}
+
+	@ViewBuilder
+	private var playButton: some View {
+		Button {
+			self.play()
+		} label: {
+			Label(String(localized: "play"), systemImage: "play.fill")
+		}
+		.buttonStyle(.filled())
+	}
+
 	@ViewBuilder
 	private var footer: some View {
-		HStack(spacing: 6) {
+		FlowLayout(spacing: 6) {
 			if self.track.duration > 0 {
 				Text(TrackRow<EmptyView>.formattedDuration(self.track.duration))
 			}

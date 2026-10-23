@@ -12,60 +12,72 @@ struct NowPlayingView: View {
 		case lyrics
 	}
 
+	@Environment(\.horizontalSizeClass) private var horizontalSizeClass
+
 	@State private var activePanel: PanelTab? = nil
 	@State private var sliderValue: Float = Float(PlaybackSource.currentTime)
 	@State private var isDraggingSlider = false
 	@State private var isPresentingAddToPlaylist = false
 
+	/// Whether the window is wider than tall, measured on the container rather than the screen.
+	@State private var isLandscape = false
+
+	/// Whether the device is partly folded: a `division` reserved region (the fold) is active over this view.
+	@State private var isFolded = false
+
+	/// The artwork and controls sit beside (or, in a taller-than-wide window, stacked with) the queue/lyrics
+	/// when the device is partly folded in either orientation, or when the window is regular width and wider
+	/// than tall (iPhone Duo inner display held sideways, iPad later). A fully open, upright inner display
+	/// keeps the compact layout, where a panel replaces the artwork exactly as on any other iPhone.
+	private var isWide: Bool {
+		self.isFolded || (self.horizontalSizeClass == .regular && self.isLandscape)
+	}
+
+	/// The panel currently on screen. A wide layout always has room for one, so it falls back to the queue.
+	private var visiblePanel: PanelTab? {
+		self.isWide ? (self.activePanel ?? .queue) : self.activePanel
+	}
+
 	var body: some View {
-		NavigationStack {
-			Group {
-				if let track = PlaybackSource.track {
-					VStack(spacing: 0) {
-						if let error = PlayerEngine.shared.lastError {
-							Text(error)
-								.font(DTFont.system(13))
-								.foregroundStyle(DTColor.statusFailure)
-								.padding(.bottom, 8)
-						}
-
-						if self.activePanel == nil {
-							self.fullHeader(track)
-							Spacer(minLength: 20)
-						} else {
-							Spacer(minLength: 4)
-							self.panelContent(self.activePanel!)
-								.frame(maxHeight: .infinity)
-						}
-
-						self.actionRow(track)
-							.padding(.vertical, 14)
-
-						self.scrubber
-						self.transportControls
-							.padding(.top, 18)
-					}
-					.padding(.horizontal)
-					.padding(.top, self.activePanel == nil ? 20 : 12)
-					.padding(.bottom, 8)
+		// No navigation container on purpose: `ArrangementView` must not live inside one, and this screen
+		// has no navigation of its own (it is a full-screen cover; links dismiss it and push on the tab).
+		Group {
+			if let track = PlaybackSource.track {
+				if self.isWide {
+					self.wideLayout(track)
 				} else {
-					VStack {
-						Spacer()
-						Text("nothing-playing")
-							.font(DTFont.system(18))
-							.foregroundStyle(DTColor.textPrimary.opacity(0.5))
-						Spacer()
-					}
+					self.compactLayout(track)
+				}
+			} else {
+				VStack {
+					Spacer()
+					Text("nothing-playing")
+						.font(DTFont.system(18))
+						.foregroundStyle(DTColor.textPrimary.opacity(0.5))
+					Spacer()
 				}
 			}
-			.background {
-				if let track = PlaybackSource.track {
-					CoverMeshBackground(coverURL: track.highResCoverURL)
-						.ignoresSafeArea()
-				} else {
-					DTColor.background.ignoresSafeArea()
-				}
+		}
+		.background {
+			if let track = PlaybackSource.track {
+				CoverMeshBackground(coverURL: track.setCoverSize(500))
+					.ignoresSafeArea()
+			} else {
+				DTColor.background.ignoresSafeArea()
 			}
+		}
+		.onGeometryChange(for: Bool.self) { proxy in
+			proxy.size.width > proxy.size.height
+		} action: { newValue in
+			self.isLandscape = newValue
+		}
+		.onGeometryChange(for: Bool.self) { proxy in
+			if #available(iOS 27.1, *) {
+				return !proxy.reservedRegions(kind: .division).isEmpty
+			}
+			return false
+		} action: { newValue in
+			self.isFolded = newValue
 		}
 		.navigationTransition(.zoom(sourceID: "miniPlayer", in: self.namespace))
 		.sheet(isPresented: self.$isPresentingAddToPlaylist) {
@@ -75,6 +87,97 @@ struct NowPlayingView: View {
 		}
 	}
 
+	@ViewBuilder
+	private func compactLayout(_ track: MediaRow) -> some View {
+		VStack(spacing: 0) {
+			if let error = PlayerEngine.shared.lastError {
+				Text(error)
+					.font(DTFont.system(13))
+					.foregroundStyle(DTColor.statusFailure)
+					.padding(.bottom, 8)
+			}
+
+			if self.activePanel == nil {
+				self.fullHeader(track)
+				Spacer(minLength: 20)
+			} else {
+				Spacer(minLength: 4)
+				self.panelContent(self.activePanel!)
+					.frame(maxHeight: .infinity)
+			}
+
+			self.actionRow(track)
+				.padding(.vertical, 14)
+
+			self.scrubber
+			self.transportControls
+				.padding(.top, 18)
+		}
+		.padding(.horizontal)
+		.padding(.top, self.activePanel == nil ? 20 : 12)
+		.padding(.bottom, 8)
+		// an upright inner display is far wider than a phone: keep the phone-sized column, centered
+		.frame(maxWidth: DTLayout.panelWidth)
+		.frame(maxWidth: .infinity)
+	}
+
+	/// Cover, actions, scrubber and transport beside (or, in a window taller than wide, stacked with) the
+	/// queue/lyrics. `ArrangementView` picks the side-by-side or stacked placement and respaces the two
+	/// around the fold when an iPhone Duo is partly open. Side by side the controls lead; stacked the
+	/// panel takes the upper half and the controls the lower, within thumb reach.
+	@ViewBuilder
+	private func wideLayout(_ track: MediaRow) -> some View {
+		Group {
+			if self.isLandscape {
+				SplitPanes {
+					self.controlsPane(track)
+				} secondary: {
+					self.panel
+				}
+			} else {
+				SplitPanes {
+					self.panel
+				} secondary: {
+					self.controlsPane(track)
+				}
+			}
+		}
+		.padding(.horizontal, 32)
+		.padding(.top, 20)
+		.padding(.bottom, 8)
+	}
+
+	private var panel: some View {
+		self.panelContent(self.visiblePanel ?? .queue)
+			.frame(maxWidth: .infinity, maxHeight: .infinity)
+	}
+
+	@ViewBuilder
+	private func controlsPane(_ track: MediaRow) -> some View {
+		VStack(spacing: 0) {
+			if let error = PlayerEngine.shared.lastError {
+				Text(error)
+					.font(DTFont.system(13))
+					.foregroundStyle(DTColor.statusFailure)
+					.padding(.bottom, 8)
+			}
+
+			// the cover is the flexible piece: it shrinks to whatever height the pane has left
+			self.fullHeader(track)
+
+			Spacer(minLength: 20)
+
+			self.actionRow(track)
+				.padding(.vertical, 14)
+
+			self.scrubber
+			self.transportControls
+				.padding(.top, 18)
+		}
+		.frame(maxWidth: 460)
+		.frame(maxWidth: .infinity)
+	}
+
 	/// The large-cover layout shown whenever neither the lyrics nor the queue panel is open. The cover
 	/// fills the available width (a large square, not the old fixed 300pt box) with the title/artist
 	/// left-aligned beneath it, matching the reference layout rather than the previous centered block —
@@ -82,7 +185,7 @@ struct NowPlayingView: View {
 	@ViewBuilder
 	private func fullHeader(_ track: MediaRow) -> some View {
 		VStack(alignment: .leading, spacing: 16) {
-			CoverImage(url: track.highResCoverURL)
+			CoverImage(url: track.setCoverSize(1000))
 				.aspectRatio(1, contentMode: .fit)
 				.frame(maxWidth: .infinity)
 
@@ -137,18 +240,26 @@ struct NowPlayingView: View {
 	@ViewBuilder
 	private func actionRow(_ track: MediaRow) -> some View {
 		HStack(spacing: 10) {
-			self.circleToggle(icon: "quote.bubble.fill", isActive: self.activePanel == .lyrics) {
-				withAnimation(.easeInOut(duration: 0.25)) {
-					self.activePanel = self.activePanel == .lyrics ? nil : .lyrics
-				}
+			self.circleToggle(icon: "quote.bubble.fill", isActive: self.visiblePanel == .lyrics) {
+				self.togglePanel(.lyrics)
 			}
 
 			self.pill(track)
 
-			self.circleToggle(icon: "list.bullet", isActive: self.activePanel == .queue) {
-				withAnimation(.easeInOut(duration: 0.25)) {
-					self.activePanel = self.activePanel == .queue ? nil : .queue
-				}
+			self.circleToggle(icon: "list.bullet", isActive: self.visiblePanel == .queue) {
+				self.togglePanel(.queue)
+			}
+		}
+	}
+
+	/// Compact: a second tap on the open panel closes it. Wide: one panel is always showing, so a tap
+	/// only ever switches to the other one.
+	private func togglePanel(_ panel: PanelTab) {
+		withAnimation(.easeInOut(duration: 0.25)) {
+			if self.isWide {
+				self.activePanel = panel
+			} else {
+				self.activePanel = self.activePanel == panel ? nil : panel
 			}
 		}
 	}
@@ -168,7 +279,8 @@ struct NowPlayingView: View {
 	@ViewBuilder
 	private func pill(_ track: MediaRow) -> some View {
 		Group {
-			if self.activePanel != nil {
+			// the wide layout already shows title/artist beside the panel, so the pill stays on the actions
+			if self.activePanel != nil && !self.isWide {
 				Button {
 					withAnimation(.easeInOut(duration: 0.25)) {
 						self.activePanel = nil
