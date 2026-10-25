@@ -77,7 +77,7 @@ struct DownloadsSettingsSection: View {
 	}
 
 	private func play(_ track: DownloadedTrack, in group: [DownloadedTrack]) {
-		PlayerEngine.shared.play(track.mediaRow, queue: group.map(\.mediaRow))
+		PlaybackSource.play(track.mediaRow, queue: group.map(\.mediaRow))
 	}
 
 	private static func formattedSize(_ bytes: Int64) -> String {

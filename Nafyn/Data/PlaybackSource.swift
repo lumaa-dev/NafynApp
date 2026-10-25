@@ -35,7 +35,7 @@ enum PlaybackSource {
 	}
 
 	static var currentTime: TimeInterval {
-		self.isRemote ? (UnityEngine.shared.remoteState?.currentTime ?? 0) : PlayerEngine.shared.currentTime
+		self.isRemote ? UnityEngine.shared.remoteTime : PlayerEngine.shared.currentTime
 	}
 
 	static var duration: TimeInterval {
@@ -51,6 +51,16 @@ enum PlaybackSource {
 	}
 
 	// MARK: - Transport
+
+	/// Starts `track` (in `queue`, when given). While another device is the Unity master the track plays
+	/// there, not on this device; otherwise it plays locally.
+	static func play(_ track: MediaRow, queue: [MediaRow]? = nil, recordContext: RecordContext? = nil) {
+		if UnityEngine.shared.isControllingRemotely {
+			UnityEngine.shared.playOnMaster(track, queue: queue, recordContext: recordContext)
+		} else {
+			PlayerEngine.shared.play(track, queue: queue, recordContext: recordContext)
+		}
+	}
 
 	static func togglePlay() {
 		self.isRemote ? UnityEngine.shared.sendCommand(.togglePlay) : PlayerEngine.shared.togglePlay()

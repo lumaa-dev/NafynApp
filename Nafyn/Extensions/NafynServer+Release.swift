@@ -27,7 +27,9 @@ extension NafynServer {
 		do {
 			let detail = try decoder.decode(TrackDetail.self, from: data)
 			let extras = try decoder.decode(TrackReleaseExtras.self, from: data)
-			return TrackRelease(detail: detail, released: extras.released ?? true, subscribed: extras.subscribed ?? false, precision: extras.releaseDatePrecision)
+			// in the library means playable, so released, even if MusicBrainz still says otherwise
+			let released = (extras.released ?? true) || detail.info.inLibrary == true
+			return TrackRelease(detail: detail, released: released, subscribed: extras.subscribed ?? false, precision: extras.releaseDatePrecision)
 		} catch {
 			throw NafynError.decoding(String(describing: error))
 		}

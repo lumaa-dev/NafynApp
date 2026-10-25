@@ -125,7 +125,7 @@ private struct ReplayMixContent: View {
 				HStack(spacing: 10) {
 					Button {
 						guard let first = self.playableTracks.first else { return }
-						PlayerEngine.shared.play(first, queue: self.playableTracks)
+						PlaybackSource.play(first, queue: self.playableTracks)
 					} label: {
 						Label(String(localized: "play"), systemImage: "play.fill")
 							.frame(maxWidth: .infinity)
@@ -135,7 +135,7 @@ private struct ReplayMixContent: View {
 					Button {
 						let shuffled = self.playableTracks.shuffled()
 						guard let first = shuffled.first else { return }
-						PlayerEngine.shared.play(first, queue: shuffled)
+						PlaybackSource.play(first, queue: shuffled)
 					} label: {
 						Label(String(localized: "shuffle"), systemImage: "shuffle")
 							.frame(maxWidth: .infinity)
@@ -153,7 +153,7 @@ private struct ReplayMixContent: View {
 		let queue = self.mix.entries
 			.filter { $0.position >= entry.position }
 			.compactMap(\.media)
-		PlayerEngine.shared.play(media, queue: queue)
+		PlaybackSource.play(media, queue: queue)
 	}
 
 	private func label(for summary: ReplayMix.ArchiveSummary) -> String {

@@ -119,12 +119,15 @@ struct AlbumDetailView: View {
 			verticalPadding: 12,
 			onTap: track.mediaId != nil ? { self.play(track, album: album) } : nil
 		) {
-			if !track.released, let releaseDate = track.releaseDate {
-				// a track that's still unreleased on an album that is: no download, just when it lands
-				ReleaseCountdown(releaseDate: releaseDate, compact: true) {
-					Task { await reload() }
+			if !track.released {
+				if album.released, let releaseDate = track.releaseDate {
+					// a track that's still unreleased on an album that is: no download, just when it lands.
+					// On an unreleased album the album's own countdown already says it, so rows stay bare.
+					ReleaseCountdown(releaseDate: releaseDate, compact: true) {
+						Task { await reload() }
+					}
 				}
-			} else if !track.requested && !track.inLibrary && track.released {
+			} else if !track.requested && !track.inLibrary {
 				Button {
 					self.request(track: track, reload: reload)
 				} label: {
@@ -212,6 +215,6 @@ struct AlbumDetailView: View {
 			return info.asMediaRow(mediaId: id, album: album)
 		}
 		let media = track.asMediaRow(mediaId: mediaId, album: album)
-		PlayerEngine.shared.play(media, queue: queue, recordContext: RecordContext(type: .album, refId: album.id))
+		PlaybackSource.play(media, queue: queue, recordContext: RecordContext(type: .album, refId: album.id))
 	}
 }

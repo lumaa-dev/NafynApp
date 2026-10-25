@@ -316,11 +316,11 @@ struct NowPlayingView: View {
 	/// Unity has no shuffle command, only repeat: tapping cycles the master's repeat mode.
 	@ViewBuilder
 	private var remoteRepeatButton: some View {
-		let mode = UnityEngine.shared.remoteState?.repeatMode ?? "off"
+		let mode = RepeatMode(wireValue: UnityEngine.shared.remoteState?.repeatMode ?? "off")
 
-		Image(systemName: mode == "one" ? "repeat.1" : "repeat")
+		Image(systemName: mode == .track ? "repeat.1" : "repeat")
 			.font(.body)
-			.foregroundStyle(mode == "off" ? DTColor.textPrimary.opacity(0.6) : DTColor.accentStart)
+			.foregroundStyle(mode == .off ? DTColor.textPrimary.opacity(0.6) : DTColor.accentStart)
 			.frame(width: 44, height: 44)
 			.contentShape(Rectangle())
 			.onTapGesture {

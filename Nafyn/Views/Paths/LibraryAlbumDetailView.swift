@@ -185,7 +185,7 @@ private struct LibraryAlbumDetailContent: View {
 	}
 
 	private func play(_ track: MediaRow) {
-		PlayerEngine.shared.play(track, queue: self.response.tracks, recordContext: RecordContext(type: .album, refId: self.response.album.row.id))
+		PlaybackSource.play(track, queue: self.response.tracks, recordContext: RecordContext(type: .album, refId: self.response.album.row.id))
 	}
 
 	private func playAll(shuffle: Bool) {
@@ -194,6 +194,6 @@ private struct LibraryAlbumDetailContent: View {
 		if shuffle {
 			queue.shuffle()
 		}
-		PlayerEngine.shared.play(queue[0], queue: queue, recordContext: RecordContext(type: .album, refId: self.response.album.row.id))
+		PlaybackSource.play(queue[0], queue: queue, recordContext: RecordContext(type: .album, refId: self.response.album.row.id))
 	}
 }

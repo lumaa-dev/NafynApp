@@ -101,7 +101,7 @@ struct MyTracksView: View {
 	@ViewBuilder
 	private func row(_ track: MediaRow) -> some View {
 		TrackRow(coverURL: track.coverArt.flatMap { URL(string: $0) }, title: track.title, subtitle: track.artistName, duration: track.duration, fileSize: track.fileSize, onTap: {
-			PlayerEngine.shared.play(track, recordContext: RecordContext(type: .track, refId: track.id))
+			PlaybackSource.play(track, recordContext: RecordContext(type: .track, refId: track.id))
 		}) {
 			if DownloadManager.shared.isDownloaded(trackId: track.id) {
 				Image(systemName: "arrow.down.circle.fill")

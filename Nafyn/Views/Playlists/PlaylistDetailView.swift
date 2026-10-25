@@ -300,7 +300,7 @@ private struct PlaylistDetailContent: View {
 	}
 
 	private func play(_ entry: PlaylistEntry, in entries: [PlaylistEntry]) {
-		PlayerEngine.shared.play(entry.media, queue: entries.map { $0.media }, recordContext: RecordContext(type: .playlist, refId: self.playlistId))
+		PlaybackSource.play(entry.media, queue: entries.map { $0.media }, recordContext: RecordContext(type: .playlist, refId: self.playlistId))
 	}
 
 	private func playAll(shuffle: Bool) {
@@ -308,7 +308,7 @@ private struct PlaylistDetailContent: View {
 		if shuffle {
 			queue.shuffle()
 		}
-		PlayerEngine.shared.play(queue[0], queue: queue, recordContext: RecordContext(type: .playlist, refId: self.playlistId))
+		PlaybackSource.play(queue[0], queue: queue, recordContext: RecordContext(type: .playlist, refId: self.playlistId))
 	}
 
 	private func moveTracks(from: IndexSet, to: Int) {

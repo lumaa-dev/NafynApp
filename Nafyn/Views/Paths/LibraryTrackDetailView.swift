@@ -136,7 +136,7 @@ private struct LibraryTrackDetailContent: View {
 	}
 
 	private func play() {
-		PlayerEngine.shared.play(self.track, recordContext: RecordContext(type: .track, refId: self.track.id))
+		PlaybackSource.play(self.track, recordContext: RecordContext(type: .track, refId: self.track.id))
 	}
 
 	private func removeDownload() {
