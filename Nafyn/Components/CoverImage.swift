@@ -2,6 +2,20 @@
 
 import SwiftUI
 
+/// A zero radius means edge to edge: no clip at all, so `backgroundExtensionEffect()` sees the raw image.
+private struct CornerClip: ViewModifier {
+	var radius: CGFloat
+
+	@ViewBuilder
+	func body(content: Content) -> some View {
+		if self.radius > 0 {
+			content.clipShape(RoundedRectangle(cornerRadius: self.radius))
+		} else {
+			content
+		}
+	}
+}
+
 /// The `AsyncImage` + placeholder pattern shared by `MusicCard` and every detail/player screen.
 ///
 /// Server cover paths (`/api/v1/art/...`, relative) are fetched through `CoverArtLoader`, which prepends the
@@ -32,7 +46,7 @@ struct CoverImage: View {
 				DTColor.surfaceSelect
 			}
 		}
-		.clipShape(RoundedRectangle(cornerRadius: self.cornerRadius))
+		.modifier(CornerClip(radius: self.cornerRadius))
 	}
 
 	@ViewBuilder

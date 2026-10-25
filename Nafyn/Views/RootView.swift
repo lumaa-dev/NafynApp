@@ -77,8 +77,14 @@ struct RootView: View {
 			DeepLink(url: url)?.open()
 		}
 		.onChange(of: self.scenePhase) { _, phase in
-			if phase == .active {
-				PushManager.shared.appDidBecomeActive()
+			switch phase {
+				case .active:
+					PushManager.shared.appDidBecomeActive()
+					UnityEngine.shared.appDidBecomeActive()
+				case .background:
+					UnityEngine.shared.appDidEnterBackground()
+				default:
+					break
 			}
 		}
 		.onChange(of: NetworkMonitor.shared.isOffline) { wasOffline, isOffline in

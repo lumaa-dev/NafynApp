@@ -13,9 +13,9 @@ struct LibraryTrackDetailView: View {
 	var body: some View {
 		AsyncContentView {
 			guard let server else { throw NafynError.unauthenticated }
-			return try await server.send(Library.track(id: self.trackId)) as MediaRow
-		} content: { track, _ in
-			LibraryTrackDetailContent(track: track)
+			return try await server.send(Library.track(id: self.trackId)) as LibraryTrackResponse
+		} content: { response, _ in
+			LibraryTrackDetailContent(response: response)
 		}
 		.navigationBarTitleDisplayMode(.inline)
 	}
@@ -24,33 +24,31 @@ struct LibraryTrackDetailView: View {
 private struct LibraryTrackDetailContent: View {
 	@Environment(\.server) private var server: NafynServer?
 	@Environment(\.dismiss) private var dismiss
+	@Environment(\.colorScheme) private var colorScheme
 
 	@State private var toast = ToastState()
 	@State private var showDeleteConfirm = false
 
-	let track: MediaRow
+	let response: LibraryTrackResponse
+
+	private var track: MediaRow { self.response.row }
 
 	var body: some View {
-		// Regular width (Duo inner display, iPad): cover and titles in one pane, Play and the details
-		// at the top of the other.
-		AdaptiveDetail {
-			VStack(alignment: .leading, spacing: 20) {
-				self.head
-				self.footer
-			}
-		} primary: {
-			VStack(alignment: .leading, spacing: 16) {
-				DetailCover(url: self.track.coverArt.flatMap { URL(string: $0) })
+		let palette = CoverPalette(imageColors: self.response.imageColors, colorScheme: self.colorScheme)
 
-				self.titles
-			}
+		// Regular width (Duo inner display, iPad) or a phone held sideways: the cover and titles in one pane,
+		// Play and the details in the other.
+		AdaptiveCoverDetail(palette: palette, spacing: 20) {
+			self.header(palette: palette)
+		} compact: {
+			self.actions(palette: palette)
+			self.footer(palette: palette)
+		} primary: {
+			EmptyView()
 		} secondary: {
-			VStack(alignment: .leading, spacing: 20) {
-				self.playButton
-				self.footer
-			}
+			self.actions(palette: palette)
+			self.footer(palette: palette)
 		}
-		.background(DTColor.background.ignoresSafeArea())
 		.toast(self.toast)
 		.toolbar {
 			ToolbarItem(placement: .primaryAction) {
@@ -92,57 +90,46 @@ private struct LibraryTrackDetailContent: View {
 		}
 	}
 
-	@ViewBuilder
-	private var head: some View {
-		HStack(alignment: .top, spacing: 16) {
-			CoverImage(url: self.track.coverArt.flatMap { URL(string: $0) })
-				.frame(width: 130, height: 130)
-
-			VStack(alignment: .leading, spacing: 6) {
-				self.titles
-
-				self.playButton
-					.padding(.top, 6)
-			}
-
-			Spacer(minLength: 0)
-		}
-		.frame(maxWidth: .infinity, alignment: .leading)
-	}
-
-	/// Title, artist and a link to the album.
-	@ViewBuilder
-	private var titles: some View {
-		VStack(alignment: .leading, spacing: 6) {
+	private func header(palette: CoverPalette) -> some View {
+		CoverHeader(url: self.track.setCoverSize(1000), palette: palette) {
 			Text(self.track.title)
-				.font(DTFont.serif(27))
-				.foregroundStyle(DTColor.textPrimary)
+				.font(DTFont.serif(31))
+				.foregroundStyle(palette.primary)
 				.lineLimit(2)
 
 			Text(self.track.artistName)
 				.font(DTFont.serifItalic(20))
-				.foregroundStyle(DTColor.textPrimary.opacity(0.75))
-
-			NavigationLink(value: Navigator.Paths.libraryAlbum(id: self.track.albumId)) {
-				Text(self.track.album ?? String(localized: "view-album"))
-			}
-			.font(DTFont.system(15))
-			.foregroundStyle(DTColor.textPrimary.opacity(0.5))
+				.foregroundStyle(palette.primary)
 		}
 	}
 
 	@ViewBuilder
-	private var playButton: some View {
+	private func actions(palette: CoverPalette) -> some View {
 		Button {
 			self.play()
 		} label: {
 			Label(String(localized: "play"), systemImage: "play.fill")
+				.frame(maxWidth: .infinity)
 		}
 		.buttonStyle(.filled())
+
+		NavigationLink(value: Navigator.Paths.libraryAlbum(id: self.track.albumId)) {
+			HStack {
+				Text(self.track.album ?? String(localized: "view-album"))
+					.multilineTextAlignment(.leading)
+
+				Spacer(minLength: 0)
+
+				Image(systemName: "chevron.right")
+					.font(DTFont.system(14, weight: .semibold))
+			}
+			.font(DTFont.system(17))
+			.foregroundStyle(palette.primary)
+		}
 	}
 
 	@ViewBuilder
-	private var footer: some View {
+	private func footer(palette: CoverPalette) -> some View {
 		FlowLayout(spacing: 6) {
 			if self.track.duration > 0 {
 				Text(TrackRow<EmptyView>.formattedDuration(self.track.duration))
@@ -157,11 +144,11 @@ private struct LibraryTrackDetailContent: View {
 			}
 		}
 		.font(DTFont.system(16))
-		.foregroundStyle(DTColor.textPrimary.opacity(0.5))
+		.foregroundStyle(palette.secondary)
 	}
 
 	private func play() {
-		PlayerEngine.shared.play(self.track, recordContext: RecordContext(type: .track, refId: self.track.id))
+		PlaybackSource.play(self.track, recordContext: RecordContext(type: .track, refId: self.track.id))
 	}
 
 	private func removeDownload() {

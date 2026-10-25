@@ -10,8 +10,7 @@ struct UnitySettingsSection: View {
 	@State private var hasRemoteSession = false
 
 	private var remoteTrack: MediaRow? {
-		guard let state = UnityEngine.shared.remoteState, state.queue.indices.contains(state.currentIndex) else { return nil }
-		return try? state.queue[state.currentIndex].decode(MediaRow.self)
+		UnityEngine.shared.remoteTrack
 	}
 
 	private var enabledBinding: Binding<Bool> {
@@ -111,6 +110,14 @@ struct UnitySettingsSection: View {
 			.task(id: track.id) {
 				self.hasRemoteSession = await RemoteMediaCoordinator.shared.hasSession
 			}
+		} else if UnityEngine.shared.masterStatus != .empty, let device = UnityEngine.shared.masterDeviceLabel {
+			// a master exists but has nothing queued (or hasn't reported yet): still say where it is
+			Label {
+				Text(String(format: String(localized: "unity-playing-on"), device))
+			} icon: {
+				Image(.nafynUnity)
+			}
+			.foregroundStyle(DTColor.textPrimary.opacity(0.6))
 		} else {
 			Label {
 				Text(String(localized: "unity-nobody-playing"))

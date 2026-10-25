@@ -19,7 +19,8 @@ private struct LenientTrackInfo: Decodable {
 
 	var resolved: TrackInfo? {
 		guard let id, let title, let trackNumber, let duration, let released, let inLibrary, let requested else { return nil }
-		return TrackInfo(id: id, title: title, trackNumber: trackNumber, duration: duration, releaseDate: releaseDate, released: released, inLibrary: inLibrary, requested: requested, mediaId: mediaId)
+		// a track already in the library is playable, so it is released whatever MusicBrainz says
+		return TrackInfo(id: id, title: title, trackNumber: trackNumber, duration: duration, releaseDate: releaseDate, released: released || inLibrary, inLibrary: inLibrary, requested: requested, mediaId: mediaId)
 	}
 }
 

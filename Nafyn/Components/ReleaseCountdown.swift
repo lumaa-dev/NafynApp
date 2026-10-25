@@ -124,6 +124,8 @@ private struct CountdownText: View {
 	let compact: Bool
 	let onReleased: (() -> Void)?
 
+	@Environment(\.coverPalette) private var palette
+
 	var body: some View {
 		Group {
 			if self.parts.isEmpty {
@@ -131,7 +133,7 @@ private struct CountdownText: View {
 			} else if self.compact {
 				Text(ReleaseCountdownMath.compactText(self.parts))
 					.font(DTFont.system(12).monospacedDigit())
-					.foregroundStyle(DTColor.textPrimary.opacity(0.5))
+					.foregroundStyle(self.palette?.primary ?? DTColor.textPrimary.opacity(0.5))
 					.lineLimit(1)
 			} else {
 				Text(ReleaseCountdownMath.longText(self.parts))

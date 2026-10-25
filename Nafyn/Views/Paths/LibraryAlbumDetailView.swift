@@ -56,32 +56,29 @@ struct LibraryAlbumDetailView: View {
 }
 
 private struct LibraryAlbumDetailContent: View {
+	@Environment(\.colorScheme) private var colorScheme
+
 	@State private var toast = ToastState()
 
 	let response: LibraryAlbumResponse
 
 	var body: some View {
-		// Regular width (Duo inner display, iPad): cover and details in one pane, Play/Shuffle and the
-		// track list in the other.
-		AdaptiveDetail {
-			VStack(alignment: .leading, spacing: 16) {
-				self.about
-				self.actions
-				self.trackList
-				self.footer
-			}
+		let palette = CoverPalette(imageColors: self.response.album.imageColors, colorScheme: self.colorScheme)
+
+		// Regular width (Duo inner display, iPad) or a phone held sideways: cover and details in one pane,
+		// Play/Shuffle and the track list in the other.
+		AdaptiveCoverDetail(palette: palette) {
+			self.header(palette: palette)
+		} compact: {
+			self.actions
+			self.trackList(palette: palette)
+			self.footer(palette: palette)
 		} primary: {
-			VStack(alignment: .leading, spacing: 16) {
-				self.about
-				self.footer
-			}
+			self.footer(palette: palette)
 		} secondary: {
-			VStack(alignment: .leading, spacing: 16) {
-				self.actions
-				self.trackList
-			}
+			self.actions
+			self.trackList(palette: palette)
 		}
-		.background(DTColor.background.ignoresSafeArea())
 		.toast(self.toast)
 		.toolbar {
 			ToolbarItem(placement: .primaryAction) {
@@ -101,35 +98,16 @@ private struct LibraryAlbumDetailContent: View {
 		}
 	}
 
-	@ViewBuilder
-	private var trackList: some View {
-		VStack(spacing: 0) {
-			ForEach(Array(self.response.tracks.enumerated()), id: \.element.id) { index, track in
-				self.trackRow(track)
-
-				if index < self.response.tracks.count - 1 {
-					Divider()
-						.overlay(DTColor.borderSelect)
-				}
-			}
-		}
-		.frame(maxWidth: .infinity)
-	}
-
-	@ViewBuilder
-	private var about: some View {
-		VStack(alignment: .leading, spacing: 10) {
-			DetailCover(url: self.response.album.row.coverArt.flatMap { URL(string: $0) })
-
+	private func header(palette: CoverPalette) -> some View {
+		CoverHeader(url: self.response.album.row.coverArt?.coverArtURL(size: 1000), palette: palette) {
 			Text(self.response.album.row.title)
 				.font(DTFont.serif(31))
-				.foregroundStyle(DTColor.textPrimary)
+				.foregroundStyle(palette.primary)
 
 			Text(self.response.album.row.artistName)
 				.font(DTFont.serif(20))
-				.foregroundStyle(DTColor.textPrimary.opacity(0.7))
+				.foregroundStyle(palette.primary)
 		}
-		.frame(maxWidth: .infinity, alignment: .leading)
 	}
 
 	/// Play and shuffle the whole album.
@@ -152,7 +130,20 @@ private struct LibraryAlbumDetailContent: View {
 			}
 			.buttonStyle(.hollow())
 		}
-		.padding(.top, 4)
+	}
+
+	@ViewBuilder
+	private func trackList(palette: CoverPalette) -> some View {
+		VStack(spacing: 0) {
+			ForEach(Array(self.response.tracks.enumerated()), id: \.element.id) { index, track in
+				self.trackRow(track)
+
+				if index < self.response.tracks.count - 1 {
+					Divider()
+						.overlay(palette.secondary.opacity(0.3))
+				}
+			}
+		}
 	}
 
 	@ViewBuilder
@@ -191,7 +182,7 @@ private struct LibraryAlbumDetailContent: View {
 	}
 
 	@ViewBuilder
-	private var footer: some View {
+	private func footer(palette: CoverPalette) -> some View {
 		VStack(alignment: .leading, spacing: 4) {
 			if let releaseDate = self.response.album.row.releaseDateValue {
 				Text(releaseDate.formatted(date: .abbreviated, time: .omitted))
@@ -199,11 +190,11 @@ private struct LibraryAlbumDetailContent: View {
 			Text("\(self.response.album.row.trackCount) " + String(localized: "tracks"))
 		}
 		.font(DTFont.system(16))
-		.foregroundStyle(DTColor.textPrimary.opacity(0.5))
+		.foregroundStyle(palette.secondary)
 	}
 
 	private func play(_ track: MediaRow) {
-		PlayerEngine.shared.play(track, queue: self.response.tracks, recordContext: RecordContext(type: .album, refId: self.response.album.row.id))
+		PlaybackSource.play(track, queue: self.response.tracks, recordContext: RecordContext(type: .album, refId: self.response.album.row.id))
 	}
 
 	private func playAll(shuffle: Bool) {
@@ -212,6 +203,6 @@ private struct LibraryAlbumDetailContent: View {
 		if shuffle {
 			queue.shuffle()
 		}
-		PlayerEngine.shared.play(queue[0], queue: queue, recordContext: RecordContext(type: .album, refId: self.response.album.row.id))
+		PlaybackSource.play(queue[0], queue: queue, recordContext: RecordContext(type: .album, refId: self.response.album.row.id))
 	}
 }

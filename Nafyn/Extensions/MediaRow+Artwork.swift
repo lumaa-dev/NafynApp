@@ -10,9 +10,13 @@ extension MediaRow {
 	}
 
 	func setCoverSize(_ size: UInt16) -> URL? {
-		guard var coverArt else { return nil }
-		coverArt.replace(/\d+$/, with: "\(size)")
+		self.coverArt?.coverArtURL(size: size)
+	}
+}
 
-		return URL(string: coverArt)
+extension String {
+	/// A server `coverArt` path (`/api/v1/art/<type>/<id>/<size>`) at another size (250 / 500 / 1000).
+	func coverArtURL(size: UInt16) -> URL? {
+		URL(string: self.replacing(/\d+$/, with: "\(size)"))
 	}
 }

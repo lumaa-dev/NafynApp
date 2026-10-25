@@ -44,20 +44,21 @@ enum RepeatMode {
 		}
 	}
 
-	/// The Nafyn Unity wire value for this mode (how the master's player names it), used when
-	/// publishing/receiving `UnityPlaybackState.repeatMode`/`UnityCommand.setRepeat`.
+	/// The Nafyn Unity wire value for this mode, as the web player names it (`"off" | "queue" | "track"`),
+	/// used when publishing/receiving `UnityPlaybackState.repeatMode`/`UnityCommand.setRepeat`.
 	var wireValue: String {
 		switch self {
 			case .off: "off"
-			case .queue: "all"
-			case .track: "one"
+			case .queue: "queue"
+			case .track: "track"
 		}
 	}
 
+	/// Also reads the `"all"`/`"one"` spelling Safyn's docs mention, in case a device sends it.
 	init(wireValue: String) {
 		switch wireValue {
-			case "all": self = .queue
-			case "one": self = .track
+			case "queue", "all": self = .queue
+			case "track", "one": self = .track
 			default: self = .off
 		}
 	}
@@ -80,7 +81,12 @@ final class PlayerEngine: NSObject {
 	/// `Identifiable` requirement on iOS 27+; unused, but harmless, on earlier OS versions).
 	let id = "fr.lumaa.Nafyn.player"
 
-	private(set) var queue: [MediaRow] = []
+	private(set) var queue: [MediaRow] = [] {
+		didSet { self.queueRevision &+= 1 }
+	}
+
+	/// Bumped on every change to `queue`, so Nafyn Unity can re-encode the queue only when it changed.
+	@ObservationIgnored private(set) var queueRevision = 0
 	private(set) var currentIndex: Int = -1
 	private(set) var isPlaying = false
 	private(set) var currentTime: TimeInterval = 0
@@ -110,6 +116,9 @@ final class PlayerEngine: NSObject {
 	private var didConfigureRemoteCommands = false
 	private weak var server: NafynServer?
 	private var timeObserver: Any?
+
+	/// Seeks that haven't completed yet; while any are pending the time observer must not overwrite `currentTime`.
+	@ObservationIgnored private var pendingSeeks = 0
 	private var artworkCache: [String: MPMediaItemArtwork] = [:]
 	private var itemObservers: [any NSObjectProtocol] = []
 	private var interruptionObservers: [NotificationCenter.ObservationToken] = []
@@ -358,7 +367,21 @@ final class PlayerEngine: NSObject {
 	}
 
 	func seek(to time: TimeInterval) {
-		self.player?.seek(to: CMTime(seconds: time, preferredTimescale: 600))
+		if let player {
+			// the periodic observer reports the pre-seek position until the seek lands, which would drag
+			// `currentTime` (and what Nafyn Unity publishes) back for a moment
+			self.pendingSeeks += 1
+			player.seek(to: CMTime(seconds: time, preferredTimescale: 600)) { [weak self] _ in
+				DispatchQueue.main.async {
+					guard let self else { return }
+					self.pendingSeeks = max(self.pendingSeeks - 1, 0)
+					if self.pendingSeeks == 0 {
+						self.currentTime = player.currentTime().seconds.isFinite ? player.currentTime().seconds : time
+						UnityEngine.shared.playerDidChange()
+					}
+				}
+			}
+		}
 		self.currentTime = time
 		self.updateNowPlayingInfo()
 		UnityEngine.shared.playerDidChange()
@@ -554,7 +577,7 @@ final class PlayerEngine: NSObject {
 		// 0.1s (rather than the usual 0.5s) so `currentTime`-driven UI (the scrubber, syllable-level
 		// lyrics highlighting) tracks playback smoothly instead of visibly stepping.
 		self.timeObserver = player.addPeriodicTimeObserver(forInterval: CMTime(seconds: 0.1, preferredTimescale: 600), queue: .main) { [weak self] time in
-			guard let self else { return }
+			guard let self, self.pendingSeeks == 0 else { return }
 			self.currentTime = time.seconds.isFinite ? time.seconds : 0
 			if let itemDuration = player.currentItem?.duration.seconds, itemDuration.isFinite {
 				self.duration = itemDuration

@@ -6,6 +6,7 @@ import Safyn
 struct AlbumDetailView: View {
 	@Environment(\.server) private var server: NafynServer?
 	@Environment(\.zoomNamespace) private var zoomNamespace: Namespace.ID?
+	@Environment(\.colorScheme) private var colorScheme
 
 	@State private var toast = ToastState()
 	@State private var isRequesting = false
@@ -17,43 +18,51 @@ struct AlbumDetailView: View {
 			guard let server else { throw NafynError.unauthenticated }
 			return try await server.fetchAlbumDetail(aid: self.albumId)
 		} content: { album, reload in
-			// Regular width (Duo inner display, iPad): cover and blurb in one pane, the actions and the
-			// track list in the other, instead of everything stacked in one column.
-			AdaptiveDetail {
-				VStack(alignment: .leading, spacing: 16) {
-					self.about(album)
-					self.actions(album, reload: reload)
-					self.trackList(album, reload: reload)
-					self.footer(album)
-				}
+			let palette = CoverPalette(imageColors: album.imageColors, colorScheme: self.colorScheme)
+
+			// Regular width (Duo inner display, iPad) or a phone held sideways: cover, blurb and details in one
+			// pane, the actions and the track list in the other, instead of everything stacked in one column.
+			AdaptiveCoverDetail(palette: palette) {
+				self.header(album, palette: palette)
+			} compact: {
+				self.description(album, palette: palette)
+				self.actions(album, reload: reload)
+				self.trackList(album, palette: palette, reload: reload)
+				self.footer(album, palette: palette)
 			} primary: {
-				VStack(alignment: .leading, spacing: 16) {
-					self.about(album)
-					self.footer(album)
-				}
+				self.description(album, palette: palette)
+				self.footer(album, palette: palette)
 			} secondary: {
-				VStack(alignment: .leading, spacing: 16) {
-					self.actions(album, reload: reload)
-					self.trackList(album, reload: reload)
-				}
+				self.actions(album, reload: reload)
+				self.trackList(album, palette: palette, reload: reload)
 			}
-			.background(DTColor.background.ignoresSafeArea())
 			.toast(self.toast)
 		}
 		.navigationBarTitleDisplayMode(.inline)
 	}
 
-	/// Cover, title, artist and blurb.
-	@ViewBuilder
-	private func about(_ album: AlbumDetail) -> some View {
-		VStack(alignment: .leading, spacing: 16) {
-			self.header(album)
-
-			if let description = album.description, !description.isEmpty {
-				Text(description)
-					.font(DTFont.system(18))
-					.foregroundStyle(DTColor.textPrimary.opacity(0.8))
+	private func header(_ album: AlbumDetail, palette: CoverPalette) -> some View {
+		CoverHeader(url: album.coverArt?.coverArtURL(size: 1000), palette: palette) {
+			if let type = album.type {
+				Text(type == .ep ? String(localized: "ep") : String(localized: "album"))
+					.font(DTFont.system(14, weight: .semibold))
+					.foregroundStyle(palette.secondary)
 			}
+
+			Text(album.title)
+				.font(DTFont.serif(31))
+				.foregroundStyle(palette.primary)
+
+			self.artistLink(album.artist, palette: palette)
+		}
+	}
+
+	@ViewBuilder
+	private func description(_ album: AlbumDetail, palette: CoverPalette) -> some View {
+		if let description = album.description, !description.isEmpty {
+			Text(description)
+				.font(DTFont.system(18))
+				.foregroundStyle(palette.secondary)
 		}
 	}
 
@@ -79,63 +88,37 @@ struct AlbumDetailView: View {
 	}
 
 	@ViewBuilder
-	private func trackList(_ album: AlbumDetail, reload: @escaping () async -> Void) -> some View {
+	private func trackList(_ album: AlbumDetail, palette: CoverPalette, reload: @escaping () async -> Void) -> some View {
 		VStack(spacing: 0) {
 			ForEach(Array(album.tracks.enumerated()), id: \.element.id) { index, track in
-				self.trackRow(track, album: album, reload: reload)
+				self.trackRow(track, album: album, palette: palette, reload: reload)
 
 				if index < album.tracks.count - 1 {
 					Divider()
-						.overlay(DTColor.borderSelect)
+						.overlay(palette.secondary.opacity(0.3))
 				}
 			}
 		}
-		.frame(maxWidth: .infinity)
 	}
 
 	@ViewBuilder
-	private func header(_ album: AlbumDetail) -> some View {
-		VStack(alignment: .leading, spacing: 10) {
-			DetailCover(url: album.coverArt.flatMap { URL(string: $0) })
-
-			HStack(spacing: 8) {
-				if let type = album.type {
-					Text(type == .ep ? String(localized: "ep") : String(localized: "album"))
-						.font(DTFont.system(14, weight: .semibold))
-						.foregroundStyle(DTColor.textPrimary.opacity(0.7))
-						.padding(.horizontal, 8)
-						.padding(.vertical, 3)
-						.background(DTColor.surfaceInput, in: Capsule())
-				}
-			}
-
-			Text(album.title)
-				.font(DTFont.serif(31))
-				.foregroundStyle(DTColor.textPrimary)
-
-			self.artistLink(album.artist)
-		}
-		.frame(maxWidth: .infinity, alignment: .leading)
-	}
-
-	@ViewBuilder
-	private func artistLink(_ artist: ArtistRef) -> some View {
+	private func artistLink(_ artist: ArtistRef, palette: CoverPalette) -> some View {
 		switch artist {
 			case .info(let info):
 				NavigationLink(value: Navigator.Paths.artist(id: info.musicbrainzId)) {
 					Text(info.name)
 						.font(DTFont.serif(20))
-						.foregroundStyle(DTColor.textPrimary.opacity(0.7))
+						.foregroundStyle(palette.primary)
 				}
 			case .name(let name):
 				Text(name)
 					.font(DTFont.serif(20))
-					.foregroundStyle(DTColor.textPrimary.opacity(0.7))
+					.foregroundStyle(palette.primary)
 		}
 	}
 
 	@ViewBuilder
-	private func trackRow(_ track: TrackInfo, album: AlbumDetail, reload: @escaping () async -> Void) -> some View {
+	private func trackRow(_ track: TrackInfo, album: AlbumDetail, palette: CoverPalette, reload: @escaping () async -> Void) -> some View {
 		TrackRow(
 			index: String(Int(track.trackNumber)),
 			title: track.title,
@@ -144,17 +127,20 @@ struct AlbumDetailView: View {
 			verticalPadding: 12,
 			onTap: track.mediaId != nil ? { self.play(track, album: album) } : nil
 		) {
-			if !track.released, let releaseDate = track.releaseDate {
-				// a track that's still unreleased on an album that is: no download, just when it lands
-				ReleaseCountdown(releaseDate: releaseDate, compact: true) {
-					Task { await reload() }
+			if !track.released {
+				if album.released, let releaseDate = track.releaseDate {
+					// a track that's still unreleased on an album that is: no download, just when it lands.
+					// On an unreleased album the album's own countdown already says it, so rows stay bare.
+					ReleaseCountdown(releaseDate: releaseDate, compact: true) {
+						Task { await reload() }
+					}
 				}
-			} else if !track.requested && !track.inLibrary && track.released {
+			} else if !track.requested && !track.inLibrary {
 				Button {
 					self.request(track: track, reload: reload)
 				} label: {
 					Image(systemName: "arrow.down.circle")
-						.foregroundStyle(DTColor.textPrimary.opacity(0.7))
+						.foregroundStyle(palette.primary)
 				}
 				.buttonStyle(.plain)
 				.disabled(NetworkMonitor.shared.isOffline)
@@ -172,7 +158,7 @@ struct AlbumDetailView: View {
 	}
 
 	@ViewBuilder
-	private func footer(_ album: AlbumDetail) -> some View {
+	private func footer(_ album: AlbumDetail, palette: CoverPalette) -> some View {
 		VStack(alignment: .leading, spacing: 4) {
 			if let releaseDate = album.releaseDate {
 				Text(releaseDate.formatted(date: .abbreviated, time: .omitted))
@@ -182,10 +168,11 @@ struct AlbumDetailView: View {
 			}
 			if let url = URL(string: "https://musicbrainz.org/release-group/\(album.id)") {
 				Link(String(localized: "view-on-musicbrainz"), destination: url)
+					.foregroundStyle(palette.primary)
 			}
 		}
 		.font(DTFont.system(16))
-		.foregroundStyle(DTColor.textPrimary.opacity(0.5))
+		.foregroundStyle(palette.secondary)
 	}
 
 	private func request(album: AlbumDetail, reload: @escaping () async -> Void) {
@@ -237,6 +224,6 @@ struct AlbumDetailView: View {
 			return info.asMediaRow(mediaId: id, album: album)
 		}
 		let media = track.asMediaRow(mediaId: mediaId, album: album)
-		PlayerEngine.shared.play(media, queue: queue, recordContext: RecordContext(type: .album, refId: album.id))
+		PlaybackSource.play(media, queue: queue, recordContext: RecordContext(type: .album, refId: album.id))
 	}
 }
