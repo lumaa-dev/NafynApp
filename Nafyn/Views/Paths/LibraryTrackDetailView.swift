@@ -13,9 +13,9 @@ struct LibraryTrackDetailView: View {
 	var body: some View {
 		AsyncContentView {
 			guard let server else { throw NafynError.unauthenticated }
-			return try await server.send(Library.track(id: self.trackId)) as MediaRow
-		} content: { track, _ in
-			LibraryTrackDetailContent(track: track)
+			return try await server.send(Library.track(id: self.trackId)) as LibraryTrackResponse
+		} content: { response, _ in
+			LibraryTrackDetailContent(response: response)
 		}
 		.navigationBarTitleDisplayMode(.inline)
 	}
@@ -24,23 +24,32 @@ struct LibraryTrackDetailView: View {
 private struct LibraryTrackDetailContent: View {
 	@Environment(\.server) private var server: NafynServer?
 	@Environment(\.dismiss) private var dismiss
+	@Environment(\.colorScheme) private var colorScheme
 
 	@State private var toast = ToastState()
 	@State private var showDeleteConfirm = false
 
-	let track: MediaRow
+	let response: LibraryTrackResponse
+
+	private var track: MediaRow { self.response.row }
 
 	var body: some View {
-		ScrollView {
-			VStack(alignment: .leading, spacing: 20) {
-				self.head
-				self.footer
+		let palette = CoverPalette(imageColors: self.response.imageColors, colorScheme: self.colorScheme)
+
+		CoverScrollView(palette: palette) {
+			VStack(alignment: .leading, spacing: 16) {
+				self.header(palette: palette)
+
+				VStack(alignment: .leading, spacing: 20) {
+					self.actions(palette: palette)
+					self.footer(palette: palette)
+				}
+				.padding(.horizontal)
+				.padding(.bottom)
 			}
-			.padding()
 		}
-		.scrollEdgeEffectStyle(.soft, for: .all)
-		.background(DTColor.background.ignoresSafeArea())
 		.toast(self.toast)
+		.scrollEdgeEffectHidden()
 		.toolbar {
 			ToolbarItem(placement: .primaryAction) {
 				Menu {
@@ -80,44 +89,46 @@ private struct LibraryTrackDetailContent: View {
 		}
 	}
 
-	@ViewBuilder
-	private var head: some View {
-		HStack(alignment: .top, spacing: 16) {
-			CoverImage(url: self.track.coverArt.flatMap { URL(string: $0) })
-				.frame(width: 130, height: 130)
+	private func header(palette: CoverPalette) -> some View {
+		CoverHeader(url: self.track.coverArt.flatMap { URL(string: $0) }, palette: palette) {
+			Text(self.track.title)
+				.font(DTFont.serif(31))
+				.foregroundStyle(palette.primary)
+				.lineLimit(2)
 
-			VStack(alignment: .leading, spacing: 6) {
-				Text(self.track.title)
-					.font(DTFont.serif(27))
-					.foregroundStyle(DTColor.textPrimary)
-					.lineLimit(2)
-
-				Text(self.track.artistName)
-					.font(DTFont.serifItalic(20))
-					.foregroundStyle(DTColor.textPrimary.opacity(0.75))
-
-				NavigationLink(value: Navigator.Paths.libraryAlbum(id: self.track.albumId)) {
-					Text(self.track.album ?? String(localized: "view-album"))
-				}
-				.font(DTFont.system(15))
-				.foregroundStyle(DTColor.textPrimary.opacity(0.5))
-
-				Button {
-					self.play()
-				} label: {
-					Label(String(localized: "play"), systemImage: "play.fill")
-				}
-				.buttonStyle(.filled())
-				.padding(.top, 6)
-			}
-
-			Spacer(minLength: 0)
+			Text(self.track.artistName)
+				.font(DTFont.serifItalic(20))
+				.foregroundStyle(palette.primary)
 		}
-		.frame(maxWidth: .infinity, alignment: .leading)
 	}
 
 	@ViewBuilder
-	private var footer: some View {
+	private func actions(palette: CoverPalette) -> some View {
+		Button {
+			self.play()
+		} label: {
+			Label(String(localized: "play"), systemImage: "play.fill")
+				.frame(maxWidth: .infinity)
+		}
+		.buttonStyle(.filled())
+
+		NavigationLink(value: Navigator.Paths.libraryAlbum(id: self.track.albumId)) {
+			HStack {
+				Text(self.track.album ?? String(localized: "view-album"))
+					.multilineTextAlignment(.leading)
+
+				Spacer(minLength: 0)
+
+				Image(systemName: "chevron.right")
+					.font(DTFont.system(14, weight: .semibold))
+			}
+			.font(DTFont.system(17))
+			.foregroundStyle(palette.primary)
+		}
+	}
+
+	@ViewBuilder
+	private func footer(palette: CoverPalette) -> some View {
 		HStack(spacing: 6) {
 			if self.track.duration > 0 {
 				Text(TrackRow<EmptyView>.formattedDuration(self.track.duration))
@@ -132,7 +143,7 @@ private struct LibraryTrackDetailContent: View {
 			}
 		}
 		.font(DTFont.system(16))
-		.foregroundStyle(DTColor.textPrimary.opacity(0.5))
+		.foregroundStyle(palette.secondary)
 	}
 
 	private func play() {

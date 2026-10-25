@@ -56,33 +56,57 @@ struct LibraryAlbumDetailView: View {
 }
 
 private struct LibraryAlbumDetailContent: View {
+	@Environment(\.colorScheme) private var colorScheme
+
 	@State private var toast = ToastState()
 
 	let response: LibraryAlbumResponse
 
 	var body: some View {
-		ScrollView {
+		let palette = CoverPalette(imageColors: self.response.album.imageColors, colorScheme: self.colorScheme)
+
+		CoverScrollView(palette: palette) {
 			VStack(alignment: .leading, spacing: 16) {
-				self.header
+				self.header(palette: palette)
 
-				VStack(spacing: 0) {
-					ForEach(Array(self.response.tracks.enumerated()), id: \.element.id) { index, track in
-						self.trackRow(track)
+				VStack(alignment: .leading, spacing: 16) {
+					HStack {
+						Button {
+							self.playAll(shuffle: false)
+						} label: {
+							Label(String(localized: "play"), systemImage: "play.fill")
+								.frame(maxWidth: .infinity)
+						}
+						.buttonStyle(.filled())
 
-						if index < self.response.tracks.count - 1 {
-							Divider()
-								.overlay(DTColor.borderSelect)
+						Button {
+							self.playAll(shuffle: true)
+						} label: {
+							Label(String(localized: "shuffle"), systemImage: "shuffle")
+								.frame(maxWidth: .infinity)
+						}
+						.buttonStyle(.hollow())
+					}
+
+					VStack(spacing: 0) {
+						ForEach(Array(self.response.tracks.enumerated()), id: \.element.id) { index, track in
+							self.trackRow(track)
+
+							if index < self.response.tracks.count - 1 {
+								Divider()
+									.overlay(palette.secondary.opacity(0.3))
+							}
 						}
 					}
-				}
 
-				self.footer
+					self.footer(palette: palette)
+				}
+				.padding(.horizontal)
+				.padding(.bottom)
 			}
-			.padding()
 		}
-		.scrollEdgeEffectStyle(.soft, for: .all)
-		.background(DTColor.background.ignoresSafeArea())
 		.toast(self.toast)
+		.scrollEdgeEffectHidden()
 		.toolbar {
 			ToolbarItem(placement: .primaryAction) {
 				Menu {
@@ -100,41 +124,16 @@ private struct LibraryAlbumDetailContent: View {
 		}
 	}
 
-	@ViewBuilder
-	private var header: some View {
-		VStack(alignment: .leading, spacing: 10) {
-			CoverImage(url: self.response.album.row.coverArt.flatMap { URL(string: $0) })
-				.frame(width: 200, height: 200)
-				.frame(maxWidth: .infinity)
-
+	private func header(palette: CoverPalette) -> some View {
+		CoverHeader(url: self.response.album.row.coverArt.flatMap { URL(string: $0) }, palette: palette) {
 			Text(self.response.album.row.title)
 				.font(DTFont.serif(31))
-				.foregroundStyle(DTColor.textPrimary)
+				.foregroundStyle(palette.primary)
 
 			Text(self.response.album.row.artistName)
 				.font(DTFont.serif(20))
-				.foregroundStyle(DTColor.textPrimary.opacity(0.7))
-
-			HStack {
-				Button {
-					self.playAll(shuffle: false)
-				} label: {
-					Label(String(localized: "play"), systemImage: "play.fill")
-						.frame(maxWidth: .infinity)
-				}
-				.buttonStyle(.filled())
-
-				Button {
-					self.playAll(shuffle: true)
-				} label: {
-					Label(String(localized: "shuffle"), systemImage: "shuffle")
-						.frame(maxWidth: .infinity)
-				}
-				.buttonStyle(.hollow())
-			}
-			.padding(.top, 4)
+				.foregroundStyle(palette.primary)
 		}
-		.frame(maxWidth: .infinity, alignment: .leading)
 	}
 
 	@ViewBuilder
@@ -173,7 +172,7 @@ private struct LibraryAlbumDetailContent: View {
 	}
 
 	@ViewBuilder
-	private var footer: some View {
+	private func footer(palette: CoverPalette) -> some View {
 		VStack(alignment: .leading, spacing: 4) {
 			if let releaseDate = self.response.album.row.releaseDateValue {
 				Text(releaseDate.formatted(date: .abbreviated, time: .omitted))
@@ -181,7 +180,7 @@ private struct LibraryAlbumDetailContent: View {
 			Text("\(self.response.album.row.trackCount) " + String(localized: "tracks"))
 		}
 		.font(DTFont.system(16))
-		.foregroundStyle(DTColor.textPrimary.opacity(0.5))
+		.foregroundStyle(palette.secondary)
 	}
 
 	private func play(_ track: MediaRow) {

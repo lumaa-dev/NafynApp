@@ -28,13 +28,9 @@ struct MusicCard: View {
 		VStack(alignment: .leading) {
 			Group {
 				if let url = self.entry.coverURL(server: self.server) {
-					AsyncImage(url: url) { image in
-						image
-							.resizable()
-							.aspectRatio(1.0, contentMode: .fill)
-					} placeholder: {
-						DTColor.surfaceSelect
-					}
+					// `CoverImage`, never a bare `AsyncImage`: `coverArt` is a relative server path that only the
+					// loader can resolve. The card's own clip shape below does the rounding.
+					CoverImage(url: url, cornerRadius: 0)
 				} else {
 					DTColor.surfaceSelect
 				}
@@ -62,13 +58,9 @@ struct MusicCard: View {
 		HStack {
 			Group {
 				if let url = self.entry.coverURL(server: self.server) {
-					AsyncImage(url: url) { image in
-						image
-							.resizable()
-							.aspectRatio(1.0, contentMode: .fill)
-					} placeholder: {
-						DTColor.surfaceSelect
-					}
+					// `CoverImage`, never a bare `AsyncImage`: `coverArt` is a relative server path that only the
+					// loader can resolve. The card's own clip shape below does the rounding.
+					CoverImage(url: url, cornerRadius: 0)
 				} else {
 					DTColor.surfaceSelect
 				}

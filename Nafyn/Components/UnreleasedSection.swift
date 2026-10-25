@@ -7,6 +7,7 @@ import Safyn
 /// "Expected …" when MusicBrainz only knows the month/year) and a Notify me / Following toggle.
 struct UnreleasedSection: View {
 	@Environment(\.server) private var server: NafynServer?
+	@Environment(\.coverPalette) private var palette
 
 	let mbid: String
 	let kind: ReleaseSubscriptionKind
@@ -49,22 +50,22 @@ struct UnreleasedSection: View {
 				VStack(alignment: .leading, spacing: 2) {
 					Text("out-in")
 						.font(DTFont.system(14, weight: .semibold))
-						.foregroundStyle(DTColor.textPrimary.opacity(0.5))
+						.foregroundStyle(self.palette?.secondary ?? DTColor.textPrimary.opacity(0.5))
 
 					ReleaseCountdown(releaseDate: releaseDate, onReleased: self.onReleased)
 						.font(DTFont.serif(22))
-						.foregroundStyle(DTColor.textPrimary)
+						.foregroundStyle(self.palette?.primary ?? DTColor.textPrimary)
 				}
 			} else {
 				// a partial date is padded to its first day server-side, so counting down to it would lie
 				Text("expected \(self.partialDateText(releaseDate))")
 					.font(DTFont.serif(22))
-					.foregroundStyle(DTColor.textPrimary)
+					.foregroundStyle(self.palette?.primary ?? DTColor.textPrimary)
 			}
 		} else {
 			Text("release-date-unknown")
 				.font(DTFont.system(16))
-				.foregroundStyle(DTColor.textPrimary.opacity(0.5))
+				.foregroundStyle(self.palette?.secondary ?? DTColor.textPrimary.opacity(0.5))
 		}
 	}
 

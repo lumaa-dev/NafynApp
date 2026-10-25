@@ -21,6 +21,13 @@ struct TrackRow<Trailing: View>: View {
 	var onTap: (() -> Void)? = nil
 	@ViewBuilder var trailing: () -> Trailing
 
+	@Environment(\.coverPalette) private var palette
+
+	/// Tappable text: the cover palette's primary on cover-themed screens, the design-system color elsewhere.
+	private var primaryText: Color { self.palette?.primary ?? DTColor.textPrimary }
+	/// Non-tappable text.
+	private var secondaryText: Color { self.palette?.secondary ?? DTColor.textPrimary.opacity(0.5) }
+
 	var body: some View {
 		HStack(spacing: 12) {
 			Button {
@@ -35,20 +42,21 @@ struct TrackRow<Trailing: View>: View {
 					if let index {
 						Text(index)
 							.font(DTFont.system(16))
-							.foregroundStyle(DTColor.textPrimary.opacity(0.5))
+							.foregroundStyle(self.secondaryText)
 							.frame(width: 24, alignment: .trailing)
 					}
 
 					VStack(alignment: .leading, spacing: 2) {
 						Text(self.title)
 							.font(DTFont.serif(19))
-							.foregroundStyle(DTColor.textPrimary.opacity(self.dimmed ? 0.4 : 1.0))
+							// main information stays at full strength on cover-themed screens: an unreleased row is told apart by its countdown
+							.foregroundStyle(self.primaryText.opacity(self.dimmed && self.palette == nil ? 0.4 : 1.0))
 							.lineLimit(1)
 
 						if let subtitle {
 							Text(subtitle)
 								.font(DTFont.serif(16))
-								.foregroundStyle(DTColor.textPrimary.opacity(0.5))
+								.foregroundStyle(self.secondaryText)
 								.lineLimit(1)
 						}
 					}
@@ -59,13 +67,13 @@ struct TrackRow<Trailing: View>: View {
 						if DisplayPreferences.shared.showFileSize, let fileSize {
 							Text(Self.formattedFileSize(fileSize))
 								.font(DTFont.system(10).monospacedDigit())
-								.foregroundStyle(DTColor.textPrimary.opacity(0.4))
+								.foregroundStyle(self.secondaryText)
 						}
 
 						if DisplayPreferences.shared.showDuration {
 							Text(Self.formattedDuration(self.duration))
 								.font(DTFont.system(12).monospacedDigit())
-								.foregroundStyle(DTColor.textPrimary.opacity(0.5))
+								.foregroundStyle(self.secondaryText)
 						}
 					}
 				}

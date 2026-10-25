@@ -6,6 +6,7 @@ import Safyn
 struct AlbumDetailView: View {
 	@Environment(\.server) private var server: NafynServer?
 	@Environment(\.zoomNamespace) private var zoomNamespace: Namespace.ID?
+	@Environment(\.colorScheme) private var colorScheme
 
 	@State private var toast = ToastState()
 	@State private var isRequesting = false
@@ -17,100 +18,93 @@ struct AlbumDetailView: View {
 			guard let server else { throw NafynError.unauthenticated }
 			return try await server.fetchAlbumDetail(aid: self.albumId)
 		} content: { album, reload in
-			ScrollView {
+			let palette = CoverPalette(imageColors: album.imageColors, colorScheme: self.colorScheme)
+
+			CoverScrollView(palette: palette) {
 				VStack(alignment: .leading, spacing: 16) {
-					self.header(album)
+					self.header(album, palette: palette)
 
-					if let description = album.description, !description.isEmpty {
-						Text(description)
-							.font(DTFont.system(18))
-							.foregroundStyle(DTColor.textPrimary.opacity(0.8))
-					}
+					VStack(alignment: .leading, spacing: 16) {
+						if let description = album.description, !description.isEmpty {
+							Text(description)
+								.font(DTFont.system(18))
+								.foregroundStyle(palette.secondary)
+						}
 
-					if album.released {
-						if !album.inLibrary {
-							Button {
-								self.request(album: album, reload: reload)
-							} label: {
-								Text("request")
-									.frame(maxWidth: .infinity)
+						if album.released {
+							if !album.inLibrary {
+								Button {
+									self.request(album: album, reload: reload)
+								} label: {
+									Text("request")
+										.frame(maxWidth: .infinity)
+								}
+								.buttonStyle(.filled())
+								.disabled(self.isRequesting || album.requested || NetworkMonitor.shared.isOffline)
 							}
-							.buttonStyle(.filled())
-							.disabled(self.isRequesting || album.requested || NetworkMonitor.shared.isOffline)
-						}
-					} else {
-						UnreleasedSection(mbid: album.id, kind: .album, releaseDate: album.releaseDate, precision: album.releaseDatePrecision, subscribed: album.subscribed, toast: self.toast) {
-							Task { await reload() }
-						}
-					}
-
-					VStack(spacing: 0) {
-						ForEach(Array(album.tracks.enumerated()), id: \.element.id) { index, track in
-							self.trackRow(track, album: album, reload: reload)
-
-							if index < album.tracks.count - 1 {
-								Divider()
-									.overlay(DTColor.borderSelect)
+						} else {
+							UnreleasedSection(mbid: album.id, kind: .album, releaseDate: album.releaseDate, precision: album.releaseDatePrecision, subscribed: album.subscribed, toast: self.toast) {
+								Task { await reload() }
 							}
 						}
-					}
 
-					self.footer(album)
+						VStack(spacing: 0) {
+							ForEach(Array(album.tracks.enumerated()), id: \.element.id) { index, track in
+								self.trackRow(track, album: album, palette: palette, reload: reload)
+
+								if index < album.tracks.count - 1 {
+									Divider()
+										.overlay(palette.secondary.opacity(0.3))
+								}
+							}
+						}
+
+						self.footer(album, palette: palette)
+					}
+					.padding(.horizontal)
+					.padding(.bottom)
 				}
-				.padding()
 			}
-			.scrollEdgeEffectStyle(.soft, for: .all)
-			.background(DTColor.background.ignoresSafeArea())
+			.scrollEdgeEffectHidden()
 			.toast(self.toast)
 		}
 		.navigationBarTitleDisplayMode(.inline)
 	}
 
-	@ViewBuilder
-	private func header(_ album: AlbumDetail) -> some View {
-		VStack(alignment: .leading, spacing: 10) {
-			CoverImage(url: album.coverArt.flatMap { URL(string: $0) })
-				.frame(width: 200, height: 200)
-				.frame(maxWidth: .infinity)
-
-			HStack(spacing: 8) {
-				if let type = album.type {
-					Text(type == .ep ? String(localized: "ep") : String(localized: "album"))
-						.font(DTFont.system(14, weight: .semibold))
-						.foregroundStyle(DTColor.textPrimary.opacity(0.7))
-						.padding(.horizontal, 8)
-						.padding(.vertical, 3)
-						.background(DTColor.surfaceInput, in: Capsule())
-				}
+	private func header(_ album: AlbumDetail, palette: CoverPalette) -> some View {
+		CoverHeader(url: album.coverArt.flatMap { URL(string: $0) }, palette: palette) {
+			if let type = album.type {
+				Text(type == .ep ? String(localized: "ep") : String(localized: "album"))
+					.font(DTFont.system(14, weight: .semibold))
+					.foregroundStyle(palette.secondary)
 			}
 
 			Text(album.title)
 				.font(DTFont.serif(31))
-				.foregroundStyle(DTColor.textPrimary)
+				.foregroundStyle(palette.primary)
 
-			self.artistLink(album.artist)
+			self.artistLink(album.artist, palette: palette)
 		}
-		.frame(maxWidth: .infinity, alignment: .leading)
 	}
 
 	@ViewBuilder
-	private func artistLink(_ artist: ArtistRef) -> some View {
+	private func artistLink(_ artist: ArtistRef, palette: CoverPalette) -> some View {
 		switch artist {
 			case .info(let info):
 				NavigationLink(value: Navigator.Paths.artist(id: info.musicbrainzId)) {
 					Text(info.name)
 						.font(DTFont.serif(20))
-						.foregroundStyle(DTColor.textPrimary.opacity(0.7))
+						.foregroundStyle(palette.primary)
 				}
 			case .name(let name):
 				Text(name)
 					.font(DTFont.serif(20))
-					.foregroundStyle(DTColor.textPrimary.opacity(0.7))
+					.foregroundStyle(palette.primary)
 		}
 	}
 
 	@ViewBuilder
-	private func trackRow(_ track: TrackInfo, album: AlbumDetail, reload: @escaping () async -> Void) -> some View {
+	private func trackRow(_ track: TrackInfo, album: AlbumDetail, palette: CoverPalette, reload: @escaping () async -> Void) -> some View {
 		TrackRow(
 			index: String(Int(track.trackNumber)),
 			title: track.title,
@@ -132,7 +126,7 @@ struct AlbumDetailView: View {
 					self.request(track: track, reload: reload)
 				} label: {
 					Image(systemName: "arrow.down.circle")
-						.foregroundStyle(DTColor.textPrimary.opacity(0.7))
+						.foregroundStyle(palette.primary)
 				}
 				.buttonStyle(.plain)
 				.disabled(NetworkMonitor.shared.isOffline)
@@ -150,7 +144,7 @@ struct AlbumDetailView: View {
 	}
 
 	@ViewBuilder
-	private func footer(_ album: AlbumDetail) -> some View {
+	private func footer(_ album: AlbumDetail, palette: CoverPalette) -> some View {
 		VStack(alignment: .leading, spacing: 4) {
 			if let releaseDate = album.releaseDate {
 				Text(releaseDate.formatted(date: .abbreviated, time: .omitted))
@@ -160,10 +154,11 @@ struct AlbumDetailView: View {
 			}
 			if let url = URL(string: "https://musicbrainz.org/release-group/\(album.id)") {
 				Link(String(localized: "view-on-musicbrainz"), destination: url)
+					.foregroundStyle(palette.primary)
 			}
 		}
 		.font(DTFont.system(16))
-		.foregroundStyle(DTColor.textPrimary.opacity(0.5))
+		.foregroundStyle(palette.secondary)
 	}
 
 	private func request(album: AlbumDetail, reload: @escaping () async -> Void) {

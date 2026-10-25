@@ -6,6 +6,8 @@ import Safyn
 struct TrackDetailView: View {
 	@Environment(\.server) private var server: NafynServer?
 
+	@Environment(\.colorScheme) private var colorScheme
+
 	@State private var toast = ToastState()
 	@State private var isRequesting = false
 
@@ -16,87 +18,95 @@ struct TrackDetailView: View {
 			guard let server else { throw NafynError.unauthenticated }
 			return try await server.fetchTrackRelease(tid: self.trackId)
 		} content: { track, reload in
-			ScrollView {
-				VStack(alignment: .leading, spacing: 20) {
-					self.head(track, reload: reload)
-					self.footer(track.detail)
+			let palette = CoverPalette(imageColors: track.detail.info.imageColors, colorScheme: self.colorScheme)
+
+			CoverScrollView(palette: palette) {
+				VStack(alignment: .leading, spacing: 16) {
+					self.header(track.detail, palette: palette)
+
+					VStack(alignment: .leading, spacing: 20) {
+						self.actions(track, palette: palette, reload: reload)
+						self.footer(track.detail, palette: palette)
+					}
+					.padding(.horizontal)
+					.padding(.bottom)
 				}
-				.padding()
 			}
-			.scrollEdgeEffectStyle(.soft, for: .all)
-			.background(DTColor.background.ignoresSafeArea())
+			.scrollEdgeEffectHidden()
 			.toast(self.toast)
 		}
 		.navigationBarTitleDisplayMode(.inline)
 	}
 
-	@ViewBuilder
-	private func head(_ release: TrackRelease, reload: @escaping () async -> Void) -> some View {
-		let track = release.detail
-		HStack(alignment: .top, spacing: 16) {
-			CoverImage(url: track.info.coverArt.flatMap { URL(string: $0) })
-				.frame(width: 130, height: 130)
+	private func header(_ track: TrackDetail, palette: CoverPalette) -> some View {
+		CoverHeader(url: track.info.coverArt.flatMap { URL(string: $0) }, palette: palette) {
+			Text(track.info.title)
+				.font(DTFont.serif(31))
+				.foregroundStyle(palette.primary)
+				.lineLimit(2)
 
-			VStack(alignment: .leading, spacing: 6) {
-				Text(track.info.title)
-					.font(DTFont.serif(27))
-					.foregroundStyle(DTColor.textPrimary)
-					.lineLimit(2)
-
-				self.artistLink(track.info.artist)
-
-				if let albumMbid = track.albumMbid {
-					NavigationLink(value: Navigator.Paths.album(id: albumMbid)) {
-						if let albumTitle = track.info.album?.title {
-							Text(albumTitle)
-						} else {
-							Text("view-album")
-						}
-					}
-					.font(DTFont.system(15))
-					.foregroundStyle(DTColor.textPrimary.opacity(0.5))
-				}
-
-				if !release.released {
-					UnreleasedSection(mbid: track.info.id, kind: .track, releaseDate: track.info.releaseDate, precision: release.precision, subscribed: release.subscribed, toast: self.toast) {
-						Task { await reload() }
-					}
-					.padding(.top, 6)
-				} else if track.info.inLibrary != true {
-					Button {
-						self.request(track: track, reload: reload)
-					} label: {
-						Text("request")
-					}
-					.buttonStyle(.filled())
-					.disabled(self.isRequesting || track.requested == true || NetworkMonitor.shared.isOffline)
-					.padding(.top, 6)
-				}
-			}
-
-			Spacer(minLength: 0)
+			self.artistLink(track.info.artist, palette: palette)
 		}
-		.frame(maxWidth: .infinity, alignment: .leading)
 	}
 
 	@ViewBuilder
-	private func artistLink(_ artist: ArtistRef) -> some View {
+	private func actions(_ release: TrackRelease, palette: CoverPalette, reload: @escaping () async -> Void) -> some View {
+		let track = release.detail
+
+		if let albumMbid = track.albumMbid {
+			NavigationLink(value: Navigator.Paths.album(id: albumMbid)) {
+				HStack {
+					if let albumTitle = track.info.album?.title {
+						Text(albumTitle)
+							.multilineTextAlignment(.leading)
+					} else {
+						Text("view-album")
+					}
+
+					Spacer(minLength: 0)
+
+					Image(systemName: "chevron.right")
+						.font(DTFont.system(14, weight: .semibold))
+				}
+				.font(DTFont.system(17))
+				.foregroundStyle(palette.primary)
+			}
+		}
+
+		if !release.released {
+			UnreleasedSection(mbid: track.info.id, kind: .track, releaseDate: track.info.releaseDate, precision: release.precision, subscribed: release.subscribed, toast: self.toast) {
+				Task { await reload() }
+			}
+		} else if track.info.inLibrary != true {
+			Button {
+				self.request(track: track, reload: reload)
+			} label: {
+				Text("request")
+					.frame(maxWidth: .infinity)
+			}
+			.buttonStyle(.filled())
+			.disabled(self.isRequesting || track.requested == true || NetworkMonitor.shared.isOffline)
+		}
+	}
+
+	@ViewBuilder
+	private func artistLink(_ artist: ArtistRef, palette: CoverPalette) -> some View {
 		switch artist {
 			case .info(let info):
 				NavigationLink(value: Navigator.Paths.artist(id: info.musicbrainzId)) {
 					Text(info.name)
 						.font(DTFont.serifItalic(20))
-						.foregroundStyle(DTColor.textPrimary.opacity(0.75))
+						.foregroundStyle(palette.primary)
 				}
 			case .name(let name):
 				Text(name)
 					.font(DTFont.serifItalic(20))
-					.foregroundStyle(DTColor.textPrimary.opacity(0.75))
+					.foregroundStyle(palette.primary)
 		}
 	}
 
 	@ViewBuilder
-	private func footer(_ track: TrackDetail) -> some View {
+	private func footer(_ track: TrackDetail, palette: CoverPalette) -> some View {
 		HStack(spacing: 6) {
 			if track.info.duration > 0 {
 				Text(TrackRow<EmptyView>.formattedDuration(track.info.duration))
@@ -112,10 +122,11 @@ struct TrackDetailView: View {
 			Text("·")
 			if let url = URL(string: "https://musicbrainz.org/recording/\(track.info.id)") {
 				Link(String(localized: "view-on-musicbrainz"), destination: url)
+					.foregroundStyle(palette.primary)
 			}
 		}
 		.font(DTFont.system(16))
-		.foregroundStyle(DTColor.textPrimary.opacity(0.5))
+		.foregroundStyle(palette.secondary)
 	}
 
 	private func request(track: TrackDetail, reload: @escaping () async -> Void) {
