@@ -145,13 +145,22 @@ private struct ContentMarginsModifier: ViewModifier {
 
 /// Two related panes — a primary and a secondary — laid out by the fold-aware `ArrangementView` on
 /// iOS 27.1+: side by side when the window is wider than tall, stacked when taller than wide, and respaced
-/// around the fold on an iPhone Duo that is partly open. Below iOS 27.1 there is no fold, so it falls back
-/// to a plain `HStack`.
+/// around the fold on an iPhone Duo that is partly open.
+///
+/// `ArrangementView` treats a short, unfolded window like a closed Duo held sideways and shows only the
+/// primary pane. So an iPhone held sideways (compact vertical size class, no fold) and any device below
+/// iOS 27.1 get a plain `HStack` instead, where both panes always show, side by side.
 ///
 /// Must not be placed inside a `ScrollView`, `List`, grid or `NavigationSplitView`, and must not contain a
 /// navigation container: give each pane its own scroll view (see ``PaneScroll``).
 struct SplitPanes<Primary: View, Secondary: View>: View {
-	/// Width the primary pane is capped at in the pre-27.1 `HStack`. `ArrangementView` sizes it itself.
+	@Environment(\.verticalSizeClass) private var verticalSizeClass
+
+	/// Whether the device is partly folded: a `division` reserved region (the fold) is active over this view.
+	@State private var isFolded = false
+
+	/// Width the primary pane is capped at in the `HStack`. `ArrangementView` sizes it itself; without a cap
+	/// the `HStack` gives both panes half the width.
 	let fallbackPrimaryWidth: CGFloat?
 	let primary: Primary
 	let secondary: Secondary
@@ -162,21 +171,37 @@ struct SplitPanes<Primary: View, Secondary: View>: View {
 		self.secondary = secondary()
 	}
 
-	var body: some View {
-		if #available(iOS 27.1, *) {
-			ArrangementView {
-				self.primary
-			} secondary: {
-				self.secondary
-			}
-			.arrangementViewStyle(.split)
-		} else {
-			HStack(alignment: .top, spacing: 32) {
-				self.primary
-					.frame(maxWidth: self.fallbackPrimaryWidth)
+	/// The fold needs `ArrangementView`; so does any window tall enough for it to place both panes.
+	private var usesArrangement: Bool {
+		self.isFolded || self.verticalSizeClass != .compact
+	}
 
-				self.secondary
+	var body: some View {
+		Group {
+			if #available(iOS 27.1, *), self.usesArrangement {
+				ArrangementView {
+					self.primary
+				} secondary: {
+					self.secondary
+				}
+				.arrangementViewStyle(.split)
+			} else {
+				HStack(alignment: .top, spacing: 32) {
+					self.primary
+						.frame(maxWidth: self.fallbackPrimaryWidth ?? .infinity, maxHeight: .infinity)
+
+					self.secondary
+						.frame(maxWidth: .infinity, maxHeight: .infinity)
+				}
 			}
+		}
+		.onGeometryChange(for: Bool.self) { proxy in
+			if #available(iOS 27.1, *) {
+				return !proxy.reservedRegions(kind: .division).isEmpty
+			}
+			return false
+		} action: { newValue in
+			self.isFolded = newValue
 		}
 	}
 }
