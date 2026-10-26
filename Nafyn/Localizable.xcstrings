@@ -1362,6 +1362,22 @@
         }
       }
     },
+    "disc-number" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disc %lld"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disque %lld"
+          }
+        }
+      }
+    },
     "discography" : {
       "localizations" : {
         "en" : {

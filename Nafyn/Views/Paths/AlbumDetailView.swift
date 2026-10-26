@@ -89,15 +89,39 @@ struct AlbumDetailView: View {
 
 	@ViewBuilder
 	private func trackList(_ album: AlbumDetail, palette: CoverPalette, reload: @escaping () async -> Void) -> some View {
-		VStack(spacing: 0) {
-			ForEach(Array(album.tracks.enumerated()), id: \.element.id) { index, track in
-				self.trackRow(track, album: album, palette: palette, reload: reload)
+		let groups = Self.discGroups(of: album)
 
-				if index < album.tracks.count - 1 {
-					Divider()
-						.overlay(palette.secondary.opacity(0.3))
+		VStack(spacing: 0) {
+			ForEach(groups, id: \.number) { group in
+				// disc headers only when the album actually spans several discs
+				if groups.count > 1 {
+					DiscHeader(number: group.number, title: group.title, isFirst: group.number == groups.first?.number, palette: palette)
+				}
+
+				ForEach(Array(group.tracks.enumerated()), id: \.element.id) { index, track in
+					self.trackRow(track, album: album, palette: palette, reload: reload)
+
+					if index < group.tracks.count - 1 {
+						Divider()
+							.overlay(palette.secondary.opacity(0.3))
+					}
 				}
 			}
+		}
+	}
+
+	/// One disc's tracks, in the server's order, with the disc's own title when it has one.
+	private struct DiscGroup {
+		let number: Double
+		let title: String?
+		let tracks: [TrackInfo]
+	}
+
+	private static func discGroups(of album: AlbumDetail) -> [DiscGroup] {
+		let byDisc = Dictionary(grouping: album.tracks, by: \.discNumber)
+		return byDisc.keys.sorted().map { number in
+			let title = album.discs.first { $0.number == number }?.title
+			return DiscGroup(number: number, title: title?.isEmpty == false ? title : nil, tracks: byDisc[number] ?? [])
 		}
 	}
 

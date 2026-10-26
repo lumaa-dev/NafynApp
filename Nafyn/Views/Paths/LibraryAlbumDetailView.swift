@@ -134,15 +134,33 @@ private struct LibraryAlbumDetailContent: View {
 
 	@ViewBuilder
 	private func trackList(palette: CoverPalette) -> some View {
-		VStack(spacing: 0) {
-			ForEach(Array(self.response.tracks.enumerated()), id: \.element.id) { index, track in
-				self.trackRow(track)
+		let groups = self.discGroups
 
-				if index < self.response.tracks.count - 1 {
-					Divider()
-						.overlay(palette.secondary.opacity(0.3))
+		VStack(spacing: 0) {
+			ForEach(groups, id: \.number) { group in
+				// disc headers only when the album actually spans several discs
+				if groups.count > 1 {
+					DiscHeader(number: group.number, title: group.title, isFirst: group.number == groups.first?.number, palette: palette)
+				}
+
+				ForEach(Array(group.tracks.enumerated()), id: \.element.id) { index, track in
+					self.trackRow(track)
+
+					if index < group.tracks.count - 1 {
+						Divider()
+							.overlay(palette.secondary.opacity(0.3))
+					}
 				}
 			}
+		}
+	}
+
+	/// The owned tracks per disc, in the server's order; a track without a disc number sits on disc 1.
+	private var discGroups: [(number: Double, title: String?, tracks: [MediaRow])] {
+		let byDisc = Dictionary(grouping: self.response.tracks, by: { $0.discNumber ?? 1 })
+		return byDisc.keys.sorted().map { number in
+			let title = self.response.discs?.first { $0.number == number }?.title
+			return (number, title?.isEmpty == false ? title : nil, byDisc[number] ?? [])
 		}
 	}
 
