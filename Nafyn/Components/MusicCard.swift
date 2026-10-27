@@ -15,28 +15,30 @@ struct MusicCard: View {
 	}
 
 	var body: some View {
-		switch self.type {
-			case .highlight:
-				self.highlight()
-			case .row:
-				self.row()
+		Group {
+			switch self.type {
+				case .highlight:
+					self.highlight()
+				case .row:
+					self.row()
+			}
 		}
+		// pointer lift on iPad (and the Duo with a mouse); no effect with touch alone
+		.contentShape(.hoverEffect, RoundedRectangle(cornerRadius: 10.0))
+		.hoverEffect()
 	}
 
+	/// Fills the width its container proposes (an adaptive grid cell, see ``GridItem/musicCard``) with a
+	/// square cover, instead of a fixed 170pt box that left gaps in wider windows.
 	@ContentBuilder
-	func highlight(width: CGFloat = 170.0) -> some View {
+	func highlight() -> some View {
 		VStack(alignment: .leading) {
-			Group {
-				if let url = self.entry.coverURL(server: self.server) {
-					// `CoverImage`, never a bare `AsyncImage`: `coverArt` is a relative server path that only the
-					// loader can resolve. The card's own clip shape below does the rounding.
-					CoverImage(url: url, cornerRadius: 0)
-				} else {
-					DTColor.surfaceSelect
+			Color.clear
+				.aspectRatio(1.0, contentMode: .fit)
+				.overlay {
+					CoverImage(url: self.entry.coverURL(server: self.server), cornerRadius: 0)
 				}
-			}
-			.frame(width: width, height: width)
-			.clipShape(self.entry.isArtist ? AnyShape(Circle()) : AnyShape(RoundedRectangle(cornerRadius: 10.0)))
+				.clipShape(self.entry.isArtist ? AnyShape(Circle()) : AnyShape(RoundedRectangle(cornerRadius: 10.0)))
 
 			Text(self.entry.title)
 				.font(DTFont.serif(18))
@@ -50,20 +52,14 @@ struct MusicCard: View {
 					.lineLimit(1)
 			}
 		}
-		.frame(width: width, alignment: .topLeading)
+		.frame(maxWidth: .infinity, alignment: .topLeading)
 	}
 
 	@ContentBuilder
 	func row() -> some View {
 		HStack {
 			Group {
-				if let url = self.entry.coverURL(server: self.server) {
-					// `CoverImage`, never a bare `AsyncImage`: `coverArt` is a relative server path that only the
-					// loader can resolve. The card's own clip shape below does the rounding.
-					CoverImage(url: url, cornerRadius: 0)
-				} else {
-					DTColor.surfaceSelect
-				}
+				CoverImage(url: self.entry.coverURL(server: self.server), cornerRadius: 0)
 			}
 			.frame(width: 60, height: 60)
 			.clipShape(self.entry.isArtist ? AnyShape(Circle()) : AnyShape(RoundedRectangle(cornerRadius: 10.0)))

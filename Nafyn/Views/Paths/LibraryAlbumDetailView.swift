@@ -65,48 +65,21 @@ private struct LibraryAlbumDetailContent: View {
 	var body: some View {
 		let palette = CoverPalette(imageColors: self.response.album.imageColors, colorScheme: self.colorScheme)
 
-		CoverScrollView(palette: palette) {
-			VStack(alignment: .leading, spacing: 16) {
-				self.header(palette: palette)
-
-				VStack(alignment: .leading, spacing: 16) {
-					HStack {
-						Button {
-							self.playAll(shuffle: false)
-						} label: {
-							Label(String(localized: "play"), systemImage: "play.fill")
-								.frame(maxWidth: .infinity)
-						}
-						.buttonStyle(.filled())
-
-						Button {
-							self.playAll(shuffle: true)
-						} label: {
-							Label(String(localized: "shuffle"), systemImage: "shuffle")
-								.frame(maxWidth: .infinity)
-						}
-						.buttonStyle(.hollow())
-					}
-
-					VStack(spacing: 0) {
-						ForEach(Array(self.response.tracks.enumerated()), id: \.element.id) { index, track in
-							self.trackRow(track)
-
-							if index < self.response.tracks.count - 1 {
-								Divider()
-									.overlay(palette.secondary.opacity(0.3))
-							}
-						}
-					}
-
-					self.footer(palette: palette)
-				}
-				.padding(.horizontal)
-				.padding(.bottom)
-			}
+		// Regular width (Duo inner display, iPad) or a phone held sideways: cover and details in one pane,
+		// Play/Shuffle and the track list in the other.
+		AdaptiveCoverDetail(palette: palette) {
+			self.header(palette: palette)
+		} compact: {
+			self.actions
+			self.trackList(palette: palette)
+			self.footer(palette: palette)
+		} primary: {
+			self.footer(palette: palette)
+		} secondary: {
+			self.actions
+			self.trackList(palette: palette)
 		}
 		.toast(self.toast)
-		.scrollEdgeEffectHidden()
 		.toolbar {
 			ToolbarItem(placement: .primaryAction) {
 				Menu {
@@ -117,7 +90,8 @@ private struct LibraryAlbumDetailContent: View {
 					}
 					.disabled(NetworkMonitor.shared.isOffline)
 				} label: {
-					Image(systemName: "ellipsis")
+					Label(String(localized: "more"), systemImage: "ellipsis")
+						.labelStyle(.iconOnly)
 				}
 				.tint(Color.primary)
 			}
@@ -125,7 +99,7 @@ private struct LibraryAlbumDetailContent: View {
 	}
 
 	private func header(palette: CoverPalette) -> some View {
-		CoverHeader(url: self.response.album.row.coverArt.flatMap { URL(string: $0) }, palette: palette) {
+		CoverHeader(url: self.response.album.row.coverArt?.coverArtURL(size: 1000), palette: palette) {
 			Text(self.response.album.row.title)
 				.font(DTFont.serif(31))
 				.foregroundStyle(palette.primary)
@@ -133,6 +107,60 @@ private struct LibraryAlbumDetailContent: View {
 			Text(self.response.album.row.artistName)
 				.font(DTFont.serif(20))
 				.foregroundStyle(palette.primary)
+		}
+	}
+
+	/// Play and shuffle the whole album.
+	@ViewBuilder
+	private var actions: some View {
+		HStack {
+			Button {
+				self.playAll(shuffle: false)
+			} label: {
+				Label(String(localized: "play"), systemImage: "play.fill")
+					.frame(maxWidth: .infinity)
+			}
+			.buttonStyle(.filled())
+
+			Button {
+				self.playAll(shuffle: true)
+			} label: {
+				Label(String(localized: "shuffle"), systemImage: "shuffle")
+					.frame(maxWidth: .infinity)
+			}
+			.buttonStyle(.hollow())
+		}
+	}
+
+	@ViewBuilder
+	private func trackList(palette: CoverPalette) -> some View {
+		let groups = self.discGroups
+
+		VStack(spacing: 0) {
+			ForEach(groups, id: \.number) { group in
+				// disc headers only when the album actually spans several discs
+				if groups.count > 1 {
+					DiscHeader(number: group.number, title: group.title, isFirst: group.number == groups.first?.number, palette: palette)
+				}
+
+				ForEach(Array(group.tracks.enumerated()), id: \.element.id) { index, track in
+					self.trackRow(track)
+
+					if index < group.tracks.count - 1 {
+						Divider()
+							.overlay(palette.secondary.opacity(0.3))
+					}
+				}
+			}
+		}
+	}
+
+	/// The owned tracks per disc, in the server's order; a track without a disc number sits on disc 1.
+	private var discGroups: [(number: Double, title: String?, tracks: [MediaRow])] {
+		let byDisc = Dictionary(grouping: self.response.tracks, by: { $0.discNumber ?? 1 })
+		return byDisc.keys.sorted().map { number in
+			let title = self.response.discs?.first { $0.number == number }?.title
+			return (number, title?.isEmpty == false ? title : nil, byDisc[number] ?? [])
 		}
 	}
 

@@ -7,6 +7,7 @@ import UnionToast
 
 struct OnboardingView: View {
 	@Environment(\.modelContext) private var modelContext: ModelContext
+	@Environment(\.verticalSizeClass) private var verticalSizeClass
 	@Query private var existingAuths: [AuthInfo]
 
 	@Binding var onboarding: OnboardingView.OnboardingSteps
@@ -43,53 +44,69 @@ struct OnboardingView: View {
 			DTColor.background
 				.ignoresSafeArea()
 
-			VStack {
-				Spacer()
-
-				VStack(alignment: .leading, spacing: 24.0) {
-					VStack(alignment: .leading, spacing: 6.0) {
-						onboarding.badge
-
-						Text(onboarding.title)
-							.font(DTFont.serif(31))
-							.foregroundStyle(DTColor.textPrimary)
-							.lineLimit(1)
-							.contentTransition(.numericText(countsDown: true))
-							.multilineTextAlignment(.leading)
-
-						Text(onboarding.description)
-							.font(DTFont.system(18))
-							.foregroundStyle(DTColor.textPrimary)
-							.multilineTextAlignment(.leading)
-					}
-
-					self.stepView
+			// a short window (an iPhone held sideways) scrolls instead of clipping the card and button; keyed
+			// on the size class so the keyboard appearing never swaps the tree and drops the text field's focus
+			if self.verticalSizeClass == .compact {
+				ScrollView {
+					self.content
+						.padding(.vertical)
 				}
-				.padding(18.0)
-				.background(DTColor.surfaceSelect, in: RoundedRectangle(cornerRadius: DTRadius.textArea, style: .continuous))
-				.overlay(RoundedRectangle(cornerRadius: DTRadius.textArea, style: .continuous).strokeBorder(DTColor.borderSelect, lineWidth: 1))
-
-				Spacer()
-
-				Button {
-					self.nextStep()
-				} label: {
-					HStack(alignment: .center, spacing: 10) {
-						Text("onboarding.next")
-						Image(systemName: "arrow.forward")
-					}
-					.frame(maxWidth: .infinity, minHeight: 20)
-				}
-				.disabled(self.onboardingBusy || !self.isStepCompleted)
-				.buttonStyle(.filled())
-				.padding(.bottom)
+				.scrollDismissesKeyboard(.interactively)
+			} else {
+				self.content
 			}
-			.padding(.horizontal)
 		}
 		.toast(isPresented: $showError) {
 			Label(self.errorMessage, systemImage: "xmark.seal")
 				.foregroundStyle(DTColor.textPrimary)
 		}
+	}
+
+	@ViewBuilder
+	private var content: some View {
+		VStack {
+			Spacer()
+
+			VStack(alignment: .leading, spacing: 24.0) {
+				VStack(alignment: .leading, spacing: 6.0) {
+					onboarding.badge
+
+					Text(onboarding.title)
+						.font(DTFont.serif(31))
+						.foregroundStyle(DTColor.textPrimary)
+						.lineLimit(1)
+						.contentTransition(.numericText(countsDown: true))
+						.multilineTextAlignment(.leading)
+
+					Text(onboarding.description)
+						.font(DTFont.system(18))
+						.foregroundStyle(DTColor.textPrimary)
+						.multilineTextAlignment(.leading)
+				}
+
+				self.stepView
+			}
+			.padding(18.0)
+			.background(DTColor.surfaceSelect, in: RoundedRectangle(cornerRadius: DTRadius.textArea, style: .continuous))
+			.overlay(RoundedRectangle(cornerRadius: DTRadius.textArea, style: .continuous).strokeBorder(DTColor.borderSelect, lineWidth: 1))
+
+			Spacer()
+
+			Button {
+				self.nextStep()
+			} label: {
+				HStack(alignment: .center, spacing: 10) {
+					Text("onboarding.next")
+					Image(systemName: "arrow.forward")
+				}
+				.frame(maxWidth: .infinity, minHeight: 20)
+			}
+			.disabled(self.onboardingBusy || !self.isStepCompleted)
+			.buttonStyle(.filled())
+			.padding(.bottom)
+		}
+		.padding(.horizontal)
+		.frame(maxWidth: DTLayout.panelWidth)
 	}
 
 	@ViewBuilder

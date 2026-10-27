@@ -18,8 +18,9 @@ private struct CornerClip: ViewModifier {
 
 /// The `AsyncImage` + placeholder pattern shared by `MusicCard` and every detail/player screen.
 ///
-/// Cover Art Archive URLs are fetched through the server's cover cache (`CoverArtLoader`); every other URL
-/// (uploaded covers, playlist images, avatars, artist photos) goes straight through `AsyncImage`.
+/// Server cover paths (`/api/v1/art/...`, relative) are fetched through `CoverArtLoader`, which prepends the
+/// session's server URL and sends its auth; every other URL (uploaded covers, playlist images, avatars,
+/// artist photos) goes straight through `AsyncImage`.
 struct CoverImage: View {
 	var url: URL?
 	var cornerRadius: CGFloat = 10.0
@@ -31,7 +32,7 @@ struct CoverImage: View {
 		Group {
 			if let url {
 				if CoverArtLoader.shared.isConfigured, CoverArtReference(url: url) != nil {
-					self.archived(url)
+					self.served(url)
 				} else {
 					AsyncImage(url: url) { image in
 						image
@@ -49,7 +50,7 @@ struct CoverImage: View {
 	}
 
 	@ViewBuilder
-	private func archived(_ url: URL) -> some View {
+	private func served(_ url: URL) -> some View {
 		// The synchronous cache hit keeps an already-loaded cover from flashing its placeholder.
 		let image = CoverArtLoader.shared.cachedImage(for: url) ?? (self.loaded?.url == url ? self.loaded?.image : nil)
 

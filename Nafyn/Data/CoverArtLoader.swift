@@ -4,11 +4,11 @@ import Foundation
 import UIKit
 import Safyn
 
-/// Loads Cover Art Archive covers through the server's cache (`Library.coverArt`) rather than from the
-/// archive itself, and keeps what it loaded in memory.
+/// Loads covers from the server (`Library.coverArt`) and keeps what it loaded in memory. The covers Nafyn
+/// hands out are relative paths, so the request is built from the current session's server URL and token.
 ///
-/// Concurrent requests for one cover share a single fetch, the server's `504` ("not cached yet, the archive
-/// was too slow") is retried a few times as its docs ask, and a `404` ("the archive has no cover") is
+/// Concurrent requests for one cover share a single fetch, the server's `504` ("not cached yet, the source
+/// was too slow") is retried a few times as its docs ask, and a `404` ("there is no cover") is
 /// remembered so a cover-less album isn't asked for again on every render. Fetching and image decoding both
 /// happen off the main thread.
 ///
@@ -59,8 +59,8 @@ final class CoverArtLoader: @unchecked Sendable {
 
 	// MARK: - Loading
 
-	/// The decoded cover for `url`, or `nil` when it isn't a Cover Art Archive URL, the archive has no
-	/// cover, or it couldn't be fetched.
+	/// The decoded cover for `url`, or `nil` when it isn't a server cover path, the server has no cover,
+	/// or it couldn't be fetched.
 	func image(for url: URL) async -> UIImage? {
 		guard let reference = CoverArtReference(url: url) else { return nil }
 		let key = reference.cacheKey as NSString
@@ -86,6 +86,15 @@ final class CoverArtLoader: @unchecked Sendable {
 	func data(for url: URL) async -> Data? {
 		guard let reference = CoverArtReference(url: url) else { return nil }
 		return await self.data(for: reference)
+	}
+
+	/// The bytes behind any cover URL: a server cover path through this loader, any other URL (an uploaded
+	/// cover, a photo) directly. For consumers that need data rather than a view.
+	func contents(of url: URL) async -> Data? {
+		if CoverArtReference(url: url) != nil {
+			return await self.data(for: url)
+		}
+		return try? await URLSession.shared.data(from: url).0
 	}
 
 	private func data(for reference: CoverArtReference) async -> Data? {

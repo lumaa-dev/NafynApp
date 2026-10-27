@@ -10,6 +10,7 @@ private struct LenientTrackInfo: Decodable {
 	let id: String?
 	let title: String?
 	let trackNumber: Double?
+	let discNumber: Double?
 	let duration: Double?
 	let releaseDate: Date?
 	let released: Bool?
@@ -20,7 +21,7 @@ private struct LenientTrackInfo: Decodable {
 	var resolved: TrackInfo? {
 		guard let id, let title, let trackNumber, let duration, let released, let inLibrary, let requested else { return nil }
 		// a track already in the library is playable, so it is released whatever MusicBrainz says
-		return TrackInfo(id: id, title: title, trackNumber: trackNumber, duration: duration, releaseDate: releaseDate, released: released || inLibrary, inLibrary: inLibrary, requested: requested, mediaId: mediaId)
+		return TrackInfo(id: id, title: title, trackNumber: trackNumber, discNumber: discNumber ?? 1, duration: duration, releaseDate: releaseDate, released: released || inLibrary, inLibrary: inLibrary, requested: requested, mediaId: mediaId)
 	}
 }
 
@@ -39,12 +40,13 @@ private struct LenientAlbumDetail: Decodable {
 	let inLibrary: Bool?
 	let description: String?
 	let label: String?
+	let discs: [DiscInfo]?
 	let tracks: [LenientTrackInfo]
 	let imageColors: [String]?
 	let textColor: String?
 
 	var resolved: AlbumDetail {
-		AlbumDetail(id: id, releaseId: releaseId, title: title, artist: artist, type: type, coverArt: coverArt, releaseDate: releaseDate, releaseDatePrecision: releaseDatePrecision, released: released ?? true, subscribed: subscribed ?? false, requested: requested ?? false, inLibrary: inLibrary ?? false, description: description, label: label, tracks: tracks.compactMap { $0.resolved }, imageColors: imageColors ?? [], textColor: textColor ?? "#FFFFFF")
+		AlbumDetail(id: id, releaseId: releaseId, title: title, artist: artist, type: type, coverArt: coverArt, releaseDate: releaseDate, releaseDatePrecision: releaseDatePrecision, released: released ?? true, subscribed: subscribed ?? false, requested: requested ?? false, inLibrary: inLibrary ?? false, description: description, label: label, discs: discs ?? [], tracks: tracks.compactMap { $0.resolved }, imageColors: imageColors ?? [], textColor: textColor ?? "#FFFFFF")
 	}
 }
 

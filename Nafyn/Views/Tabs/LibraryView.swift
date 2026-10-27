@@ -8,8 +8,6 @@ struct LibraryView: View {
 
 	@State private var recntPlays: [RecentlyPlayedEntry] = []
 
-	private let colItems: [GridItem] = [GridItem(.flexible()), GridItem(.flexible())]
-
     var body: some View {
 		NavigationStack(path: Binding(get: { Navigator.shared.currentPath[Navigator.Tabs.library] ?? [] }, set: { Navigator.shared.currentPath[Navigator.Tabs.library] = $0 } )) {
 			ScrollView {
@@ -22,6 +20,7 @@ struct LibraryView: View {
 					.padding(.vertical)
 			}
 			.scrollEdgeEffectStyle(.soft, for: .all)
+			.contentColumn(maxWidth: DTLayout.gridWidth)
 			.background(DTColor.background.ignoresSafeArea())
 			.navigationDestination(for: Navigator.Paths.self) { $0.view }
 			.navigationTitle(String(localized: "library"))
@@ -31,7 +30,9 @@ struct LibraryView: View {
 					Button {
 						Navigator.shared.send(to: .settings)
 					} label: {
-						Image(systemName: "gearshape")
+						// title + symbol: the vertical toolbar on the Duo's outer display drops icon-only items
+						Label(String(localized: "settings"), systemImage: "gearshape")
+							.labelStyle(.iconOnly)
 					}
 					.tint(Color.primary)
 				}
@@ -68,7 +69,7 @@ struct LibraryView: View {
 				Text("recently-played")
 					.font(DTFont.serifItalic(25))
 
-				LazyVGrid(columns: colItems, alignment: .leading) {
+				FoldGrid(alignment: .leading) {
 					ForEach(entries) { elm in
 						NavigationLink(value: elm.destination) {
 							MusicCard(elm.cardEntry)

@@ -37,18 +37,18 @@ struct CreatePlaylistSheet: View {
 					Button {
 						self.dismiss()
 					} label: {
-						Image(systemName: "xmark")
+						Label(String(localized: "cancel"), systemImage: "xmark")
+							.labelStyle(.iconOnly)
 					}
-					.accessibilityLabel(String(localized: "cancel"))
 					.tint(Color.primary)
 				}
 				ToolbarItem(placement: .confirmationAction) {
 					Button {
 						self.create()
 					} label: {
-						Image(systemName: "checkmark")
+						Label(String(localized: "create"), systemImage: "checkmark")
+							.labelStyle(.iconOnly)
 					}
-					.accessibilityLabel(String(localized: "create"))
 					.disabled(self.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || self.isCreating || NetworkMonitor.shared.isOffline)
 					.tint(Color.accentColor)
 				}

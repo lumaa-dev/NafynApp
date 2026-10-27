@@ -4,16 +4,19 @@ import Foundation
 import Safyn
 
 extension MediaRow {
-	/// Cover Art Archive URLs (Nafyn's `coverArt` fields) embed a fixed-size suffix like `front-250` or
-	/// `front-500`. Rewriting it to a larger fixed size makes both the on-screen Now Playing cover and
-	/// the lock-screen/Control Center artwork sharp instead of upscaled-blurry — there's no "give me a
-	/// bigger image" query parameter on either the URL or the `MPMediaItemArtwork` API, so the only way
-	/// to get a bigger image is to ask Cover Art Archive for one directly.
+	/// The largest cover the server offers, for Now Playing and lock-screen artwork.
 	var highResCoverURL: URL? {
-		guard let coverArt else { return nil }
-		let highRes = coverArt
-			.replacingOccurrences(of: "front-250", with: "front-1200")
-			.replacingOccurrences(of: "front-500", with: "front-1200")
-		return URL(string: highRes)
+		self.setCoverSize(UInt16(CoverArtSize.large.rawValue))
+	}
+
+	func setCoverSize(_ size: UInt16) -> URL? {
+		self.coverArt?.coverArtURL(size: size)
+	}
+}
+
+extension String {
+	/// A server `coverArt` path (`/api/v1/art/<type>/<id>/<size>`) at another size (250 / 500 / 1000).
+	func coverArtURL(size: UInt16) -> URL? {
+		URL(string: self.replacing(/\d+$/, with: "\(size)"))
 	}
 }

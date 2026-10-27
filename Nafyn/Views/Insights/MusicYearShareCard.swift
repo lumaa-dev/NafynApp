@@ -180,7 +180,7 @@ struct MusicYearShareCard: View {
 		return await withTaskGroup(of: (String, UIImage?).self) { group in
 			for entity in unique {
 				group.addTask {
-					guard let url = entity.cover.flatMap(URL.init(string:)), let (data, _) = try? await URLSession.shared.data(from: url), let image = UIImage(data: data) else { return (entity.entityId, nil) }
+					guard let url = entity.cover.flatMap(URL.init(string:)), let data = await CoverArtLoader.shared.contents(of: url), let image = UIImage(data: data) else { return (entity.entityId, nil) }
 					return (entity.entityId, image)
 				}
 			}

@@ -47,6 +47,7 @@ struct HighlightReelView: View {
 
 private struct HighlightReelPlayer: View {
 	@Environment(\.server) private var server: NafynServer?
+	@Environment(\.verticalSizeClass) private var verticalSizeClass
 
 	let reel: HighlightReel
 	let reload: () async -> Void
@@ -80,12 +81,14 @@ private struct HighlightReelPlayer: View {
 				self.progressBars
 					.padding(.horizontal)
 					.padding(.top, 8)
+					.frame(maxWidth: DTLayout.panelWidth)
 
 				Spacer()
 
 				self.videoControls
 					.padding(.horizontal)
 					.padding(.bottom, 28)
+					.frame(maxWidth: DTLayout.panelWidth)
 			}
 		}
 		.toast(self.toast)
@@ -116,47 +119,73 @@ private struct HighlightReelPlayer: View {
 	@ContentBuilder
 	private func background(for slide: ReelSlide) -> some View {
 		if let cover = slide.cover.flatMap(URL.init(string:)) {
-			AsyncImage(url: cover) { image in
-				image
-					.resizable()
-					.scaledToFill()
-					.blur(radius: 40)
-					.overlay(Color.black.opacity(0.45))
-			} placeholder: {
-				Rectangle().fill(DTColor.accentGradient)
-			}
-			.ignoresSafeArea()
+			CoverImage(url: cover, cornerRadius: 0)
+				.blur(radius: 40)
+				.overlay(Color.black.opacity(0.45))
+				.ignoresSafeArea()
 		} else {
 			Rectangle().fill(DTColor.accentGradient)
 				.ignoresSafeArea()
 		}
 	}
 
+	/// Cover (or collage) and text, stacked in a tall window and side by side in a short one (an iPhone held
+	/// sideways), where a 220pt cover above the text would not fit.
 	@ContentBuilder
 	private func content(for slide: ReelSlide) -> some View {
-		VStack(spacing: 18) {
-			Spacer()
+		let isShort = self.verticalSizeClass == .compact
 
-			if slide.kind == .intro || slide.kind == .outro, !self.reel.collage.isEmpty {
-				self.collage
-			} else if let cover = slide.cover.flatMap(URL.init(string:)) {
-				CoverImage(url: cover, cornerRadius: slide.kind == .artist ? DTRadius.pill : 18)
-					.frame(width: 220, height: 220)
-					.shadow(radius: 20)
+		Group {
+			if isShort {
+				HStack(spacing: 32) {
+					self.media(for: slide, size: 150)
+					self.texts(for: slide, alignment: .leading)
+				}
+				.padding(.horizontal, 32)
+				.frame(maxWidth: DTLayout.readableWidth, maxHeight: .infinity)
+			} else {
+				VStack(spacing: 18) {
+					Spacer()
+					self.media(for: slide, size: 220)
+					self.texts(for: slide, alignment: .center)
+					Spacer()
+					Spacer()
+				}
+				.padding(.horizontal, 32)
+				.frame(maxWidth: DTLayout.panelWidth)
 			}
+		}
+	}
 
+	@ContentBuilder
+	private func media(for slide: ReelSlide, size: CGFloat) -> some View {
+		if slide.kind == .intro || slide.kind == .outro, !self.reel.collage.isEmpty {
+			self.collage(cellHeight: size / 2.75)
+		} else if let cover = slide.cover.flatMap(URL.init(string:)) {
+			CoverImage(url: cover, cornerRadius: slide.kind == .artist ? DTRadius.pill : 18)
+				.frame(width: size, height: size)
+				.shadow(radius: 20)
+		}
+	}
+
+	@ContentBuilder
+	private func texts(for slide: ReelSlide, alignment: HorizontalAlignment) -> some View {
+		let textAlignment: TextAlignment = alignment == .leading ? .leading : .center
+		let frameAlignment: Alignment = alignment == .leading ? .leading : .center
+
+		VStack(alignment: alignment, spacing: 18) {
 			if let label = slide.label {
 				Text(self.localizedLabel(label))
 					.font(DTFont.system(14))
 					.foregroundStyle(DTColor.textPrimary.opacity(0.7))
-					.multilineTextAlignment(.center)
+					.multilineTextAlignment(textAlignment)
 			}
 
 			if let value = slide.value {
 				Text(value)
 					.font(DTFont.serif(56))
 					.foregroundStyle(DTColor.textPrimary)
-					.multilineTextAlignment(.center)
+					.multilineTextAlignment(textAlignment)
 					.minimumScaleFactor(0.5)
 					.lineLimit(2)
 			}
@@ -165,7 +194,7 @@ private struct HighlightReelPlayer: View {
 				Text(title)
 					.font(DTFont.serif(30))
 					.foregroundStyle(DTColor.textPrimary)
-					.multilineTextAlignment(.center)
+					.multilineTextAlignment(textAlignment)
 					.lineLimit(2)
 			}
 
@@ -173,22 +202,19 @@ private struct HighlightReelPlayer: View {
 				Text(subtitle)
 					.font(DTFont.system(15))
 					.foregroundStyle(DTColor.textPrimary.opacity(0.7))
-					.multilineTextAlignment(.center)
+					.multilineTextAlignment(textAlignment)
 					.lineLimit(2)
 			}
-
-			Spacer()
-			Spacer()
 		}
-		.padding(.horizontal, 32)
+		.frame(maxWidth: .infinity, alignment: frameAlignment)
 	}
 
 	@ContentBuilder
-	private var collage: some View {
+	private func collage(cellHeight: CGFloat) -> some View {
 		LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: 3), spacing: 6) {
 			ForEach(self.reel.collage.prefix(9), id: \.self) { cover in
 				CoverImage(url: URL(string: cover), cornerRadius: 8)
-					.frame(height: 80)
+					.frame(height: cellHeight)
 			}
 		}
 		.frame(maxWidth: 260)

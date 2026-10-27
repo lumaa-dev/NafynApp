@@ -36,20 +36,20 @@ private struct LibraryTrackDetailContent: View {
 	var body: some View {
 		let palette = CoverPalette(imageColors: self.response.imageColors, colorScheme: self.colorScheme)
 
-		CoverScrollView(palette: palette) {
-			VStack(alignment: .leading, spacing: 16) {
-				self.header(palette: palette)
-
-				VStack(alignment: .leading, spacing: 20) {
-					self.actions(palette: palette)
-					self.footer(palette: palette)
-				}
-				.padding(.horizontal)
-				.padding(.bottom)
-			}
+		// Regular width (Duo inner display, iPad) or a phone held sideways: the cover and titles in one pane,
+		// Play and the details in the other.
+		AdaptiveCoverDetail(palette: palette, spacing: 20) {
+			self.header(palette: palette)
+		} compact: {
+			self.actions(palette: palette)
+			self.footer(palette: palette)
+		} primary: {
+			EmptyView()
+		} secondary: {
+			self.actions(palette: palette)
+			self.footer(palette: palette)
 		}
 		.toast(self.toast)
-		.scrollEdgeEffectHidden()
 		.toolbar {
 			ToolbarItem(placement: .primaryAction) {
 				Menu {
@@ -75,7 +75,8 @@ private struct LibraryTrackDetailContent: View {
 					}
 					.disabled(NetworkMonitor.shared.isOffline)
 				} label: {
-					Image(systemName: "ellipsis")
+					Label(String(localized: "more"), systemImage: "ellipsis")
+						.labelStyle(.iconOnly)
 				}
 				.tint(Color.primary)
 			}
@@ -90,7 +91,7 @@ private struct LibraryTrackDetailContent: View {
 	}
 
 	private func header(palette: CoverPalette) -> some View {
-		CoverHeader(url: self.track.coverArt.flatMap { URL(string: $0) }, palette: palette) {
+		CoverHeader(url: self.track.setCoverSize(1000), palette: palette) {
 			Text(self.track.title)
 				.font(DTFont.serif(31))
 				.foregroundStyle(palette.primary)
@@ -129,7 +130,7 @@ private struct LibraryTrackDetailContent: View {
 
 	@ViewBuilder
 	private func footer(palette: CoverPalette) -> some View {
-		HStack(spacing: 6) {
+		FlowLayout(spacing: 6) {
 			if self.track.duration > 0 {
 				Text(TrackRow<EmptyView>.formattedDuration(self.track.duration))
 			}

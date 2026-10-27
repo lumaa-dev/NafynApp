@@ -50,9 +50,9 @@ struct AddTracksToPlaylistSheet: View {
 					Button {
 						self.dismiss()
 					} label: {
-						Image(systemName: "xmark")
+						Label(String(localized: "done"), systemImage: "xmark")
+							.labelStyle(.iconOnly)
 					}
-					.accessibilityLabel(String(localized: "done"))
 					.tint(Color.primary)
 				}
 			}

@@ -81,6 +81,7 @@ private struct ReplayMixContent: View {
 			.padding(.vertical)
 		}
 		.scrollEdgeEffectStyle(.soft, for: .all)
+		.contentColumn()
 		.background(DTColor.background.ignoresSafeArea())
 		.toolbar {
 			if let archive = self.mix.archive, archive.count > 1 {
@@ -92,7 +93,8 @@ private struct ReplayMixContent: View {
 							}
 						}
 					} label: {
-						Image(systemName: "clock.arrow.circlepath")
+						Label(String(localized: "replay-mix"), systemImage: "clock.arrow.circlepath")
+							.labelStyle(.iconOnly)
 					}
 					.tint(Color.primary)
 				}

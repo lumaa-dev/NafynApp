@@ -380,9 +380,9 @@ private struct AddWebhookSheet: View {
 					Button {
 						self.dismiss()
 					} label: {
-						Image(systemName: "xmark")
+						Label(String(localized: "cancel"), systemImage: "xmark")
+							.labelStyle(.iconOnly)
 					}
-					.accessibilityLabel(String(localized: "cancel"))
 					.tint(Color.primary)
 				}
 
@@ -390,9 +390,9 @@ private struct AddWebhookSheet: View {
 					Button {
 						self.add()
 					} label: {
-						Image(systemName: "checkmark")
+						Label(String(localized: "add"), systemImage: "checkmark")
+							.labelStyle(.iconOnly)
 					}
-					.accessibilityLabel(String(localized: "add"))
 					.tint(Color.accentColor)
 					.disabled(!self.canAdd)
 				}

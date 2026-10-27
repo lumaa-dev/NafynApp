@@ -1362,6 +1362,22 @@
         }
       }
     },
+    "disc-number" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disc %lld"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disque %lld"
+          }
+        }
+      }
+    },
     "discography" : {
       "localizations" : {
         "en" : {
@@ -3011,6 +3027,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bilan mensuel"
+          }
+        }
+      }
+    },
+    "more" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "More"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plus"
           }
         }
       }

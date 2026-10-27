@@ -19,7 +19,19 @@ private struct CoverTopInsetKey: EnvironmentKey {
 	static let defaultValue: CGFloat = 0
 }
 
+private struct CoverMaxHeightKey: EnvironmentKey {
+	static let defaultValue: CGFloat? = nil
+}
+
 extension EnvironmentValues {
+	/// Tallest the cover may get, as set by ``CoverScrollView`` from its own height: in a pane too short for a
+	/// square cover (an iPhone held sideways, half of a half-folded Duo) the cover is cropped to fit instead
+	/// of pushing the title below the fold. Never reached in a phone's portrait column.
+	var coverMaxHeight: CGFloat? {
+		get { self[CoverMaxHeightKey.self] }
+		set { self[CoverMaxHeightKey.self] = newValue }
+	}
+
 	var coverStretch: CoverStretch? {
 		get { self[CoverStretchKey.self] }
 		set { self[CoverStretchKey.self] = newValue }
@@ -70,6 +82,7 @@ struct CoverScrollView<Content: View>: View {
 			}
 			.scrollEdgeEffectStyle(.soft, for: .all)
 			.environment(\.coverTopInset, min(Self.statusBarInset, outer.safeAreaInsets.top))
+			.environment(\.coverMaxHeight, outer.size.height * 0.7)
 		}
 		.background(self.palette.background.ignoresSafeArea())
 		.environment(\.coverPalette, self.palette)
@@ -99,6 +112,8 @@ struct CoverHeader<Details: View>: View {
 	/// `safeAreaInset`, which is what the extension fills there.
 	@Environment(\.coverTopInset) private var topInset
 
+	@Environment(\.coverMaxHeight) private var maxCoverHeight
+
 	var body: some View {
 		let overscroll = self.stretch?.overscroll ?? 0
 
@@ -106,6 +121,7 @@ struct CoverHeader<Details: View>: View {
 			Color.clear
 				.aspectRatio(1, contentMode: .fit)
 				.frame(maxWidth: .infinity)
+				.frame(maxHeight: self.maxCoverHeight)
 				.overlay {
 					GeometryReader { proxy in
 						CoverImage(url: self.url, cornerRadius: 0)

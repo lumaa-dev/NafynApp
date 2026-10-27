@@ -116,9 +116,9 @@ struct AppleMusicImportSheet: View {
 					Button {
 						self.dismiss()
 					} label: {
-						Image(systemName: "xmark")
+						Label(String(localized: "close"), systemImage: "xmark")
+							.labelStyle(.iconOnly)
 					}
-					.accessibilityLabel(String(localized: "close"))
 					.tint(Color.primary)
 					.disabled(self.isBusy)
 				}

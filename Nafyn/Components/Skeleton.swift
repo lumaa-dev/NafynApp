@@ -90,11 +90,13 @@ struct SkeletonMusicCard: View {
 		switch self.type {
 			case .highlight:
 				VStack(alignment: .leading) {
-					SkeletonBar(width: 170, height: 170, cornerRadius: 10)
+					Color.clear
+						.aspectRatio(1.0, contentMode: .fit)
+						.overlay { SkeletonBlock(cornerRadius: 10) }
 					SkeletonBar(width: 130, height: 16)
 					SkeletonBar(width: 90, height: 14)
 				}
-				.frame(width: 170, alignment: .topLeading)
+				.frame(maxWidth: .infinity, alignment: .topLeading)
 			case .row:
 				HStack {
 					SkeletonBar(width: 60, height: 60, cornerRadius: 10)
@@ -121,13 +123,12 @@ struct SkeletonTrackRows: View {
 	}
 }
 
-/// A grid of ``SkeletonMusicCard``, for `LazyVGrid` screens still loading their first page.
+/// A grid of ``SkeletonMusicCard``, for ``FoldGrid`` screens still loading their first page.
 struct SkeletonMusicGrid: View {
-	var columns: [GridItem]
 	var count: Int = 6
 
 	var body: some View {
-		LazyVGrid(columns: self.columns, spacing: 16) {
+		FoldGrid(spacing: 16) {
 			ForEach(0..<self.count, id: \.self) { _ in
 				SkeletonMusicCard(type: .highlight)
 			}

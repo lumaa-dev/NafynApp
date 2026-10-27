@@ -47,6 +47,7 @@ struct MyTracksView: View {
 				.listStyle(.plain)
 				.scrollContentBackground(.hidden)
 				.scrollEdgeEffectStyle(.soft, for: .all)
+				.contentColumn()
 				.background(DTColor.background.ignoresSafeArea())
 				.refreshable {
 					await paginator.reset()

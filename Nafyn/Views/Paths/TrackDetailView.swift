@@ -20,26 +20,26 @@ struct TrackDetailView: View {
 		} content: { track, reload in
 			let palette = CoverPalette(imageColors: track.detail.info.imageColors, colorScheme: self.colorScheme)
 
-			CoverScrollView(palette: palette) {
-				VStack(alignment: .leading, spacing: 16) {
-					self.header(track.detail, palette: palette)
-
-					VStack(alignment: .leading, spacing: 20) {
-						self.actions(track, palette: palette, reload: reload)
-						self.footer(track.detail, palette: palette)
-					}
-					.padding(.horizontal)
-					.padding(.bottom)
-				}
+			// Regular width (Duo inner display, iPad) or a phone held sideways: the cover and titles in one
+			// pane, the request action and the details in the other.
+			AdaptiveCoverDetail(palette: palette, spacing: 20) {
+				self.header(track.detail, palette: palette)
+			} compact: {
+				self.actions(track, palette: palette, reload: reload)
+				self.footer(track.detail, palette: palette)
+			} primary: {
+				EmptyView()
+			} secondary: {
+				self.actions(track, palette: palette, reload: reload)
+				self.footer(track.detail, palette: palette)
 			}
-			.scrollEdgeEffectHidden()
 			.toast(self.toast)
 		}
 		.navigationBarTitleDisplayMode(.inline)
 	}
 
 	private func header(_ track: TrackDetail, palette: CoverPalette) -> some View {
-		CoverHeader(url: track.info.coverArt.flatMap { URL(string: $0) }, palette: palette) {
+		CoverHeader(url: track.info.coverArt?.coverArtURL(size: 1000), palette: palette) {
 			Text(track.info.title)
 				.font(DTFont.serif(31))
 				.foregroundStyle(palette.primary)
@@ -107,7 +107,7 @@ struct TrackDetailView: View {
 
 	@ViewBuilder
 	private func footer(_ track: TrackDetail, palette: CoverPalette) -> some View {
-		HStack(spacing: 6) {
+		FlowLayout(spacing: 6) {
 			if track.info.duration > 0 {
 				Text(TrackRow<EmptyView>.formattedDuration(track.info.duration))
 			}

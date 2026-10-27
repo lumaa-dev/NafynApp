@@ -14,8 +14,6 @@ struct SearchView: View {
 	@State private var isSearching = false
 	@State private var searchTask: Task<Void, Never>? = nil
 
-	private let albumColumns: [GridItem] = [GridItem(.flexible()), GridItem(.flexible())]
-
 	var body: some View {
 		NavigationStack(path: Binding(get: { Navigator.shared.currentPath[Navigator.Tabs.search] ?? [] }, set: { Navigator.shared.currentPath[Navigator.Tabs.search] = $0 })) {
 			ScrollView {
@@ -30,7 +28,7 @@ struct SearchView: View {
 
 					if self.isSearching {
 						VStack(alignment: .leading, spacing: 20) {
-							SkeletonMusicGrid(columns: self.albumColumns, count: 2)
+							SkeletonMusicGrid(count: 2)
 
 							VStack(spacing: 12) {
 								SkeletonTrackRows(count: 4)
@@ -48,7 +46,7 @@ struct SearchView: View {
 
 						if result.albums.contains(where: { $0.id != self.bestResult?.id }) {
 							self.section(title: "albums") {
-								LazyVGrid(columns: self.albumColumns, alignment: .leading, spacing: 16) {
+								FoldGrid(alignment: .leading, spacing: 16) {
 									ForEach(result.albums.filter { $0.id != self.bestResult?.id }, id: \.id) { info in
 										self.card(.info(info))
 									}
@@ -88,6 +86,7 @@ struct SearchView: View {
 				.padding()
 			}
 			.scrollEdgeEffectStyle(.soft, for: .all)
+			.contentColumn(maxWidth: DTLayout.gridWidth)
 			.background(DTColor.background.ignoresSafeArea())
 			.navigationDestination(for: Navigator.Paths.self) { $0.view }
 			.navigationTitle(String(localized: "search"))

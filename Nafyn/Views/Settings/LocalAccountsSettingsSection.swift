@@ -154,9 +154,9 @@ private struct AddLocalAccountSheet: View {
 					Button {
 						self.dismiss()
 					} label: {
-						Image(systemName: "xmark")
+						Label(String(localized: "cancel"), systemImage: "xmark")
+							.labelStyle(.iconOnly)
 					}
-					.accessibilityLabel(String(localized: "cancel"))
 					.tint(Color.primary)
 				}
 
@@ -168,10 +168,10 @@ private struct AddLocalAccountSheet: View {
 							ProgressView()
 								.tint(DTColor.textPrimary)
 						} else {
-							Image(systemName: "checkmark")
+							Label(String(localized: "save"), systemImage: "checkmark")
+								.labelStyle(.iconOnly)
 						}
 					}
-					.accessibilityLabel(String(localized: "save"))
 					.disabled(!self.canSubmit)
 					.tint(Color.accentColor)
 				}

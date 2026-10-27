@@ -51,6 +51,7 @@ private struct YearComparisonContent: View {
 			.padding(.vertical)
 		}
 		.scrollEdgeEffectStyle(.soft, for: .all)
+		.contentColumn()
 		.background(DTColor.background.ignoresSafeArea())
 	}
 

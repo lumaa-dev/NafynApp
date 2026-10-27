@@ -59,9 +59,9 @@ struct AddToPlaylistSheet: View {
 					Button {
 						self.dismiss()
 					} label: {
-						Image(systemName: "xmark")
+						Label(String(localized: "cancel"), systemImage: "xmark")
+							.labelStyle(.iconOnly)
 					}
-					.accessibilityLabel(String(localized: "cancel"))
 					.tint(Color.primary)
 				}
 			}

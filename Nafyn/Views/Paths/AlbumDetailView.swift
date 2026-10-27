@@ -20,59 +20,29 @@ struct AlbumDetailView: View {
 		} content: { album, reload in
 			let palette = CoverPalette(imageColors: album.imageColors, colorScheme: self.colorScheme)
 
-			CoverScrollView(palette: palette) {
-				VStack(alignment: .leading, spacing: 16) {
-					self.header(album, palette: palette)
-
-					VStack(alignment: .leading, spacing: 16) {
-						if let description = album.description, !description.isEmpty {
-							Text(description)
-								.font(DTFont.system(18))
-								.foregroundStyle(palette.secondary)
-						}
-
-						if album.released {
-							if !album.inLibrary {
-								Button {
-									self.request(album: album, reload: reload)
-								} label: {
-									Text("request")
-										.frame(maxWidth: .infinity)
-								}
-								.buttonStyle(.filled())
-								.disabled(self.isRequesting || album.requested || NetworkMonitor.shared.isOffline)
-							}
-						} else {
-							UnreleasedSection(mbid: album.id, kind: .album, releaseDate: album.releaseDate, precision: album.releaseDatePrecision, subscribed: album.subscribed, toast: self.toast) {
-								Task { await reload() }
-							}
-						}
-
-						VStack(spacing: 0) {
-							ForEach(Array(album.tracks.enumerated()), id: \.element.id) { index, track in
-								self.trackRow(track, album: album, palette: palette, reload: reload)
-
-								if index < album.tracks.count - 1 {
-									Divider()
-										.overlay(palette.secondary.opacity(0.3))
-								}
-							}
-						}
-
-						self.footer(album, palette: palette)
-					}
-					.padding(.horizontal)
-					.padding(.bottom)
-				}
+			// Regular width (Duo inner display, iPad) or a phone held sideways: cover, blurb and details in one
+			// pane, the actions and the track list in the other, instead of everything stacked in one column.
+			AdaptiveCoverDetail(palette: palette) {
+				self.header(album, palette: palette)
+			} compact: {
+				self.description(album, palette: palette)
+				self.actions(album, reload: reload)
+				self.trackList(album, palette: palette, reload: reload)
+				self.footer(album, palette: palette)
+			} primary: {
+				self.description(album, palette: palette)
+				self.footer(album, palette: palette)
+			} secondary: {
+				self.actions(album, reload: reload)
+				self.trackList(album, palette: palette, reload: reload)
 			}
-			.scrollEdgeEffectHidden()
 			.toast(self.toast)
 		}
 		.navigationBarTitleDisplayMode(.inline)
 	}
 
 	private func header(_ album: AlbumDetail, palette: CoverPalette) -> some View {
-		CoverHeader(url: album.coverArt.flatMap { URL(string: $0) }, palette: palette) {
+		CoverHeader(url: album.coverArt?.coverArtURL(size: 1000), palette: palette) {
 			if let type = album.type {
 				Text(type == .ep ? String(localized: "ep") : String(localized: "album"))
 					.font(DTFont.system(14, weight: .semibold))
@@ -84,6 +54,74 @@ struct AlbumDetailView: View {
 				.foregroundStyle(palette.primary)
 
 			self.artistLink(album.artist, palette: palette)
+		}
+	}
+
+	@ViewBuilder
+	private func description(_ album: AlbumDetail, palette: CoverPalette) -> some View {
+		if let description = album.description, !description.isEmpty {
+			Text(description)
+				.font(DTFont.system(18))
+				.foregroundStyle(palette.secondary)
+		}
+	}
+
+	/// Request button, or the countdown while the album is still unreleased.
+	@ViewBuilder
+	private func actions(_ album: AlbumDetail, reload: @escaping () async -> Void) -> some View {
+		if album.released {
+			if !album.inLibrary {
+				Button {
+					self.request(album: album, reload: reload)
+				} label: {
+					Text("request")
+						.frame(maxWidth: .infinity)
+				}
+				.buttonStyle(.filled())
+				.disabled(self.isRequesting || album.requested || NetworkMonitor.shared.isOffline)
+			}
+		} else {
+			UnreleasedSection(mbid: album.id, kind: .album, releaseDate: album.releaseDate, precision: album.releaseDatePrecision, subscribed: album.subscribed, toast: self.toast) {
+				Task { await reload() }
+			}
+		}
+	}
+
+	@ViewBuilder
+	private func trackList(_ album: AlbumDetail, palette: CoverPalette, reload: @escaping () async -> Void) -> some View {
+		let groups = Self.discGroups(of: album)
+
+		VStack(spacing: 0) {
+			ForEach(groups, id: \.number) { group in
+				// disc headers only when the album actually spans several discs
+				if groups.count > 1 {
+					DiscHeader(number: group.number, title: group.title, isFirst: group.number == groups.first?.number, palette: palette)
+				}
+
+				ForEach(Array(group.tracks.enumerated()), id: \.element.id) { index, track in
+					self.trackRow(track, album: album, palette: palette, reload: reload)
+
+					if index < group.tracks.count - 1 {
+						Divider()
+							.overlay(palette.secondary.opacity(0.3))
+					}
+				}
+			}
+		}
+	}
+
+	/// One disc's tracks, in the server's order, with the disc's own title when it has one.
+	private struct DiscGroup {
+		let number: Double
+		let title: String?
+		let tracks: [TrackInfo]
+	}
+
+	private static func discGroups(of album: AlbumDetail) -> [DiscGroup] {
+		let byDisc = Dictionary(grouping: album.tracks, by: \.discNumber)
+		return byDisc.keys.sorted().map { number in
+			let title = album.discs.first { $0.number == number }?.title
+			return DiscGroup(number: number, title: title?.isEmpty == false ? title : nil, tracks: byDisc[number] ?? [])
 		}
 	}
 
