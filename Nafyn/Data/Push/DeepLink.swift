@@ -49,7 +49,34 @@ enum DeepLink: Equatable {
 		}
 	}
 
+	/// A link that arrived before the tabs were on screen (cold start from a notification, Live Activity or
+	/// URL, while `RootView` is still logging in). Pushing it then would seed a `NavigationStack` that doesn't
+	/// exist yet, so it waits here until `RootView` reports the tabs are mounted.
+	private static var pending: DeepLink?
+	private static var isReady = false
+
+	/// Called by `RootView` when the tabs appear / disappear (login, account switch, sign-out).
+	static func setReady(_ ready: Bool) {
+		isReady = ready
+		guard ready, let link = pending else { return }
+		pending = nil
+
+		// let the freshly mounted `NavigationStack`s settle before pushing onto them
+		Task { @MainActor in
+			try? await Task.sleep(for: .milliseconds(400))
+			link.navigate()
+		}
+	}
+
 	func open() {
+		guard Self.isReady else {
+			Self.pending = self
+			return
+		}
+		self.navigate()
+	}
+
+	private func navigate() {
 		switch self {
 			case .path(let path):
 				Navigator.shared.send(to: path)

@@ -54,6 +54,8 @@ struct RootView: View {
 					NowPlayingView(namespace: self.playerZoomNamespace)
 						.environment(\.server, self.server)
 				}
+				.onAppear { DeepLink.setReady(true) }
+				.onDisappear { DeepLink.setReady(false) }
 				.onChange(of: PlayerEngine.shared.isExpanded) { _, newValue in
 					self.isPlayerExpanded = newValue
 				}

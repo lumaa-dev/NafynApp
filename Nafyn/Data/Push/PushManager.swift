@@ -199,21 +199,28 @@ final class PushManager: NSObject {
 // MARK: - UNUserNotificationCenterDelegate
 
 extension PushManager: UNUserNotificationCenterDelegate {
-	nonisolated func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification) async -> UNNotificationPresentationOptions {
+	// Completion-handler variants on purpose: UserNotifications calls these on a background queue, and the
+	// `async` variants of a main-actor-by-default class run through a Swift-concurrency thunk that has
+	// trapped on executor checks. Everything touching `Navigator` hops to the main queue by hand.
+	nonisolated func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping @Sendable (UNNotificationPresentationOptions) -> Void) {
 		let userInfo = notification.request.content.userInfo
-		return await MainActor.run {
+		nonisolated(unsafe) let info = userInfo
+		DispatchQueue.main.async {
 			// already looking at what the notification is about: don't interrupt
-			if let link = DeepLink(userInfo: userInfo), link.isCurrentlyVisible {
-				return []
+			if let link = DeepLink(userInfo: info), link.isCurrentlyVisible {
+				completionHandler([])
+			} else {
+				completionHandler([.banner, .list, .sound])
 			}
-			return [.banner, .list, .sound]
 		}
 	}
 
-	nonisolated func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse) async {
+	nonisolated func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping @Sendable () -> Void) {
 		let userInfo = response.notification.request.content.userInfo
-		await MainActor.run {
-			DeepLink(userInfo: userInfo)?.open()
+		nonisolated(unsafe) let info = userInfo
+		DispatchQueue.main.async {
+			DeepLink(userInfo: info)?.open()
+			completionHandler()
 		}
 	}
 }
