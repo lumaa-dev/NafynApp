@@ -21,7 +21,7 @@
       "hidden" : false,
       "layers" : [
         {
-          "hidden" : true,
+          "hidden" : false,
           "image-name" : "favicon-compact.png",
           "name" : "favicon-compact",
           "position" : {
