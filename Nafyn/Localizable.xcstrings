@@ -650,6 +650,22 @@
         }
       }
     },
+    "best-result" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Best Result"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Meilleur résultat"
+          }
+        }
+      }
+    },
     "bytes" : {
       "comment" : "internal SectorMark data key for the storage usage chart (StorageSettingsSection), not directly shown to users",
       "localizations" : {
@@ -1362,7 +1378,7 @@
         }
       }
     },
-    "disc-number" : {
+    "disc-number %lld" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1728,24 +1744,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "L'accès à Apple Music a été refusé. Autorisez l'accès dans Réglages pour importer votre bibliothèque."
-          }
-        }
-      }
-    },
-    "error-import-isrc" : {
-      "comment" : "shown when fetching ISRC codes fails during Apple Music import (AppleMusicImportSheet)",
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Failed to fetch track identifiers. Please try again."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Échec de la récupération des identifiants des titres. Veuillez réessayer."
           }
         }
       }
@@ -2253,24 +2251,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Récupération des identifiants des titres…"
-          }
-        }
-      }
-    },
-    "import-step-fetch-songs" : {
-      "comment" : "Apple Music import progress step label (AppleMusicImportSheet)",
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fetching songs…"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Récupération des titres…"
           }
         }
       }
@@ -2933,23 +2913,6 @@
         }
       }
     },
-    "manage-webhooks" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Manage webhooks"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Gérer les webhooks"
-          }
-        }
-      }
-    },
     "manual" : {
       "comment" : "playlist sort mode: manual/custom order (PlaylistDetailView, PlaylistEditSheet)",
       "localizations" : {
@@ -3324,22 +3287,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Aucune playlist"
-          }
-        }
-      }
-    },
-    "best-result" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Best Result"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Meilleur résultat"
           }
         }
       }
