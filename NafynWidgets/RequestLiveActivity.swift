@@ -12,14 +12,7 @@ struct NafynRequestLiveActivity: Widget {
 				self.songInfo(context)
 					.frame(maxWidth: .infinity, alignment: .leading)
 
-				if context.state.stage == .completed || context.state.stage == .failed {
-					self.stageIcon(context.state.stage)
-						.imageScale(.large)
-						.font(.title)
-						.foregroundStyle(self.stageColor(context.state.stage))
-				} else {
-					self.progress(context)
-				}
+				self.progress(context)
 			}
 			.padding(16)
 			.activityBackgroundTint(Color(hex: "2A2A27"))
@@ -30,17 +23,14 @@ struct NafynRequestLiveActivity: Widget {
 				DynamicIslandExpandedRegion(.leading, priority: 1.0) {
 					self.songInfo(context)
 						.frame(maxHeight: .infinity)
-						.padding(.leading, 2.0)
+						.padding(.leading, 5.0)
 						.dynamicIsland(verticalPlacement: .belowIfTooWide)
 				}
 				DynamicIslandExpandedRegion(.trailing) {
 					self.progress(context)
 				}
 			} compactLeading: {
-				self.stageIcon(context.state.stage)
-					.resizable()
-					.scaledToFit()
-					.frame(width: 20, height: 20)
+				self.status(context, small: true)
 			} compactTrailing: {
 				RequestProgressRing(fraction: self.fraction(context), lineWidth: 2.5) {
 					Text("\(context.state.trackIndex ?? 0)")
@@ -85,18 +75,49 @@ struct NafynRequestLiveActivity: Widget {
 	}
 
 	@ViewBuilder
-	private func progress(_ context: ActivityViewContext<NafynRequestActivityAttributes>) -> some View {
-		let current: Double = Double(context.state.trackIndex ?? 0) + (context.state.progress ?? 0.0)
-
-		Gauge(value: current, in: 0...Double(context.state.trackCount ?? 0) + 1.0) {
-			self.stageIcon(context.state.stage)
-		} currentValueLabel: {
-			Text("\(context.state.trackIndex ?? 0)")
-				.foregroundColor(Color.primary)
-				.contentTransition(.numericText(value: Double(context.state.trackCount ?? 0)))
+	private func status(_ context: ActivityViewContext<NafynRequestActivityAttributes>, small: Bool = false) -> some View {
+		if context.state.stage != .completed && context.state.stage != .failed {
+			if small {
+				self.stageIcon(context.state.stage)
+					.resizable()
+					.scaledToFit()
+					.frame(width: 20, height: 20)
+					.foregroundStyle(self.stageColor(context.state.stage))
+			} else {
+				self.stageIcon(context.state.stage)
+					.imageScale(.large)
+					.font(.title)
+					.foregroundStyle(self.stageColor(context.state.stage))
+			}
+		} else {
+			Image(.nafyn)
+				.imageScale(.large)
+				.font(.title)
+				.foregroundStyle(Color.primary)
 		}
-		.gaugeStyle(.accessoryCircularCapacity)
-		.tint(Color.blue)
+	}
+
+	@ViewBuilder
+	private func progress(_ context: ActivityViewContext<NafynRequestActivityAttributes>) -> some View {
+		if context.state.stage == .completed || context.state.stage == .failed {
+			self.stageIcon(context.state.stage)
+				.imageScale(.large)
+				.font(.title)
+				.foregroundStyle(self.stageColor(context.state.stage))
+		} else {
+			let current: Double = Double(context.state.trackIndex ?? 0) + (context.state.progress ?? 0.0)
+
+			Gauge(value: current, in: 0...Double(context.state.trackCount ?? 0) + 1.0) {
+				self.stageIcon(context.state.stage)
+			} currentValueLabel: {
+				Text("\(context.state.trackIndex ?? 0)")
+					.foregroundColor(Color.primary)
+					.monospacedDigit()
+					.contentTransition(.numericText(value: Double(context.state.trackCount ?? 0)))
+			}
+			.gaugeStyle(.accessoryCircularCapacity)
+			.tint(Color.blue)
+		}
 	}
 
 	private func stageIcon(_ stage: NafynRequestActivityAttributes.ContentState.Stage) -> Image {
@@ -130,21 +151,17 @@ private struct RequestProgressRing<Center: View>: View {
 		ZStack {
 			Circle()
 				.stroke(Color.blue.opacity(0.3), lineWidth: self.lineWidth)
+
 			Circle()
 				.trim(from: 0, to: self.fraction)
 				.stroke(Color.blue, style: StrokeStyle(lineWidth: self.lineWidth, lineCap: .round))
 				.rotationEffect(.degrees(-90))
+
 			self.center
 				.foregroundStyle(Color.white)
 		}
 		.padding(self.lineWidth / 2)
 		.animation(.smooth, value: self.fraction)
-	}
-}
-
-extension RequestProgressRing where Center == EmptyView {
-	init(fraction: Double, lineWidth: CGFloat) {
-		self.init(fraction: fraction, lineWidth: lineWidth) { EmptyView() }
 	}
 }
 
