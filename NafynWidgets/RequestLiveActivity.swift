@@ -12,7 +12,9 @@ struct NafynRequestLiveActivity: Widget {
 				self.songInfo(context)
 					.frame(maxWidth: .infinity, alignment: .leading)
 
-				self.progress(context)
+				self.progress(context) {
+					self.nativeGauge(context)
+				}
 			}
 			.padding(16)
 			.activityBackgroundTint(Color(hex: "2A2A27"))
@@ -27,26 +29,32 @@ struct NafynRequestLiveActivity: Widget {
 						.dynamicIsland(verticalPlacement: .belowIfTooWide)
 				}
 				DynamicIslandExpandedRegion(.trailing) {
-					self.progress(context)
+					self.progress(context) {
+						self.nativeGauge(context)
+					}
 				}
 			} compactLeading: {
 				self.status(context, small: true)
 			} compactTrailing: {
-				RequestProgressRing(fraction: self.fraction(context), lineWidth: 2.5) {
-					Text("\(context.state.trackIndex ?? 0)")
-						.font(.system(.caption2, design: .rounded, weight: .semibold))
-						.monospacedDigit()
-						.minimumScaleFactor(0.5)
-						.lineLimit(1)
-						.contentTransition(.numericText(value: Double(context.state.trackIndex ?? 0)))
+				self.progress(context) {
+					RequestProgressRing(fraction: self.fraction(context), lineWidth: 2.5) {
+						Text("\(context.state.trackIndex ?? 0)")
+							.font(.system(.caption2, design: .rounded, weight: .semibold))
+							.monospacedDigit()
+							.minimumScaleFactor(0.5)
+							.lineLimit(1)
+							.contentTransition(.numericText(value: Double(context.state.trackIndex ?? 0)))
+					}
 				}
 				.frame(width: 22, height: 22)
 			} minimal: {
-				RequestProgressRing(fraction: self.fraction(context), lineWidth: 3) {
-					self.stageIcon(context.state.stage)
-						.resizable()
-						.scaledToFit()
-						.padding(5)
+				self.progress(context) {
+					RequestProgressRing(fraction: self.fraction(context), lineWidth: 3) {
+						self.stageIcon(context.state.stage)
+							.resizable()
+							.scaledToFit()
+							.padding(5)
+					}
 				}
 				.frame(width: 24, height: 24)
 			}
@@ -98,26 +106,31 @@ struct NafynRequestLiveActivity: Widget {
 	}
 
 	@ViewBuilder
-	private func progress(_ context: ActivityViewContext<NafynRequestActivityAttributes>) -> some View {
+	private func progress(_ context: ActivityViewContext<NafynRequestActivityAttributes>, @ViewBuilder gauge: () -> some View) -> some View {
 		if context.state.stage == .completed || context.state.stage == .failed {
 			self.stageIcon(context.state.stage)
 				.imageScale(.large)
 				.font(.title)
 				.foregroundStyle(self.stageColor(context.state.stage))
 		} else {
-			let current: Double = Double(context.state.trackIndex ?? 0) + (context.state.progress ?? 0.0)
-
-			Gauge(value: current, in: 0...Double(context.state.trackCount ?? 0) + 1.0) {
-				self.stageIcon(context.state.stage)
-			} currentValueLabel: {
-				Text("\(context.state.trackIndex ?? 0)")
-					.foregroundColor(Color.primary)
-					.monospacedDigit()
-					.contentTransition(.numericText(value: Double(context.state.trackCount ?? 0)))
-			}
-			.gaugeStyle(.accessoryCircularCapacity)
-			.tint(Color.blue)
+			gauge()
 		}
+	}
+
+	@ViewBuilder
+	private func nativeGauge(_ context: ActivityViewContext<NafynRequestActivityAttributes>) -> some View {
+		let current: Double = Double(context.state.trackIndex ?? 0) + (context.state.progress ?? 0.0)
+
+		Gauge(value: current, in: 0...Double(context.state.trackCount ?? 0) + 1.0) {
+			self.stageIcon(context.state.stage)
+		} currentValueLabel: {
+			Text("\(context.state.trackIndex ?? 0)")
+				.foregroundColor(Color.primary)
+				.monospacedDigit()
+				.contentTransition(.numericText(value: Double(context.state.trackCount ?? 0)))
+		}
+		.gaugeStyle(.accessoryCircularCapacity)
+		.tint(Color.blue)
 	}
 
 	private func stageIcon(_ stage: NafynRequestActivityAttributes.ContentState.Stage) -> Image {

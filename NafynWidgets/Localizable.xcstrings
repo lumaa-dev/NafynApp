@@ -2,7 +2,7 @@
   "sourceLanguage" : "en",
   "strings" : {
     "%lld" : {
-
+      "shouldTranslate" : false
     },
     "out-now" : {
       "localizations" : {
@@ -118,24 +118,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "En attente"
-          }
-        }
-      }
-    },
-    "track-progress %lld %lld" : {
-      "comment" : "Apple Music import progress, e.g. \"Track 3 of 20\" (RequestRow)",
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Track %1$lld of %2$lld"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Titre %1$lld sur %2$lld"
           }
         }
       }
