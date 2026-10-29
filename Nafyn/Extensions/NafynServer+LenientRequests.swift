@@ -28,17 +28,31 @@ private struct LenientNafynRequest: Decodable {
 extension NafynServer {
 	/// `Request.all(page:limit:)`, tolerant of the compact `requestedBy` projection AND using `?page=`
 	/// instead of Safyn's broken `?offset=` query (see `NafynServer+PagedFetch.swift`).
-	func fetchRequests(page: Int, limit: Int) async throws -> PaginatedResponse<NafynRequest> {
-		let data = try await self.fetchGET(path: "/api/v1/requests", queryItems: [
+	///
+	/// `filters` narrows the list to those statuses; empty means every request. The server only knows four
+	/// groups (`succeeded`/`failed`/`waiting`/`processing`) and always lists `denied`, so with a filter
+	/// active denied requests are dropped here unless `.denied` was picked.
+	func fetchRequests(page: Int, limit: Int, filters: Set<RequestFilter> = []) async throws -> PaginatedResponse<NafynRequest> {
+		var queryItems = [
 			URLQueryItem(name: "page", value: String(page)),
 			URLQueryItem(name: "limit", value: String(limit)),
-		])
+		]
+		if !filters.isEmpty {
+			queryItems += [
+				URLQueryItem(name: "succeeded", value: String(filters.contains(.succeeded))),
+				URLQueryItem(name: "failed", value: String(filters.contains(.failed))),
+				URLQueryItem(name: "waiting", value: String(filters.contains(.waiting))),
+				URLQueryItem(name: "processing", value: String(filters.contains(.inProgress))),
+			]
+		}
+		let data = try await self.fetchGET(path: "/api/v1/requests", queryItems: queryItems)
 
 		let decoder = JSONDecoder()
 		decoder.dateDecodingStrategy = .iso8601
 		do {
 			let envelope = try decoder.decode(RawPaginatedEnvelope<LenientNafynRequest>.self, from: data)
-			return PaginatedResponse(items: envelope.items.map { $0.resolved }, page: envelope.page, limit: envelope.limit, total: envelope.total, hasMore: envelope.hasMore)
+			let requests = envelope.items.map { $0.resolved }.filter { filters.isEmpty || filters.contains(.denied) || $0.status != .denied }
+			return PaginatedResponse(items: requests, page: envelope.page, limit: envelope.limit, total: envelope.total, hasMore: envelope.hasMore)
 		} catch {
 			throw NafynError.decoding(String(describing: error))
 		}

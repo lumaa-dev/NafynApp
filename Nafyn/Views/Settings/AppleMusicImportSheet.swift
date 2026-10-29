@@ -138,6 +138,7 @@ struct AppleMusicImportSheet: View {
 				}
 			}
 		}
+		.sheetBackground()
 		.interactiveDismissDisabled(self.isBusy)
 		.sheet(item: self.$searchedTrack) { track in
 			SearchSheetView(query: "\(track.title) \(track.artist)")
@@ -290,6 +291,7 @@ struct AppleMusicImportSheet: View {
 				} header: {
 					Text("import-complete")
 				}
+				.sheetRows()
 
 				if !notImported.isEmpty {
 					Section {
@@ -319,6 +321,7 @@ struct AppleMusicImportSheet: View {
 					} header: {
 						Text("import-not-imported")
 					}
+					.sheetRows()
 				}
 			}
 			.scrollContentBackground(.hidden)

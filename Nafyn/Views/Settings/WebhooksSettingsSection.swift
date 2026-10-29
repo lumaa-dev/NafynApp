@@ -351,6 +351,7 @@ private struct AddWebhookSheet: View {
 				} footer: {
 					Text("webhook-url-footer")
 				}
+				.sheetRows()
 
 				Section {
 					Picker(String(localized: "webhook-format"), selection: self.$format) {
@@ -359,6 +360,7 @@ private struct AddWebhookSheet: View {
 						}
 					}
 				}
+				.sheetRows()
 
 				Section(String(localized: "webhook-events")) {
 					ForEach(self.scope.availableEvents, id: \.self) { event in
@@ -370,6 +372,7 @@ private struct AddWebhookSheet: View {
 						))
 					}
 				}
+				.sheetRows()
 			}
 			.scrollContentBackground(.hidden)
 			.background(DTColor.background.ignoresSafeArea())
@@ -399,6 +402,7 @@ private struct AddWebhookSheet: View {
 			}
 			.toast(self.toast)
 		}
+		.sheetBackground()
 	}
 
 	private func add() {

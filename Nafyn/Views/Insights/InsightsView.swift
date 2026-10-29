@@ -120,6 +120,7 @@ struct InsightsView: View {
 								Text(String(year))
 							}
 						}
+						.tint(Color.primary)
 					}
 				} label: {
 					Label(String(localized: "year"), systemImage: "calendar")

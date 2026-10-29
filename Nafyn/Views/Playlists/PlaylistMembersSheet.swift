@@ -23,6 +23,7 @@ struct PlaylistMembersSheet: View {
 				Section(String(localized: "owner")) {
 					Text(self.owner.displayName ?? self.owner.username)
 				}
+				.sheetRows()
 
 				Section(String(localized: "members")) {
 					ForEach(self.members, id: \.id) { member in
@@ -59,6 +60,7 @@ struct PlaylistMembersSheet: View {
 						}
 					}
 				}
+				.sheetRows()
 			}
 			.scrollEdgeEffectStyle(.soft, for: .all)
 			.navigationTitle(String(localized: "members"))
@@ -75,6 +77,7 @@ struct PlaylistMembersSheet: View {
 			}
 			.toast(self.toast)
 		}
+		.sheetBackground()
 	}
 
 	private func add() {

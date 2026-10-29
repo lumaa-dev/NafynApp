@@ -56,11 +56,27 @@ struct LibraryAlbumDetailView: View {
 }
 
 private struct LibraryAlbumDetailContent: View {
+	@Environment(\.server) private var server: NafynServer?
 	@Environment(\.colorScheme) private var colorScheme
+	@Environment(\.dismiss) private var dismiss
 
 	@State private var toast = ToastState()
+	@State private var pendingDelete: MediaRow? = nil
+	@State private var showDeleteDownloadsConfirm = false
+
+	/// Tracks deleted from this screen, hidden right away instead of re-fetching the album.
+	@State private var removedTrackIds: Set<String> = []
 
 	let response: LibraryAlbumResponse
+
+	/// The owned tracks still on the album.
+	private var tracks: [MediaRow] {
+		self.response.tracks.filter { !self.removedTrackIds.contains($0.id) }
+	}
+
+	private var downloadedTrackIds: [String] {
+		DownloadManager.shared.downloadedTrackIds(albumId: self.response.album.row.id)
+	}
 
 	var body: some View {
 		let palette = CoverPalette(imageColors: self.response.album.imageColors, colorScheme: self.colorScheme)
@@ -80,6 +96,22 @@ private struct LibraryAlbumDetailContent: View {
 			self.trackList(palette: palette)
 		}
 		.toast(self.toast)
+		.alert(
+			String(localized: "delete-track-confirm"),
+			isPresented: Binding(get: { self.pendingDelete != nil }, set: { if !$0 { self.pendingDelete = nil } }),
+			presenting: self.pendingDelete
+		) { track in
+			Button(String(localized: "cancel"), role: .cancel) {}
+			Button(String(localized: "delete"), role: .destructive) {
+				self.delete(track)
+			}
+		}
+		.alert(String(localized: "delete-downloads-confirm"), isPresented: self.$showDeleteDownloadsConfirm) {
+			Button(String(localized: "cancel"), role: .cancel) {}
+			Button(String(localized: "delete"), role: .destructive) {
+				DownloadManager.shared.deleteDownloads(trackIds: self.downloadedTrackIds)
+			}
+		}
 		.toolbar {
 			ToolbarItem(placement: .primaryAction) {
 				Menu {
@@ -88,7 +120,17 @@ private struct LibraryAlbumDetailContent: View {
 					} label: {
 						Label(String(localized: "download-album"), systemImage: "arrow.down.circle")
 					}
+					.tint(Color.primary)
 					.disabled(NetworkMonitor.shared.isOffline)
+
+					if !self.downloadedTrackIds.isEmpty {
+						Button(role: .destructive) {
+							self.showDeleteDownloadsConfirm = true
+						} label: {
+							Label(String(localized: "delete-downloads"), systemImage: "arrow.down.circle.fill")
+						}
+						.tint(DTColor.buttonDanger)
+					}
 				} label: {
 					Label(String(localized: "more"), systemImage: "ellipsis")
 						.labelStyle(.iconOnly)
@@ -157,7 +199,7 @@ private struct LibraryAlbumDetailContent: View {
 
 	/// The owned tracks per disc, in the server's order; a track without a disc number sits on disc 1.
 	private var discGroups: [(number: Double, title: String?, tracks: [MediaRow])] {
-		let byDisc = Dictionary(grouping: self.response.tracks, by: { $0.discNumber ?? 1 })
+		let byDisc = Dictionary(grouping: self.tracks, by: { $0.discNumber ?? 1 })
 		return byDisc.keys.sorted().map { number in
 			let title = self.response.discs?.first { $0.number == number }?.title
 			return (number, title?.isEmpty == false ? title : nil, byDisc[number] ?? [])
@@ -168,33 +210,8 @@ private struct LibraryAlbumDetailContent: View {
 	private func trackRow(_ track: MediaRow) -> some View {
 		TrackRow(title: track.title, duration: track.duration, fileSize: track.fileSize, verticalPadding: 12, onTap: { self.play(track) })
 		.contextMenu {
-			Button {
-				Navigator.shared.sheet = Navigator.Paths.addToPlaylist(mediaIds: [track.id])
-			} label: {
-				Label(String(localized: "add-to-playlist"), systemImage: "text.badge.plus")
-			}
-
-			Button {
-				Navigator.shared.send(to: .libraryTrack(id: track.id))
-			} label: {
-				Label(String(localized: "view-track"), systemImage: "info.circle")
-			}
-
-			if DownloadManager.shared.isDownloaded(trackId: track.id) {
-				Button(role: .destructive) {
-					if let entry = DownloadManager.shared.downloads.first(where: { $0.id == track.id }) {
-						DownloadManager.shared.delete(entry)
-					}
-				} label: {
-					Label(String(localized: "remove-download"), systemImage: "arrow.down.circle.fill")
-				}
-			} else {
-				Button {
-					DownloadManager.shared.downloadTrack(track)
-				} label: {
-					Label(String(localized: "download"), systemImage: "arrow.down.circle")
-				}
-				.disabled(DownloadManager.shared.isDownloading(trackId: track.id) || NetworkMonitor.shared.isOffline)
+			TrackMenuItems(track: track) {
+				self.pendingDelete = track
 			}
 		}
 	}
@@ -211,13 +228,29 @@ private struct LibraryAlbumDetailContent: View {
 		.foregroundStyle(palette.secondary)
 	}
 
+	private func delete(_ track: MediaRow) {
+		guard let server else { return }
+		Task {
+			do {
+				try await server.removeFromLibrary(track)
+				self.removedTrackIds.insert(track.id)
+				// nothing left to show: the album is gone from the library
+				if self.tracks.isEmpty {
+					self.dismiss()
+				}
+			} catch {
+				self.toast.failure(error)
+			}
+		}
+	}
+
 	private func play(_ track: MediaRow) {
-		PlaybackSource.play(track, queue: self.response.tracks, recordContext: RecordContext(type: .album, refId: self.response.album.row.id))
+		PlaybackSource.play(track, queue: self.tracks, recordContext: RecordContext(type: .album, refId: self.response.album.row.id))
 	}
 
 	private func playAll(shuffle: Bool) {
-		guard !self.response.tracks.isEmpty else { return }
-		var queue = self.response.tracks
+		guard !self.tracks.isEmpty else { return }
+		var queue = self.tracks
 		if shuffle {
 			queue.shuffle()
 		}

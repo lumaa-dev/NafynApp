@@ -8,7 +8,12 @@ import Safyn
 /// ``NowPlayingView``; the placeholder is inert. Transport controls sit alongside as sibling buttons so
 /// they don't fight a wrapping `Button`'s gesture.
 struct MiniPlayerBar: View {
+	@Environment(\.server) private var server: NafynServer?
+
 	let namespace: Namespace.ID
+
+	@State private var pendingDelete: MediaRow? = nil
+	@State private var toast = ToastState()
 
 	var body: some View {
 		if PlaybackSource.track == nil {
@@ -63,7 +68,24 @@ struct MiniPlayerBar: View {
 			.onTapGesture {
 				PlayerEngine.shared.isExpanded = true
 			}
+			// the same actions as a track row in the library, minus Play and Shuffle
+			.contextMenu {
+				TrackMenuItems(track: track) {
+					self.pendingDelete = track
+				}
+			}
 			.padding(.horizontal)
+			.toast(self.toast)
+			.alert(
+				String(localized: "delete-track-confirm"),
+				isPresented: Binding(get: { self.pendingDelete != nil }, set: { if !$0 { self.pendingDelete = nil } }),
+				presenting: self.pendingDelete
+			) { track in
+				Button(String(localized: "cancel"), role: .cancel) {}
+				Button(String(localized: "delete"), role: .destructive) {
+					self.delete(track)
+				}
+			}
 		}
 	}
 
@@ -81,6 +103,21 @@ struct MiniPlayerBar: View {
 		}
 		.padding(.horizontal)
 		.accessibilityElement(children: .combine)
+	}
+
+	private func delete(_ track: MediaRow) {
+		guard let server else { return }
+		Task {
+			do {
+				try await server.removeFromLibrary(track)
+				// mirroring another device: it still has the track queued, so move it along
+				if PlaybackSource.isRemote, PlaybackSource.track?.id == track.id {
+					PlaybackSource.next()
+				}
+			} catch {
+				self.toast.failure(error)
+			}
+		}
 	}
 
 	private var progressFraction: CGFloat {

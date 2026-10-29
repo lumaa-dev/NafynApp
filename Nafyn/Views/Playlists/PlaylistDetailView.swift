@@ -48,6 +48,12 @@ private struct PlaylistDetailContent: View {
 		self.detail.viewer.isOwner && self.detail.playlist.sortMode == .manual && (self.paginator?.hasMore == false) && !NetworkMonitor.shared.isOffline
 	}
 
+	/// The playlist's page on the Nafyn web app (`/l/playlist/<id>`), shown for sharing once it is public.
+	private var shareURL: URL? {
+		guard self.detail.playlist.privacy == .public, let server else { return nil }
+		return server.instance.baseURL.appending(path: "l/playlist/\(self.playlistId)")
+	}
+
 	private var coverURL: URL? {
 		guard self.detail.playlist.image != nil, let server else { return nil }
 		let endpoint = Playlist.image(pid: self.playlistId, token: server.authToken)
@@ -74,6 +80,16 @@ private struct PlaylistDetailContent: View {
 		.toast(self.toast)
 		.navigationTitle(self.detail.playlist.title)
 		.toolbar {
+			if let shareURL = self.shareURL {
+				ToolbarItem(placement: .primaryAction) {
+					ShareLink(item: shareURL) {
+						Label(String(localized: "share"), systemImage: "square.and.arrow.up")
+							.labelStyle(.iconOnly)
+					}
+					.tint(Color.primary)
+				}
+			}
+
 			ToolbarItem(placement: .primaryAction) {
 				Menu {
 					if self.detail.viewer.isOwner {
@@ -82,6 +98,7 @@ private struct PlaylistDetailContent: View {
 						} label: {
 							Label(String(localized: "edit"), systemImage: "pencil")
 						}
+						.tint(Color.primary)
 						.disabled(NetworkMonitor.shared.isOffline)
 					}
 
@@ -90,6 +107,7 @@ private struct PlaylistDetailContent: View {
 					} label: {
 						Label(String(localized: "members"), systemImage: "person.2")
 					}
+					.tint(Color.primary)
 
 					if self.detail.viewer.isOwner || self.detail.viewer.isMember {
 						Button {
@@ -97,6 +115,7 @@ private struct PlaylistDetailContent: View {
 						} label: {
 							Label(String(localized: "add-tracks"), systemImage: "plus")
 						}
+						.tint(Color.primary)
 						.disabled(NetworkMonitor.shared.isOffline)
 					}
 
@@ -105,6 +124,7 @@ private struct PlaylistDetailContent: View {
 					} label: {
 						Label(String(localized: "download-playlist"), systemImage: "arrow.down.circle")
 					}
+					.tint(Color.primary)
 					.disabled(NetworkMonitor.shared.isOffline)
 
 					if self.detail.viewer.isOwner {
@@ -113,6 +133,7 @@ private struct PlaylistDetailContent: View {
 						} label: {
 							Label(String(localized: "delete"), systemImage: "trash")
 						}
+						.tint(DTColor.buttonDanger)
 						.disabled(NetworkMonitor.shared.isOffline)
 					} else if self.detail.viewer.isMember {
 						Button(role: .destructive) {
@@ -120,6 +141,7 @@ private struct PlaylistDetailContent: View {
 						} label: {
 							Label(String(localized: "leave"), systemImage: "rectangle.portrait.and.arrow.right")
 						}
+						.tint(DTColor.buttonDanger)
 						.disabled(NetworkMonitor.shared.isOffline)
 					}
 				} label: {
@@ -228,7 +250,7 @@ private struct PlaylistDetailContent: View {
 							DownloadManager.shared.delete(download)
 						}
 					} label: {
-						Label(String(localized: "remove-download"), systemImage: "arrow.down.circle.fill")
+						Label(String(localized: "remove"), systemImage: "arrow.down.circle.fill")
 					}
 					.tint(DTColor.textPrimary.opacity(0.4))
 				} else {

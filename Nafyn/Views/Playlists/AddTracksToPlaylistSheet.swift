@@ -58,6 +58,7 @@ struct AddTracksToPlaylistSheet: View {
 			}
 			.toast(self.toast)
 		}
+		.sheetBackground()
 	}
 
 	@ViewBuilder

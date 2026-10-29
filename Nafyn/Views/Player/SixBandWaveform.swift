@@ -4,10 +4,10 @@ import SwiftUI
 import Safyn
 
 /// The small 6-bar "now playing" indicator next to the queue header, mirroring the animated waveform
-/// glyph Apple Music shows beside its "Playing from" label — genuinely driven by `AudioReactivityEngine`
-/// (per-instrument analysis on iOS 27+, a live tap-derived multiband envelope otherwise), not a looping
-/// decorative animation. Renders as a flat 3rd bar when nothing is playing, matching the system glyph's
-/// paused state.
+/// glyph Apple Music shows beside its "Playing from" label — genuinely driven by `AudioReactivityEngine`,
+/// whose six bars each follow a frequency range (kick and bass on the left up to cymbals on the right),
+/// not a looping decorative animation. Sits at its minimum height when nothing is playing, matching the
+/// system glyph's paused state.
 struct SixBandWaveform: View {
 	var tint: Color = DTColor.textPrimary
 	var barWidth: CGFloat = 2.5
@@ -16,10 +16,7 @@ struct SixBandWaveform: View {
 
 	var body: some View {
 		TimelineView(.animation(paused: !PlayerEngine.shared.isPlaying)) { _ in
-			let levels = AudioReactivityEngine.shared.bandLevels(
-				at: PlayerEngine.shared.currentTime,
-				trackId: PlayerEngine.shared.currentTrack?.id
-			)
+			let levels = AudioReactivityEngine.shared.bandLevels
 
 			HStack(alignment: .bottom, spacing: self.spacing) {
 				ForEach(0..<levels.count, id: \.self) { index in

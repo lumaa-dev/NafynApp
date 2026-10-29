@@ -34,7 +34,7 @@ struct DownloadsSettingsSection: View {
 					Text(String(localized: "downloads-empty"))
 						.foregroundStyle(DTColor.textPrimary.opacity(0.5))
 				} else {
-					ForEach(DownloadManager.shared.downloads, id: \.albumId) { track in
+					ForEach(DownloadManager.shared.downloads, id: \.id) { track in
 						HStack(spacing: 12) {
 							CoverImage(url: track.coverArt.flatMap { URL(string: $0) })
 								.frame(width: 40, height: 40)

@@ -124,6 +124,7 @@ struct SearchSheetView: View {
 				DefaultToolbarItem(kind: .search, placement: .bottomBar)
 			}
 		}
+		.sheetBackground()
 		.onChange(of: self.filter) { _, _ in
 			self.triggerSearch()
 		}

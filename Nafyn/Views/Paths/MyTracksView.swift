@@ -122,21 +122,13 @@ struct MyTracksView: View {
 			Button {
 				Navigator.shared.sheet = Navigator.Paths.addToPlaylist(mediaIds: [track.id])
 			} label: {
-				Label(String(localized: "add-to-playlist"), systemImage: "text.badge.plus")
+				Label(String(localized: "add"), systemImage: "text.badge.plus")
 			}
 			.tint(DTColor.accentStart)
 		}
 		.contextMenu {
-			Button {
-				Navigator.shared.sheet = Navigator.Paths.addToPlaylist(mediaIds: [track.id])
-			} label: {
-				Label(String(localized: "add-to-playlist"), systemImage: "text.badge.plus")
-			}
-
-			Button {
-				Navigator.shared.send(to: .libraryTrack(id: track.id))
-			} label: {
-				Label(String(localized: "view-track"), systemImage: "info.circle")
+			TrackMenuItems(track: track) {
+				self.pendingDelete = track
 			}
 		}
 	}
@@ -145,7 +137,7 @@ struct MyTracksView: View {
 		guard let server else { return }
 		Task {
 			do {
-				_ = try await server.send(Library.remove(id: track.id)) as RemovedWithFileResponse
+				try await server.removeFromLibrary(track)
 				self.paginator?.remove(where: { $0.id == track.id })
 			} catch {
 				self.toast.failure(error)

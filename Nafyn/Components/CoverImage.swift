@@ -25,6 +25,9 @@ struct CoverImage: View {
 	var url: URL?
 	var cornerRadius: CGFloat = 10.0
 
+	/// Shown while the cover loads, or when there is none.
+	var placeholder: Color = DTColor.surfaceSelect
+
 	/// The cover `loaded` was fetched for, so a stale image is never shown after `url` changes.
 	@State private var loaded: (url: URL, image: UIImage)? = nil
 
@@ -39,11 +42,11 @@ struct CoverImage: View {
 							.resizable()
 							.aspectRatio(1.0, contentMode: .fill)
 					} placeholder: {
-						DTColor.surfaceSelect
+						self.placeholder
 					}
 				}
 			} else {
-				DTColor.surfaceSelect
+				self.placeholder
 			}
 		}
 		.modifier(CornerClip(radius: self.cornerRadius))
@@ -60,7 +63,7 @@ struct CoverImage: View {
 					.resizable()
 					.aspectRatio(1.0, contentMode: .fill)
 			} else {
-				DTColor.surfaceSelect
+				self.placeholder
 			}
 		}
 		.task(id: url) {

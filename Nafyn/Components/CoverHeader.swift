@@ -124,7 +124,8 @@ struct CoverHeader<Details: View>: View {
 				.frame(maxHeight: self.maxCoverHeight)
 				.overlay {
 					GeometryReader { proxy in
-						CoverImage(url: self.url, cornerRadius: 0)
+						// the album's own color while loading, so a red cover never flashes gray first
+						CoverImage(url: self.url, cornerRadius: 0, placeholder: self.palette.background)
 							.frame(width: proxy.size.width, height: proxy.size.height)
 							.clipped()
 							.backgroundExtensionEffect()

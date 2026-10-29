@@ -33,6 +33,7 @@ struct PlaylistEditSheet: View {
 					TextField(String(localized: "title"), text: self.$title)
 					TextField(String(localized: "description"), text: self.$description)
 				}
+				.sheetRows()
 
 				Section {
 					Picker(String(localized: "privacy"), selection: self.$privacy) {
@@ -48,6 +49,7 @@ struct PlaylistEditSheet: View {
 						Text("duration").tag(PlaylistSortMode.duration)
 					}
 				}
+				.sheetRows()
 			}
 			.scrollEdgeEffectStyle(.soft, for: .all)
 			.navigationTitle(String(localized: "edit-playlist"))
@@ -74,6 +76,7 @@ struct PlaylistEditSheet: View {
 			}
 			.toast(self.toast)
 		}
+		.sheetBackground()
 	}
 
 	private func save() {

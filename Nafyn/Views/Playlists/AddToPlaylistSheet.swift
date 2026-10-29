@@ -67,6 +67,7 @@ struct AddToPlaylistSheet: View {
 			}
 			.toast(self.toast)
 		}
+		.sheetBackground()
 	}
 
 	private func add(to playlist: PlaylistRow) {

@@ -83,7 +83,7 @@ struct LyricsPanel: View {
 	}
 
 	private func activeLineId(in lyrics: Lyrics) -> String? {
-		let currentTime = PlayerEngine.shared.currentTime
+		let currentTime = PlaybackSource.currentTime
 		for paragraph in lyrics.paragraphs {
 			for line in paragraph.lines {
 				if currentTime >= line.startTime && currentTime < line.endTime {
@@ -96,14 +96,14 @@ struct LyricsPanel: View {
 
 	@ViewBuilder
 	private func lineView(_ line: Lyrics.Line) -> some View {
-		let currentTime = PlayerEngine.shared.currentTime
+		let currentTime = PlaybackSource.currentTime
 		let isBackground = line.type.kind == .background
 		let isAlt = line.type.alt
 		let isActive = currentTime >= line.startTime && currentTime < line.endTime
 		let sizeMultiplier: CGFloat = isBackground ? 0.75 : 1.0
 
 		Button {
-			PlayerEngine.shared.seek(to: line.startTime)
+			PlaybackSource.seek(to: line.startTime)
 		} label: {
 			Group {
 				if line.segments.isEmpty {
@@ -162,7 +162,7 @@ private struct SegmentTextView: View {
 	let useSystemFont: Bool
 
 	var body: some View {
-		let currentTime = PlayerEngine.shared.currentTime
+		let currentTime = PlaybackSource.currentTime
 		let isActive = currentTime >= self.segment.startTime && currentTime < self.segment.endTime
 		let duration = self.segment.endTime - self.segment.startTime
 		let isLong = duration >= LyricsPanel.longThreshold

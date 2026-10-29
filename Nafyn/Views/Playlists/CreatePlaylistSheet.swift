@@ -22,6 +22,7 @@ struct CreatePlaylistSheet: View {
 					TextField(String(localized: "title"), text: self.$title)
 					TextField(String(localized: "description"), text: self.$description)
 				}
+				.sheetRows()
 
 				Section {
 					Picker(String(localized: "privacy"), selection: self.$privacy) {
@@ -29,6 +30,7 @@ struct CreatePlaylistSheet: View {
 						Text("public").tag(PlaylistPrivacy.public)
 					}
 				}
+				.sheetRows()
 			}
 			.scrollEdgeEffectStyle(.soft, for: .all)
 			.navigationTitle(String(localized: "new-playlist"))
@@ -55,6 +57,7 @@ struct CreatePlaylistSheet: View {
 			}
 			.toast(self.toast)
 		}
+		.sheetBackground()
 	}
 
 	private func create() {

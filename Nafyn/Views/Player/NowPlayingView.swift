@@ -364,6 +364,7 @@ struct NowPlayingView: View {
 							} label: {
 								Label("view-album", systemImage: "square.stack")
 							}
+							.tint(Color.primary)
 						}
 						if let artistId = track.artistMbid {
 							Button {
@@ -372,12 +373,14 @@ struct NowPlayingView: View {
 							} label: {
 								Label("view-artist", systemImage: "person")
 							}
+							.tint(Color.primary)
 						}
 						Button {
 							self.isPresentingAddToPlaylist = true
 						} label: {
 							Label("add-to-playlist", systemImage: "text.badge.plus")
 						}
+						.tint(Color.primary)
 					} label: {
 						Image(systemName: "ellipsis")
 					}

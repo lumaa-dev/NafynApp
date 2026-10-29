@@ -137,12 +137,14 @@ private struct AddLocalAccountSheet: View {
 					SecureField(String(localized: "password"), text: self.$password)
 						.textContentType(.password)
 				}
+				.sheetRows()
 
 				if let errorMessage {
 					Section {
 						Text(errorMessage)
 							.foregroundStyle(DTColor.buttonDanger)
 					}
+					.sheetRows()
 				}
 			}
 			.scrollContentBackground(.hidden)
@@ -177,6 +179,7 @@ private struct AddLocalAccountSheet: View {
 				}
 			}
 		}
+		.sheetBackground()
 	}
 
 	private func addAccount() {

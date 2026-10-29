@@ -6,6 +6,7 @@ import Safyn
 
 struct RootView: View {
 	@Environment(\.scenePhase) private var scenePhase
+	@Environment(\.modelContext) private var modelContext
 	@Query private var auth: [AuthInfo]
 
 	@State private var isLoading: Bool = false
@@ -177,18 +178,56 @@ struct RootView: View {
 		}
 	}
 
+	/// Reuses the saved session; a new one (`Auth.login`, which shows up as another "Nafyn on iOS" device
+	/// in the user's sessions) is only created when the server rejects the saved token, or when there is
+	/// none. A network failure never logs in: the token is still good, the server is just unreachable.
 	private func tryLogin(auth: AuthInfo) async throws -> NafynServer? {
 		guard let url: URL = URL(string: auth.server) else { return nil }
 		let inst: NafynInstance = try await NafynInstance.connect(appName: "Nafyn on iOS", to: url)
-		let server: NafynServer = .init(instance: inst, authToken: auth.token)
+		let server: NafynServer = .init(instance: inst, authToken: auth.token.isEmpty ? nil : auth.token)
 
-		if Date.now > auth.tokenExpire {
-			server.authToken = nil
-			let res: AuthResponse = try await server.send(Auth.login(username: auth.username, password: auth.password))
-			server.authToken = res.token
+		if server.authToken != nil {
+			switch await self.checkSession(server) {
+				case .valid:
+					return server
+				case .unreachable:
+					return nil
+				case .rejected:
+					break
+			}
 		}
 
-		return (await self.getMe(server)) ? server : nil
+		server.authToken = nil
+		let res: AuthResponse = try await server.send(Auth.login(username: auth.username, password: auth.password))
+		server.authToken = res.token
+
+		// persist the fresh session, otherwise every launch would log in again
+		auth.token = res.token
+		auth.tokenExpire = Date.now.addingTimeInterval(60 * 60 * 24 * 7)
+		try? self.modelContext.save()
+
+		return server
+	}
+
+	private enum SessionCheck {
+		case valid
+		/// The server answered 401/403 (or there is no token): the session is invalid or expired.
+		case rejected
+		/// No answer (offline, timeout, server error): says nothing about the session.
+		case unreachable
+	}
+
+	private func checkSession(_ server: NafynServer) async -> SessionCheck {
+		do {
+			let _: NafynUser = try await server.send(User.me)
+			return .valid
+		} catch NafynError.unauthenticated {
+			return .rejected
+		} catch NafynError.server(let statusCode, _) where statusCode == 401 || statusCode == 403 {
+			return .rejected
+		} catch {
+			return .unreachable
+		}
 	}
 
 	private func attemptLogin() async {
@@ -221,10 +260,5 @@ struct RootView: View {
 			DownloadManager.shared.configure(server: s)
 			PushManager.shared.configure(server: s)
 		}
-	}
-
-	private func getMe(_ server: NafynServer) async -> Bool {
-		let user: NafynUser? = try? await server.send(User.me)
-		return user != nil
 	}
 }

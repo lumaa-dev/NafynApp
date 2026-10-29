@@ -59,12 +59,14 @@ private struct LibraryTrackDetailContent: View {
 						} label: {
 							Label(String(localized: "remove-download"), systemImage: "arrow.down.circle.fill")
 						}
+						.tint(DTColor.buttonDanger)
 					} else {
 						Button {
 							DownloadManager.shared.downloadTrack(self.track)
 						} label: {
 							Label(String(localized: "download"), systemImage: "arrow.down.circle")
 						}
+						.tint(Color.primary)
 						.disabled(DownloadManager.shared.isDownloading(trackId: self.track.id) || NetworkMonitor.shared.isOffline)
 					}
 
@@ -73,6 +75,7 @@ private struct LibraryTrackDetailContent: View {
 					} label: {
 						Label(String(localized: "delete"), systemImage: "trash")
 					}
+					.tint(DTColor.buttonDanger)
 					.disabled(NetworkMonitor.shared.isOffline)
 				} label: {
 					Label(String(localized: "more"), systemImage: "ellipsis")

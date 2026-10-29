@@ -1,29 +1,43 @@
-// Made by Lumaa
-
 import AVFoundation
 import CoreMedia
-#if canImport(MusicUnderstanding)
-import MusicUnderstanding
-#endif
 
 /// Real-time bass/overall loudness estimate for the currently-playing item, driving
 /// `CoverMeshBackground`'s subtle motion in `NowPlayingView`, plus a 6-band level signal driving the
 /// mini waveform indicator in `QueuePanel`.
 ///
-/// Two sources feed the 6-band signal, never mixed for the same track:
-/// - iOS 27+: `MusicUnderstanding`'s `instrumentActivity` analysis, run once per track against the
-///   full asset and sampled by playback time — genuine per-instrument activity, not a fabricated
-///   spectrum, but only available after that one-time analysis completes.
-/// - Every OS version (and the fallback while/if the above is unavailable or still running): the same
-///   `MTAudioProcessingTap` this class already installs for `bassLevel`/`overallLevel`, extended with 5
-///   more one-pole low-pass filters at increasing corner frequencies so adjacent-band subtraction yields
-///   a genuine (if approximate) multiband envelope from the live PCM — cheap enough to run every buffer.
+/// Both come from one `MTAudioProcessingTap` on the playing item. Each of the 6 bars owns a frequency
+/// range (see ``Band``), isolated by a 4th-order band-pass (a Butterworth high-pass then low-pass), so a
+/// bar moves when the instruments living in that range play: kick and bass at the left, voices and
+/// guitars in the middle, cymbals at the right. Ranges stay within what a speaker or headphone reproduces
+/// and an ear hears (50 Hz...12 kHz), no sub-bass rumble and no ultrasonic air.
 @Observable
 final class AudioReactivityEngine: NSObject {
 	static let shared = AudioReactivityEngine()
 
+	/// One bar's slice of the spectrum.
+	struct Band: Sendable {
+		/// Lower and upper edge of the band, in Hz.
+		let low: Float
+		let high: Float
+		/// Multiplies the band's RMS: music carries far less energy in the highs than in the lows, so
+		/// without it the right-hand bars would barely move.
+		let gain: Float
+		/// What typically sounds in this range, for reference.
+		let instruments: String
+	}
+
+	/// The 6 bars, low to high. Edges are adjacent (each band starts where the previous ends).
+	static let bands: [Band] = [
+		Band(low: 50, high: 140, gain: 6, instruments: "kick drum, bass guitar, synth bass, low piano"),
+		Band(low: 140, high: 350, gain: 8, instruments: "bass guitar and cello body, toms, low male voice, low piano"),
+		Band(low: 350, high: 900, gain: 10, instruments: "guitars, piano, snare body, male and female voice"),
+		Band(low: 900, high: 2_500, gain: 14, instruments: "lead voice, violin, saxophone, guitar and piano upper range"),
+		Band(low: 2_500, high: 6_000, gain: 20, instruments: "violin and flute brightness, vocal clarity, snare crack"),
+		Band(low: 6_000, high: 12_000, gain: 30, instruments: "hi-hats, cymbals, strings and vocal air"),
+	]
+
 	/// Number of bars the waveform indicator renders.
-	static let bandCount = 6
+	static let bandCount = AudioReactivityEngine.bands.count
 
 	/// Smoothed low-frequency energy, roughly 0...1. Read from a `TimelineView` context, not observed
 	/// per-buffer, so UI updates stay pinned to the display's own cadence.
@@ -32,33 +46,24 @@ final class AudioReactivityEngine: NSObject {
 	/// Smoothed overall loudness, roughly 0...1.
 	private(set) var overallLevel: Double = 0
 
-	/// Tap-derived 6-band envelope, roughly 0...1 each — always live, on every OS version, as the
-	/// fallback source for `bandLevels(at:trackId:)`.
-	private(set) var tapBandLevels: [Double] = Array(repeating: 0, count: AudioReactivityEngine.bandCount)
+	/// The 6 bars' smoothed levels, roughly 0...1 each, in ``bands`` order.
+	private(set) var bandLevels: [Double] = Array(repeating: 0, count: AudioReactivityEngine.bandCount)
 
 	private weak var attachedItem: AVPlayerItem?
-	private var lowPassState: Float = 0
-	/// One running low-pass state per band corner frequency, for the `tapBandLevels` subtractive filter bank.
-	private var bandLowPassState: [Float] = Array(repeating: 0, count: AudioReactivityEngine.bandCount)
 
-	#if canImport(MusicUnderstanding)
-	/// Type-erased `InstrumentActivityCache?` — that concrete type is `@available(iOS 27...)`-gated (it
-	/// holds `MusicUnderstandingSession.TimedValue`), so it can't be named directly in a stored property
-	/// that must also compile for older OS versions, same reasoning as `PlayerEngine`'s `mediaSessionBox`.
-	private var instrumentActivityCache: Any? = nil
-	private var instrumentAnalysisTask: Task<Void, Never>? = nil
-	#endif
+	// Audio-thread state: written only from the tap callbacks, never observed.
+	@ObservationIgnored private var lowPassState: Float = 0
+	@ObservationIgnored private var bassAlpha: Float = 0.02
+	@ObservationIgnored private var channelStride = 1
+	@ObservationIgnored private var filterBank = BandFilterBank(sampleRate: 44_100)
 
 	private override init() {
 		super.init()
 	}
 
-	/// Installs an audio tap on `item`'s first audio track, and (iOS 27+) kicks off a one-time
-	/// `MusicUnderstanding` instrument-activity analysis of the same item keyed to `trackId`. Safe to
-	/// call repeatedly — replaces any previous tap/analysis. No-op if the asset's tracks aren't
-	/// available synchronously (e.g. still resolving); `PlayerEngine` calls this right after creating
-	/// the item, well before playback needs it.
-	func attach(to item: AVPlayerItem, trackId: String) {
+	/// Installs an audio tap on `item`'s first audio track. Safe to call repeatedly — replaces any
+	/// previous tap. `PlayerEngine` calls this right after creating the item, well before playback needs it.
+	func attach(to item: AVPlayerItem) {
 		self.detach()
 
 		let asset = item.asset
@@ -68,12 +73,6 @@ final class AudioReactivityEngine: NSObject {
 				self.installTap(on: item, track: track)
 			}
 		}
-
-		#if canImport(MusicUnderstanding)
-		if #available(iOS 27.0, tvOS 27.0, watchOS 27.0, visionOS 27.0, *) {
-			self.runInstrumentActivityAnalysis(item: item, trackId: trackId)
-		}
-		#endif
 	}
 
 	func detach() {
@@ -82,30 +81,8 @@ final class AudioReactivityEngine: NSObject {
 		self.lowPassState = 0
 		self.bassLevel = 0
 		self.overallLevel = 0
-		self.bandLowPassState = Array(repeating: 0, count: Self.bandCount)
-		self.tapBandLevels = Array(repeating: 0, count: Self.bandCount)
-
-		#if canImport(MusicUnderstanding)
-		if #available(iOS 27.0, tvOS 27.0, watchOS 27.0, visionOS 27.0, *) {
-			self.instrumentAnalysisTask?.cancel()
-			self.instrumentAnalysisTask = nil
-			self.instrumentActivityCache = nil
-		}
-		#endif
-	}
-
-	/// The 6 bars' current levels (roughly 0...1 each) for `trackId` at `playbackTime` — the single entry
-	/// point the waveform view calls every frame. Prefers the cached `MusicUnderstanding` analysis for
-	/// the matching track when it's ready; otherwise (older OS, analysis still running or failed) falls
-	/// back to the live tap-derived bands, which are always kept up to date regardless.
-	func bandLevels(at playbackTime: TimeInterval, trackId: String?) -> [Double] {
-		#if canImport(MusicUnderstanding)
-		if #available(iOS 27.0, tvOS 27.0, watchOS 27.0, visionOS 27.0, *),
-			let cache = self.instrumentActivityCache as? InstrumentActivityCache, cache.trackId == trackId {
-			return cache.levels(at: playbackTime)
-		}
-		#endif
-		return self.tapBandLevels
+		self.filterBank.reset()
+		self.bandLevels = Array(repeating: 0, count: Self.bandCount)
 	}
 
 	private func installTap(on item: AVPlayerItem, track: AVAssetTrack) {
@@ -136,55 +113,44 @@ final class AudioReactivityEngine: NSObject {
 		self.attachedItem = item
 	}
 
-	/// Corner frequencies (Hz) for the 6-band subtractive filter bank, low to high, log-spaced across a
-	/// typical music spectrum — approximate by construction (no FFT), tuned for a visually alive spread
-	/// rather than precise band-pass edges.
-	private static let bandCornerFrequencies: [Float] = [80, 200, 500, 1200, 3000, 8000]
-
-	/// `alpha = 1 - e^(-2π·fc/fs)` for each corner, at a typical 44.1 kHz sample rate — same one-pole
-	/// low-pass formula as the existing bass filter below, just at 6 different corners.
-	private static let bandAlphas: [Float] = AudioReactivityEngine.bandCornerFrequencies.map { fc in
-		1 - exp(-2 * Float.pi * fc / 44_100)
+	/// Called by the tap's `prepare` with the real stream format, so the filter corners are right at any
+	/// sample rate (44.1, 48, 96 kHz...) and interleaved stereo is read one channel at a time.
+	fileprivate func prepare(sampleRate: Double, channels: Int, isInterleaved: Bool) {
+		let rate = Float(sampleRate > 0 ? sampleRate : 44_100)
+		self.filterBank = BandFilterBank(sampleRate: rate)
+		self.bassAlpha = 1 - exp(-2 * Float.pi * 150 / rate)
+		self.channelStride = isInterleaved ? max(channels, 1) : 1
+		self.lowPassState = 0
 	}
 
-	/// Called on every tap buffer (audio thread) with interleaved `Float32` samples. A one-pole
-	/// low-pass filter approximates a bass-band envelope — cheap enough to run per-sample without an
-	/// FFT, and plenty for driving a slow, smooth visual rather than precise spectral analysis. The same
-	/// pass over the buffer also feeds 6 more low-pass filters at increasing corners; the difference
-	/// between adjacent filters' outputs approximates that band's energy (a classic subtractive envelope
-	/// follower), feeding `tapBandLevels`.
+	/// Called on every tap buffer (audio thread) with `Float32` samples; `stride` steps over the other
+	/// channels of an interleaved buffer, so only one channel is analyzed. A one-pole low-pass
+	/// approximates the bass envelope; the six band-pass filters feed ``bandLevels``.
 	fileprivate func processSamples(_ samples: UnsafePointer<Float>, count: Int) {
-		guard count > 0 else { return }
+		let stride = self.channelStride
+		let frames = count / stride
+		guard frames > 0 else { return }
 
 		var lowPassed = self.lowPassState
 		var bassEnergy: Float = 0
 		var totalEnergy: Float = 0
-		// ~150 Hz corner at a typical 44.1 kHz sample rate: alpha = 1 - e^(-2π·fc/fs).
-		let alpha: Float = 0.02
+		let alpha = self.bassAlpha
 
-		var bandStates = self.bandLowPassState
-		var bandEnergies = Array(repeating: Float(0), count: Self.bandCount)
-
-		for index in 0..<count {
-			let sample = samples[index]
+		let bank = self.filterBank
+		var bandEnergies = bank.process(samples, frames: frames, stride: stride) { sample in
 			lowPassed += alpha * (sample - lowPassed)
 			bassEnergy += lowPassed * lowPassed
 			totalEnergy += sample * sample
-
-			var previousBand: Float = 0
-			for band in 0..<Self.bandCount {
-				bandStates[band] += Self.bandAlphas[band] * (sample - bandStates[band])
-				let bandOutput = bandStates[band] - previousBand
-				bandEnergies[band] += bandOutput * bandOutput
-				previousBand = bandStates[band]
-			}
 		}
 		self.lowPassState = lowPassed
-		self.bandLowPassState = bandStates
 
-		let bassRMS = Double(sqrt(bassEnergy / Float(count)))
-		let totalRMS = Double(sqrt(totalEnergy / Float(count)))
-		let bandRMS = bandEnergies.map { Double(sqrt($0 / Float(count))) }
+		let frameCount = Float(frames)
+		let bassRMS = Double(sqrt(bassEnergy / frameCount))
+		let totalRMS = Double(sqrt(totalEnergy / frameCount))
+		for band in 0..<bandEnergies.count {
+			bandEnergies[band] = sqrt(bandEnergies[band] / frameCount) * Self.bands[band].gain
+		}
+		let bandRMS = bandEnergies.map(Double.init)
 
 		Task { @MainActor in
 			// Gains chosen so typical music sits mid-range rather than pinned at 0 or 1; smoothing
@@ -195,111 +161,95 @@ final class AudioReactivityEngine: NSObject {
 			self.overallLevel = self.overallLevel * 0.85 + overallTarget * 0.15
 
 			for band in 0..<Self.bandCount {
-				let target = min(bandRMS[band] * 9, 1)
-				self.tapBandLevels[band] = self.tapBandLevels[band] * 0.8 + target * 0.2
+				// square root lifts quiet passages so a soft band still shows movement
+				let target = min(bandRMS[band].squareRoot(), 1)
+				self.bandLevels[band] = self.bandLevels[band] * 0.7 + target * 0.3
 			}
 		}
 	}
+}
 
-	#if canImport(MusicUnderstanding)
-	/// Runs a one-time `MusicUnderstanding` instrument-activity analysis of `item`'s asset, caching the
-	/// result keyed to `trackId` once it completes. Fire-and-forget: if a newer `attach(to:trackId:)`
-	/// supersedes this item before the analysis finishes, the result is discarded on arrival instead of
-	/// racing the new track's own cache.
-	@available(iOS 27.0, tvOS 27.0, watchOS 27.0, visionOS 27.0, *)
-	private func runInstrumentActivityAnalysis(item: AVPlayerItem, trackId: String) {
-		self.instrumentAnalysisTask = Task {
-			do {
-				let session = try await MusicUnderstandingSession(asset: item.asset)
-				let result = try await session.analyze(for: [.instrumentActivity])
-				guard let activity = result.instrumentActivity, !Task.isCancelled else { return }
-				let cache = InstrumentActivityCache(trackId: trackId, activity: activity)
+/// Six band-pass filters, each a 2nd-order Butterworth high-pass at the band's lower edge cascaded with a
+/// 2nd-order Butterworth low-pass at its upper edge (24 dB/octave skirts, so a neighboring range barely
+/// leaks in). Only ever touched from the audio thread, one buffer at a time.
+private final class BandFilterBank {
+	private struct Biquad {
+		var b0: Float = 0, b1: Float = 0, b2: Float = 0, a1: Float = 0, a2: Float = 0
+		var z1: Float = 0, z2: Float = 0
 
-				await MainActor.run {
-					guard self.attachedItem === item else { return }
-					self.instrumentActivityCache = cache
+		/// Transposed direct form II.
+		@inline(__always)
+		mutating func run(_ x: Float) -> Float {
+			let y = self.b0 * x + self.z1
+			self.z1 = self.b1 * x - self.a1 * y + self.z2
+			self.z2 = self.b2 * x - self.a2 * y
+			return y
+		}
+	}
+
+	/// Two sections per band: `[high-pass, low-pass]`.
+	private var sections: [Biquad]
+
+	init(sampleRate: Float) {
+		var sections: [Biquad] = []
+		for band in AudioReactivityEngine.bands {
+			// keep the upper edge safely below Nyquist on low sample rates
+			let high = min(band.high, sampleRate * 0.45)
+			sections.append(Self.butterworth(cutoff: band.low, sampleRate: sampleRate, highPass: true))
+			sections.append(Self.butterworth(cutoff: high, sampleRate: sampleRate, highPass: false))
+		}
+		self.sections = sections
+	}
+
+	func reset() {
+		for index in self.sections.indices {
+			self.sections[index].z1 = 0
+			self.sections[index].z2 = 0
+		}
+	}
+
+	/// Runs `frames` samples (every `stride`-th float of `samples`) through every band and returns each
+	/// band's summed squared output. `perSample` sees the raw sample, for the caller's own meters.
+	func process(_ samples: UnsafePointer<Float>, frames: Int, stride: Int, perSample: (Float) -> Void) -> [Float] {
+		var energies = [Float](repeating: 0, count: AudioReactivityEngine.bandCount)
+
+		self.sections.withUnsafeMutableBufferPointer { sections in
+			for frame in 0..<frames {
+				let sample = samples[frame * stride]
+				perSample(sample)
+
+				for band in 0..<AudioReactivityEngine.bandCount {
+					let filtered = sections[band * 2 + 1].run(sections[band * 2].run(sample))
+					energies[band] += filtered * filtered
 				}
-			} catch {
-				// Analysis unavailable/failed for this item (unsupported source, cancelled, etc.) — the
-				// live tap-derived `tapBandLevels` stays the fallback, so the waveform still animates.
-			}
-		}
-	}
-	#endif
-}
-
-#if canImport(MusicUnderstanding)
-/// Sampled `InstrumentActivityResult`, pre-flattened to plain `(seconds, value)` arrays (sorted by
-/// time) so `levels(at:)` can binary-search instead of walking `CMTime`-keyed structures every frame.
-@available(iOS 27.0, tvOS 27.0, watchOS 27.0, visionOS 27.0, *)
-private struct InstrumentActivityCache {
-	let trackId: String
-	private let vocal: [(time: Double, value: Float)]
-	private let drum: [(time: Double, value: Float)]
-	private let bass: [(time: Double, value: Float)]
-	private let other: [(time: Double, value: Float)]
-
-	init(trackId: String, activity: InstrumentActivityResult) {
-		self.trackId = trackId
-		self.vocal = Self.flatten(activity.activity[.vocal])
-		self.drum = Self.flatten(activity.activity[.drum])
-		self.bass = Self.flatten(activity.activity[.bass])
-		self.other = Self.flatten(activity.activity[.other])
-	}
-
-	private static func flatten(_ samples: [MusicUnderstandingSession.TimedValue<Float>]?) -> [(time: Double, value: Float)] {
-		(samples ?? []).map { (CMTimeGetSeconds($0.time), $0.value) }
-	}
-
-	/// Maps the 4 instrument categories onto the 6 bars in a fixed low-to-high spread — bass, a
-	/// bass/drum blend, drum, vocal, a vocal/other blend, other — so 4 discrete signals still read as a
-	/// smooth left-to-right sweep rather than 2 dead bars.
-	private static let barWeights: [[Double]] = [
-		[1.0, 0.0, 0.0, 0.0],
-		[0.5, 0.5, 0.0, 0.0],
-		[0.0, 1.0, 0.0, 0.0],
-		[0.0, 0.0, 1.0, 0.0],
-		[0.0, 0.0, 0.5, 0.5],
-		[0.0, 0.0, 0.0, 1.0],
-	]
-
-	func levels(at time: TimeInterval) -> [Double] {
-		let categories = [
-			Double(Self.value(in: self.bass, at: time)),
-			Double(Self.value(in: self.drum, at: time)),
-			Double(Self.value(in: self.vocal, at: time)),
-			Double(Self.value(in: self.other, at: time)),
-		]
-		return Self.barWeights.map { weights in
-			zip(weights, categories).reduce(0) { $0 + $1.0 * $1.1 }
-		}
-	}
-
-	/// Linearly interpolates the nearest samples around `time`, clamping to the first/last sample outside
-	/// the analyzed range.
-	private static func value(in samples: [(time: Double, value: Float)], at time: Double) -> Float {
-		guard !samples.isEmpty else { return 0 }
-		if time <= samples[0].time { return samples[0].value }
-		if time >= samples[samples.count - 1].time { return samples[samples.count - 1].value }
-
-		var low = 0
-		var high = samples.count - 1
-		while high - low > 1 {
-			let mid = (low + high) / 2
-			if samples[mid].time <= time {
-				low = mid
-			} else {
-				high = mid
 			}
 		}
 
-		let (t0, v0) = samples[low]
-		let (t1, v1) = samples[high]
-		let ratio = t1 > t0 ? Float((time - t0) / (t1 - t0)) : 0
-		return v0 + (v1 - v0) * ratio
+		return energies
+	}
+
+	/// RBJ cookbook biquad, Q = 1/√2 (maximally flat).
+	private static func butterworth(cutoff: Float, sampleRate: Float, highPass: Bool) -> Biquad {
+		let w0 = 2 * Float.pi * cutoff / sampleRate
+		let cosW0 = cos(w0)
+		let alpha = sin(w0) / (2 * 0.70710678)
+
+		let a0 = 1 + alpha
+		var section = Biquad()
+		if highPass {
+			section.b0 = (1 + cosW0) / 2 / a0
+			section.b1 = -(1 + cosW0) / a0
+			section.b2 = section.b0
+		} else {
+			section.b0 = (1 - cosW0) / 2 / a0
+			section.b1 = (1 - cosW0) / a0
+			section.b2 = section.b0
+		}
+		section.a1 = -2 * cosW0 / a0
+		section.a2 = (1 - alpha) / a0
+		return section
 	}
 }
-#endif
 
 // MARK: - MTAudioProcessingTap C callbacks
 
@@ -313,7 +263,12 @@ private func audioReactivityTapInit(tap: MTAudioProcessingTap, clientInfo: Unsaf
 
 private func audioReactivityTapFinalize(tap: MTAudioProcessingTap) {}
 
-private func audioReactivityTapPrepare(tap: MTAudioProcessingTap, maxFrames: CMItemCount, processingFormat: UnsafePointer<AudioStreamBasicDescription>) {}
+private func audioReactivityTapPrepare(tap: MTAudioProcessingTap, maxFrames: CMItemCount, processingFormat: UnsafePointer<AudioStreamBasicDescription>) {
+	let engine = Unmanaged<AudioReactivityEngine>.fromOpaque(MTAudioProcessingTapGetStorage(tap)).takeUnretainedValue()
+	let format = processingFormat.pointee
+	let isInterleaved = format.mFormatFlags & kAudioFormatFlagIsNonInterleaved == 0
+	engine.prepare(sampleRate: format.mSampleRate, channels: Int(format.mChannelsPerFrame), isInterleaved: isInterleaved)
+}
 
 private func audioReactivityTapUnprepare(tap: MTAudioProcessingTap) {}
 

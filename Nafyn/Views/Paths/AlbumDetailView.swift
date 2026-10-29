@@ -177,6 +177,7 @@ struct AlbumDetailView: View {
 				} label: {
 					Label(String(localized: "add-to-playlist"), systemImage: "text.badge.plus")
 				}
+				.tint(Color.primary)
 			}
 		}
 	}

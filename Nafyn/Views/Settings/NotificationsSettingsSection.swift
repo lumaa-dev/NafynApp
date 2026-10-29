@@ -82,7 +82,7 @@ private struct AppleDevicesSection: View {
 	private func row(_ device: AppleDevice) -> some View {
 		VStack(alignment: .leading, spacing: 4) {
 			HStack(spacing: 8) {
-				Text(device.deviceName ?? Self.kindsLabel(device.kinds))
+				Text(device.deviceName ?? String(localized: "unknown-device"))
 					.foregroundStyle(DTColor.textPrimary)
 					.lineLimit(1)
 
@@ -105,10 +105,6 @@ private struct AppleDevicesSection: View {
 				}
 			}
 
-			Text(Self.kindsLabel(device.kinds))
-				.font(.footnote)
-				.foregroundStyle(DTColor.textPrimary.opacity(0.55))
-
 			Text("device-last-seen \(device.lastSeenAtDate.formatted(.relative(presentation: .named)))")
 				.font(.footnote)
 				.foregroundStyle(DTColor.textPrimary.opacity(0.55))
@@ -123,6 +119,8 @@ private struct AppleDevicesSection: View {
 			.tint(DTColor.buttonDanger)
 		}
 	}
+
+	// Kept for later, but not shown: the token kinds mean nothing to a user looking at their devices.
 
 	/// A device now carries several token kinds (Safyn `kinds`); list them all.
 	static func kindsLabel(_ kinds: [AppleDeviceKind]) -> String {

@@ -11,19 +11,38 @@ struct RequestsView: View {
 	@State private var me: NafynUser? = nil
 	@State private var pendingDelete: NafynRequest? = nil
 
+	/// Statuses to show; empty means "All". Several can be active at once.
+	@State private var filters: Set<RequestFilter> = []
+
+	/// Bumped whenever `filters` changes, so `PaginatedList` (which only reads its paginator once) starts over.
+	@State private var listGeneration = 0
+
 	/// `manageRequests` lets the user accept/deny waiting requests and delete anyone's request.
 	private var canManage: Bool {
 		self.me?.permissions.has(.manageRequests) ?? false
 	}
 
-	/// Anyone can delete their own request; `manageRequests` extends that to everyone's.
+	/// Mirrors the server's `DELETE /request/:id`: `manageRequests` is required (owning the request is not
+	/// enough), and a request the download pipeline is working on can't be deleted by anyone.
 	private func canDelete(_ request: NafynRequest) -> Bool {
-		if self.canManage { return true }
-		guard let me else { return false }
+		guard self.canManage else { return false }
 
-		return switch request.requestedBy {
-			case .user(let user): user.id == me.id
-			case .id(let id): id == me.id
+		return switch request.status {
+			case .searching, .downloading, .processing:
+				false
+			case .waiting, .completed, .failed, .denied:
+				true
+		}
+	}
+
+	private var isFiltering: Bool {
+		!self.filters.isEmpty
+	}
+
+	private func makePaginator(server: NafynServer) -> Paginator<NafynRequest> {
+		let filters = self.filters
+		return Paginator<NafynRequest> { page, limit in
+			try await server.fetchRequests(page: page, limit: limit, filters: filters)
 		}
 	}
 
@@ -75,6 +94,45 @@ struct RequestsView: View {
 		}
 	}
 
+	/// "All" plus one toggle per status. "All" is on only while no status is picked; picking a status turns it
+	/// off, and clearing the last one turns it back on. The icon fills while a filter is active.
+	private var filterMenu: some View {
+		Menu {
+			Toggle(isOn: Binding(get: { !self.isFiltering }, set: { _ in self.setFilters([]) })) {
+				Label(String(localized: "all"), systemImage: "tray.full")
+			}
+			.tint(Color.primary)
+
+			Divider()
+
+			ForEach(RequestFilter.allCases) { filter in
+				Toggle(isOn: Binding(
+					get: { self.filters.contains(filter) },
+					set: { isOn in
+						var updated = self.filters
+						if isOn { updated.insert(filter) } else { updated.remove(filter) }
+						self.setFilters(updated)
+					}
+				)) {
+					Label(filter.title, systemImage: filter.symbol)
+				}
+				.tint(Color.primary)
+			}
+		} label: {
+			Label(String(localized: "filter"), systemImage: self.isFiltering ? "line.3.horizontal.decrease.circle.fill" : "line.3.horizontal.decrease.circle")
+				.labelStyle(.iconOnly)
+		}
+		.menuActionDismissBehavior(.disabled)
+		.tint(Color.primary)
+	}
+
+	private func setFilters(_ new: Set<RequestFilter>) {
+		guard new != self.filters, let server else { return }
+		self.filters = new
+		self.paginator = self.makePaginator(server: server)
+		self.listGeneration += 1
+	}
+
 	private func delete(_ request: NafynRequest) {
 		guard let server else { return }
 		Task {
@@ -99,6 +157,39 @@ struct RequestsView: View {
 			} catch {
 				self.toast.failure(error)
 			}
+		}
+	}
+}
+
+/// A status group the Requests list can be narrowed to. The server filters the first four itself; `denied`
+/// has no server filter (it is always listed), so ``NafynServer/fetchRequests(page:limit:filters:)`` drops
+/// those client-side unless picked.
+enum RequestFilter: String, CaseIterable, Identifiable, Hashable {
+	case waiting
+	case inProgress
+	case succeeded
+	case failed
+	case denied
+
+	var id: String { self.rawValue }
+
+	var title: String {
+		switch self {
+			case .waiting: String(localized: "status-waiting")
+			case .inProgress: String(localized: "status-in-progress")
+			case .succeeded: String(localized: "status-completed")
+			case .failed: String(localized: "status-failed")
+			case .denied: String(localized: "status-denied")
+		}
+	}
+
+	var symbol: String {
+		switch self {
+			case .waiting: "clock"
+			case .inProgress: "arrow.down.circle"
+			case .succeeded: "checkmark.circle"
+			case .failed: "exclamationmark.triangle"
+			case .denied: "xmark.circle"
 		}
 	}
 }

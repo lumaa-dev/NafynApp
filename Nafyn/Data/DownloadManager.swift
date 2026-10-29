@@ -276,6 +276,25 @@ final class DownloadManager {
 		self.refresh()
 	}
 
+	/// Deletes the downloaded copies of `trackIds` (those that are downloaded), leaving the library alone.
+	func deleteDownloads(trackIds: some Collection<String>) {
+		let ids = Set(trackIds)
+		let entries = self.downloads.filter { ids.contains($0.id) }
+		guard !entries.isEmpty else { return }
+
+		for entry in entries {
+			let url = Self.downloadsDirectory.appendingPathComponent(entry.fileName)
+			try? FileManager.default.removeItem(at: url)
+			self.context.delete(entry)
+		}
+		try? self.context.save()
+		self.refresh()
+	}
+
+	func downloadedTrackIds(albumId: String) -> [String] {
+		self.downloads.filter { $0.albumId == albumId }.map(\.id)
+	}
+
 	func deleteAll() {
 		for entry in self.downloads {
 			let url = Self.downloadsDirectory.appendingPathComponent(entry.fileName)

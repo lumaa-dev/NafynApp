@@ -129,6 +129,7 @@ private struct EditUserSheet: View {
 					TextField(String(localized: "discogs-username"), text: self.$discogs)
 						.autocorrectionDisabled()
 				}
+				.sheetRows()
 
 				Section(String(localized: "permissions")) {
 					ForEach(Self.allPermissions, id: \.1) { permission, key in
@@ -144,6 +145,7 @@ private struct EditUserSheet: View {
 						))
 					}
 				}
+				.sheetRows()
 
 				Section {
 					Button(String(localized: "delete-account"), role: .destructive) {
@@ -151,6 +153,7 @@ private struct EditUserSheet: View {
 					}
 					.disabled(NetworkMonitor.shared.isOffline)
 				}
+				.sheetRows()
 			}
 			.scrollEdgeEffectStyle(.soft, for: .all)
 			.navigationTitle(self.user.username)
@@ -183,6 +186,7 @@ private struct EditUserSheet: View {
 				}
 			}
 		}
+		.sheetBackground()
 	}
 
 	private func save() {

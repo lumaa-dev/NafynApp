@@ -480,7 +480,7 @@ final class PlayerEngine: NSObject {
 		} else {
 			self.player = AVPlayer(playerItem: item)
 		}
-		AudioReactivityEngine.shared.attach(to: item, trackId: track.id)
+		AudioReactivityEngine.shared.attach(to: item)
 
 		// Block-based, delivered on the main queue: AVFoundation posts these from its own internal
 		// queue, and both handlers touch main-actor state (`@Observable` playback properties, and

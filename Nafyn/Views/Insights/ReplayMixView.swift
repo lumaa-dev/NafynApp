@@ -91,6 +91,7 @@ private struct ReplayMixContent: View {
 							Button(self.label(for: summary)) {
 								Navigator.shared.send(to: .replayMix(year: self.destination(for: summary)))
 							}
+							.tint(Color.primary)
 						}
 					} label: {
 						Label(String(localized: "replay-mix"), systemImage: "clock.arrow.circlepath")
