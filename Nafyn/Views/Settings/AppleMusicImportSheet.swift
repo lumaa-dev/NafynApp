@@ -92,6 +92,8 @@ struct AppleMusicImportSheet: View {
 	@State private var phase: Phase = .loadingPlaylists
 	/// The poll of a server-side import started from the confirmation screen; cancelled when the sheet goes away.
 	@State private var followTask: Task<Void, Never>?
+	/// A track the report couldn't import, being looked up by hand in a search sheet.
+	@State private var searchedTrack: MissingTrack?
 
 	var body: some View {
 		NavigationStack {
@@ -137,6 +139,10 @@ struct AppleMusicImportSheet: View {
 			}
 		}
 		.interactiveDismissDisabled(self.isBusy)
+		.sheet(item: self.$searchedTrack) { track in
+			SearchSheetView(query: "\(track.title) \(track.artist)")
+				.environment(\.server, self.server)
+		}
 		.task {
 			// an import this account already has running on the server is followed rather than offering a new one
 			if await !self.resumeRunningImport() {
@@ -288,13 +294,27 @@ struct AppleMusicImportSheet: View {
 				if !notImported.isEmpty {
 					Section {
 						ForEach(notImported) { track in
-							VStack(alignment: .leading, spacing: 2) {
-								Text(track.title)
-									.foregroundStyle(DTColor.textPrimary)
-								Text(track.artist)
-									.font(.footnote)
-									.foregroundStyle(DTColor.textPrimary.opacity(0.55))
+							Button {
+								self.searchedTrack = track
+							} label: {
+								HStack {
+									VStack(alignment: .leading, spacing: 2) {
+										Text(track.title)
+											.foregroundStyle(DTColor.textPrimary)
+										Text(track.artist)
+											.font(.footnote)
+											.foregroundStyle(DTColor.textPrimary.opacity(0.55))
+									}
+
+									Spacer(minLength: 8)
+
+									Image(systemName: "magnifyingglass")
+										.font(.footnote)
+										.foregroundStyle(DTColor.textPrimary.opacity(0.55))
+								}
+								.contentShape(Rectangle())
 							}
+							.buttonStyle(.plain)
 						}
 					} header: {
 						Text("import-not-imported")
