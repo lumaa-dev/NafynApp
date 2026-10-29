@@ -18,6 +18,8 @@ struct SearchSheetView: View {
 	@State private var bestResult: MediaInfo? = nil
 	@State private var isSearching = false
 	@State private var searchTask: Task<Void, Never>? = nil
+	/// Whether the first (pre-filled) search already ran; later edits are debounced, that one is not.
+	@State private var hasStarted = false
 
 	/// - Parameter query: Search run as soon as the sheet appears; empty waits for the user.
 	init(query: String = String()) {
@@ -101,6 +103,12 @@ struct SearchSheetView: View {
 			.navigationDestination(for: Navigator.Paths.self) { $0.view }
 			.navigationTitle(String(localized: "search"))
 			.navigationBarTitleDisplayMode(.inline)
+			// Must sit inside the stack: outside it, the bottom-bar search item has no field to show or submit.
+			.searchable(text: self.$query, prompt: String(localized: "search"))
+			.searchToolbarBehavior(.minimize)
+			.onSubmit(of: .search) {
+				self.triggerSearch()
+			}
 			.toolbar {
 				ToolbarItem(placement: .cancellationAction) {
 					Button {
@@ -116,18 +124,18 @@ struct SearchSheetView: View {
 				DefaultToolbarItem(kind: .search, placement: .bottomBar)
 			}
 		}
-		.searchable(text: self.$query, prompt: String(localized: "search"))
-		.searchToolbarBehavior(.minimize)
-		.onSubmit(of: .search) {
-			self.triggerSearch()
-		}
 		.onChange(of: self.filter) { _, _ in
 			self.triggerSearch()
 		}
-		.task {
-			if !self.query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-				self.triggerSearch()
+		// Searches as the user types (debounced), and right away for a pre-filled query: `id` re-runs the task
+		// on every edit and cancels the previous one, so its sleep is the debounce.
+		.task(id: self.query) {
+			if self.hasStarted {
+				try? await Task.sleep(for: .milliseconds(400))
+				guard !Task.isCancelled else { return }
 			}
+			self.hasStarted = true
+			self.triggerSearch()
 		}
 	}
 
