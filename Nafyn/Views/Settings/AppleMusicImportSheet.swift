@@ -10,10 +10,12 @@ import Safyn
 /// one of those needs an explicit module prefix in this file to disambiguate.
 ///
 /// Flow: (1) resolve an ISRC for every track where possible (see ``resolveISRCs(for:)`` for the fallback
-/// chain); (2) ask the user whether to create one request per track; (3) for each track, look it up on the Nafyn server
-/// with `Safyn.Track.getByIsrc` (title + artist fallback when the ISRC is unknown or unmatched) and file a `Safyn.Request.create`, pausing 2–4 s between requests so the
-/// server's Soulseek downloads aren't rate limited. Tracks that couldn't be identified or matched are
-/// listed at the end instead of silently dropped.
+/// chain); (2) ask the user whether to create one request per track; (3) hand the whole list to the server in one
+/// `Safyn.Import.create` and poll `Safyn.Import.get` - the server resolves (ISRC, then title + artist + length) and
+/// requests every track itself, pacing MusicBrainz and its own request limits, so the sheet can be closed and the
+/// import keeps going (reopening the sheet follows it again). An older server without that endpoint (404) gets the
+/// old track-by-track loop, which retries rate limits instead of counting them as "not found". Tracks that
+/// couldn't be identified or matched are listed at the end instead of silently dropped.
 struct AppleMusicImportSheet: View {
 	@Environment(\.dismiss) private var dismiss
 	@Environment(\.server) private var server: NafynServer?
@@ -24,7 +26,7 @@ struct AppleMusicImportSheet: View {
 		/// Busy: fetching ISRCs or creating requests. The close button is disabled while in this phase.
 		case importing(step: ImportStep, progress: Double, total: Double)
 		case confirming(ImportPlan)
-		case report(created: Int, notImported: [MissingTrack])
+		case report(created: Int, alreadyOwned: Int, notImported: [MissingTrack])
 		case failed(String)
 	}
 
@@ -32,17 +34,21 @@ struct AppleMusicImportSheet: View {
 		case fetchingIsrc
 		case searchingThirdParty
 		case creatingRequests
+		/// The server is importing (``Safyn/Import``): nothing here holds it up, the sheet may be closed.
+		case serverImport
 
 		var message: String {
 			switch self {
 				case .fetchingIsrc: return String(localized: "import-step-fetch-isrc")
 				case .searchingThirdParty: return String(localized: "import-step-thirdparty")
 				case .creatingRequests: return String(localized: "import-step-create-requests")
+				case .serverImport: return String(localized: "import-step-server")
 			}
 		}
 	}
 
 	private struct ImportPlan {
+		let playlistName: String
 		let entries: [ISRCEntry]
 		let missing: [MissingTrack]
 	}
@@ -59,27 +65,33 @@ struct AppleMusicImportSheet: View {
 		let isrc: String?
 		let title: String
 		let artist: String
+		let album: String?
+		/// Seconds: lets the server pick between recordings sharing an ISRC and trust a title + artist match.
+		let duration: Int?
 	}
 
 	/// One playlist track, with whatever identifiers the sources so far gave us.
 	private struct Candidate: Sendable {
 		var title: String
 		var artist: String
+		var album: String?
 		var duration: TimeInterval?
 		var isrc: String?
 		var catalogId: String?
 	}
 
+	/// Busy on this device: closing would lose the work. A server-side import carries on without the sheet.
 	private var isBusy: Bool {
-		if case .importing = self.phase { return true }
+		if case .importing(let step, _, _) = self.phase { return step != .serverImport }
 		return false
 	}
 
-	/// `Track.getByIsrc` needs an ISRC in its path. For tracks without one this well-formed, unassigned code
-	/// matches no recording, so the server goes straight to its `title` + `artist` fallback search.
-	private static let placeholderISRC = "ZZZZZ0000000"
+	/// How many times a rate-limited or unavailable call (429/502/503) is retried by the track-by-track fallback.
+	private static let maxRetries = 3
 
 	@State private var phase: Phase = .loadingPlaylists
+	/// The poll of a server-side import started from the confirmation screen; cancelled when the sheet goes away.
+	@State private var followTask: Task<Void, Never>?
 
 	var body: some View {
 		NavigationStack {
@@ -100,8 +112,8 @@ struct AppleMusicImportSheet: View {
 					case .confirming(let plan):
 						self.confirmView(plan)
 
-					case .report(let created, let notImported):
-						self.reportView(created: created, notImported: notImported)
+					case .report(let created, let alreadyOwned, let notImported):
+						self.reportView(created: created, alreadyOwned: alreadyOwned, notImported: notImported)
 
 					case .failed(let message):
 						self.failedView(message)
@@ -124,9 +136,15 @@ struct AppleMusicImportSheet: View {
 				}
 			}
 		}
-		.interactiveDismissDisabled()
+		.interactiveDismissDisabled(self.isBusy)
 		.task {
-			await self.loadPlaylists()
+			// an import this account already has running on the server is followed rather than offering a new one
+			if await !self.resumeRunningImport() {
+				await self.loadPlaylists()
+			}
+		}
+		.onDisappear {
+			self.followTask?.cancel()
 		}
 	}
 
@@ -170,7 +188,7 @@ struct AppleMusicImportSheet: View {
 				.tint(DTColor.textPrimary)
 				.padding(.horizontal, 32)
 
-			if step == .creatingRequests {
+			if step == .creatingRequests || step == .serverImport {
 				Text("\(Int(progress)) / \(Int(total))")
 					.font(DTFont.system(17).monospacedDigit())
 					.foregroundStyle(DTColor.textPrimary)
@@ -179,6 +197,14 @@ struct AppleMusicImportSheet: View {
 			Text(step.message)
 				.font(.footnote)
 				.foregroundStyle(DTColor.textPrimary.opacity(0.6))
+
+			if step == .serverImport {
+				Text("import-server-hint")
+					.font(.footnote)
+					.foregroundStyle(DTColor.textPrimary.opacity(0.6))
+					.multilineTextAlignment(.center)
+					.padding(.horizontal, 32)
+			}
 
 			Spacer()
 		}
@@ -209,7 +235,7 @@ struct AppleMusicImportSheet: View {
 
 			VStack(spacing: 12) {
 				Button {
-					Task { await self.createRequests(plan) }
+					self.followTask = Task { await self.createRequests(plan) }
 				} label: {
 					Text("import-confirm-create")
 						.frame(maxWidth: .infinity)
@@ -230,8 +256,8 @@ struct AppleMusicImportSheet: View {
 	}
 
 	@ViewBuilder
-	private func reportView(created: Int, notImported: [MissingTrack]) -> some View {
-		if notImported.isEmpty {
+	private func reportView(created: Int, alreadyOwned: Int, notImported: [MissingTrack]) -> some View {
+		if notImported.isEmpty && alreadyOwned == 0 {
 			ContentUnavailableView(
 				String(localized: "import-complete"),
 				systemImage: "checkmark.circle",
@@ -246,22 +272,33 @@ struct AppleMusicImportSheet: View {
 						Image(systemName: "checkmark.circle")
 					}
 					.foregroundStyle(DTColor.textPrimary)
+
+					if alreadyOwned > 0 {
+						Label {
+							Text("import-already-owned \(alreadyOwned)")
+						} icon: {
+							Image(systemName: "music.note.house")
+						}
+						.foregroundStyle(DTColor.textPrimary)
+					}
 				} header: {
 					Text("import-complete")
 				}
 
-				Section {
-					ForEach(notImported) { track in
-						VStack(alignment: .leading, spacing: 2) {
-							Text(track.title)
-								.foregroundStyle(DTColor.textPrimary)
-							Text(track.artist)
-								.font(.footnote)
-								.foregroundStyle(DTColor.textPrimary.opacity(0.55))
+				if !notImported.isEmpty {
+					Section {
+						ForEach(notImported) { track in
+							VStack(alignment: .leading, spacing: 2) {
+								Text(track.title)
+									.foregroundStyle(DTColor.textPrimary)
+								Text(track.artist)
+									.font(.footnote)
+									.foregroundStyle(DTColor.textPrimary.opacity(0.55))
+							}
 						}
+					} header: {
+						Text("import-not-imported")
 					}
-				} header: {
-					Text("import-not-imported")
 				}
 			}
 			.scrollContentBackground(.hidden)
@@ -306,13 +343,88 @@ struct AppleMusicImportSheet: View {
 		if entries.isEmpty {
 			self.phase = .failed(String(localized: "error-import-no-matches"))
 		} else {
-			self.phase = .confirming(ImportPlan(entries: entries, missing: missing))
+			self.phase = .confirming(ImportPlan(playlistName: playlist.name, entries: entries, missing: missing))
 		}
 	}
 
-	/// One Nafyn lookup + request per ISRC, `2...4` seconds apart: the server hands requests to Soulseek,
-	/// which rate limits bursts of searches/downloads.
+	/// Hands the whole list to the server (``Safyn/Import``) and follows it. A server without that endpoint
+	/// answers 404 and gets the track-by-track loop instead.
 	private func createRequests(_ plan: ImportPlan) async {
+		guard let server else {
+			self.phase = .failed(String(localized: "error-unauthenticated"))
+			return
+		}
+
+		let tracks = plan.entries.map { ImportTrack(isrc: $0.isrc, title: $0.title, artist: $0.artist, album: $0.album, duration: $0.duration) }
+		self.phase = .importing(step: .serverImport, progress: 0, total: Double(max(tracks.count, 1)))
+		do {
+			let job: PlaylistImport = try await server.send(Safyn.Import.create(tracks: tracks, source: "apple-music", name: plan.playlistName))
+			await self.follow(importId: job.id, missing: plan.missing)
+		} catch NafynError.server(let statusCode, _) where statusCode == 404 {
+			await self.createRequestsOneByOne(plan)
+		} catch NafynError.server(let statusCode, _) where statusCode == 409 {
+			// this account already has an import running: follow that one
+			if await !self.resumeRunningImport() {
+				self.phase = .failed(String(localized: "error-import-no-matches"))
+			}
+		} catch {
+			self.phase = .failed(error.localizedDescription)
+		}
+	}
+
+	/// Follows the latest import if it is still running. `false` when there is none (or the server predates imports).
+	private func resumeRunningImport() async -> Bool {
+		guard let server,
+			  let page: PaginatedResponse<PlaylistImport> = try? await server.send(Safyn.Import.all(page: 1, limit: 1)),
+			  let latest = page.items.first, latest.status == .running
+		else { return false }
+
+		self.phase = .importing(step: .serverImport, progress: Double(latest.processed), total: Double(max(latest.total, 1)))
+		await self.follow(importId: latest.id, missing: [])
+		return true
+	}
+
+	/// Polls a server import every 2 s until it is done, then shows its report. Stops when the sheet goes away;
+	/// the import itself carries on on the server.
+	private func follow(importId: String, missing: [MissingTrack]) async {
+		guard let server else { return }
+		var failures = 0
+
+		while !Task.isCancelled {
+			do {
+				let job: PlaylistImport = try await server.send(Safyn.Import.get(id: importId))
+				failures = 0
+				if job.status != .running {
+					self.phase = Self.report(for: job, missing: missing)
+					return
+				}
+				self.phase = .importing(step: .serverImport, progress: Double(job.processed), total: Double(max(job.total, 1)))
+			} catch {
+				failures += 1
+				if failures >= 5 {
+					self.phase = .failed(error.localizedDescription)
+					return
+				}
+			}
+			try? await Task.sleep(for: .seconds(2))
+		}
+	}
+
+	private static func report(for job: PlaylistImport, missing: [MissingTrack]) -> Phase {
+		let unmatched = (job.items ?? [])
+			.filter { [.notFound, .unreleased, .error, .unknown, .pending].contains($0.status) }
+			.map { MissingTrack(title: $0.title, artist: $0.artist) }
+		return .report(
+			created: job.counts.requested,
+			alreadyOwned: job.counts.owned + job.counts.alreadyRequested,
+			notImported: missing + unmatched
+		)
+	}
+
+	/// Older servers (no ``Safyn/Import``): one lookup + request per track. A 429/502/503 is retried a few times
+	/// rather than counted as "not imported" (that is what cut imports off at their 31st track), a 409 means the
+	/// track is already on this account, and only a lookup that really finds nothing is reported missing.
+	private func createRequestsOneByOne(_ plan: ImportPlan) async {
 		guard let server else {
 			self.phase = .failed(String(localized: "error-unauthenticated"))
 			return
@@ -320,21 +432,31 @@ struct AppleMusicImportSheet: View {
 
 		let total = Double(plan.entries.count)
 		var created = 0
+		var alreadyOwned = 0
 		var notImported = plan.missing
 
 		self.phase = .importing(step: .creatingRequests, progress: 0, total: total)
 		for (index, entry) in plan.entries.enumerated() {
+			if Task.isCancelled { break }
 			var didCreate = false
-			if let detail: TrackDetail = try? await server.send(Safyn.Track.getByIsrc(isrc: entry.isrc ?? Self.placeholderISRC, title: entry.title, artist: entry.artist)) {
-				if detail.info.inLibrary == true || detail.requested == true {
-					// already on this account: nothing to request, nothing missing
-				} else if let _: NafynRequest = try? await server.send(Safyn.Request.create(id: detail.info.id, type: .track)) {
-					created += 1
-					didCreate = true
-				} else {
-					notImported.append(MissingTrack(title: entry.title, artist: entry.artist))
+			do {
+				let detail: TrackDetail = try await self.withRetry {
+					try await server.send(Safyn.Track.getByIsrc(isrc: entry.isrc, title: entry.title, artist: entry.artist, duration: entry.duration))
 				}
-			} else {
+				if detail.info.inLibrary == true || detail.requested == true {
+					alreadyOwned += 1
+				} else {
+					do {
+						let _: NafynRequest = try await self.withRetry {
+							try await server.send(Safyn.Request.create(id: detail.info.id, type: .track))
+						}
+						created += 1
+						didCreate = true
+					} catch NafynError.server(let statusCode, _) where statusCode == 409 {
+						alreadyOwned += 1
+					}
+				}
+			} catch {
 				notImported.append(MissingTrack(title: entry.title, artist: entry.artist))
 			}
 
@@ -345,7 +467,21 @@ struct AppleMusicImportSheet: View {
 			}
 		}
 
-		self.phase = .report(created: created, notImported: notImported)
+		self.phase = .report(created: created, alreadyOwned: alreadyOwned, notImported: notImported)
+	}
+
+	/// Runs `operation`, waiting and retrying on 429 (rate limited), 502 and 503 (MusicBrainz busy): those say
+	/// "later", not "no".
+	private func withRetry<T>(_ operation: () async throws -> T) async throws -> T {
+		var attempt = 0
+		while true {
+			do {
+				return try await operation()
+			} catch NafynError.server(let statusCode, _) where [429, 502, 503].contains(statusCode) && attempt < Self.maxRetries {
+				attempt += 1
+				try await Task.sleep(for: .seconds(10 * attempt))
+			}
+		}
 	}
 
 	// MARK: - ISRC resolution
@@ -372,7 +508,7 @@ struct AppleMusicImportSheet: View {
 				for track in tracks {
 					switch track {
 						case .song(let song):
-							candidates.append(Candidate(title: song.title, artist: song.artistName, duration: song.duration, isrc: song.isrc, catalogId: Self.catalogID(of: song)))
+							candidates.append(Candidate(title: song.title, artist: song.artistName, album: song.albumTitle, duration: song.duration, isrc: song.isrc, catalogId: Self.catalogID(of: song)))
 						case .musicVideo(let video):
 							missing.append(MissingTrack(title: video.title, artist: video.artistName))
 						@unknown default:
@@ -445,7 +581,13 @@ struct AppleMusicImportSheet: View {
 			}
 			let key = candidate.isrc ?? "\(Self.normalized(Self.coreTitle(candidate.title)))|\(Self.normalized(candidate.artist))"
 			if seen.insert(key).inserted {
-				entries.append(ISRCEntry(isrc: candidate.isrc, title: candidate.title, artist: candidate.artist))
+				entries.append(ISRCEntry(
+					isrc: candidate.isrc,
+					title: candidate.title,
+					artist: candidate.artist,
+					album: candidate.album,
+					duration: candidate.duration.map { Int($0.rounded()) }
+				))
 			}
 		}
 		return (entries, missing)
@@ -459,6 +601,7 @@ struct AppleMusicImportSheet: View {
 				struct PlayParams: Decodable { let catalogId: String? }
 				let name: String?
 				let artistName: String?
+				let albumName: String?
 				let durationInMillis: Int?
 				let playParams: PlayParams?
 			}
@@ -503,6 +646,7 @@ struct AppleMusicImportSheet: View {
 				result.append(Candidate(
 					title: item.attributes?.name ?? "",
 					artist: item.attributes?.artistName ?? "",
+					album: item.attributes?.albumName,
 					duration: item.attributes?.durationInMillis.map { Double($0) / 1000 },
 					isrc: catalog?.attributes?.isrc,
 					catalogId: catalog?.id ?? item.attributes?.playParams?.catalogId

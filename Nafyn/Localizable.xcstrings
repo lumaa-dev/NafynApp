@@ -2120,6 +2120,24 @@
         }
       }
     },
+    "import-already-owned %lld" : {
+      "comment" : "Apple Music import report: tracks already in the library or already requested (AppleMusicImportSheet)",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld already in your library or requested"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld déjà dans votre bibliothèque ou demandés"
+          }
+        }
+      }
+    },
     "import-complete" : {
       "localizations" : {
         "en" : {
@@ -2221,6 +2239,24 @@
         }
       }
     },
+    "import-server-hint" : {
+      "comment" : "Apple Music import: the server keeps importing if the sheet is closed (AppleMusicImportSheet)",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You can close this, the import continues on the server. Reopen it to follow the progress."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vous pouvez fermer cette fenêtre, l'importation continue sur le serveur. Rouvrez-la pour suivre la progression."
+          }
+        }
+      }
+    },
     "import-step-create-requests" : {
       "comment" : "Apple Music import progress step label (AppleMusicImportSheet)",
       "localizations" : {
@@ -2251,6 +2287,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Récupération des identifiants des titres…"
+          }
+        }
+      }
+    },
+    "import-step-server" : {
+      "comment" : "Apple Music import progress step label while the server imports (AppleMusicImportSheet)",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Importing on the server…"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Importation sur le serveur…"
           }
         }
       }
