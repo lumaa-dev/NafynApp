@@ -12,9 +12,14 @@ import UniformTypeIdentifiers
 
 // MARK: - Fetching
 
-struct FindLibraryTracksIntent: AppIntent {
-	static let title: LocalizedStringResource = "Find Library Tracks"
-	static let description = IntentDescription("Finds tracks in your Nafyn library, filtered and sorted.", categoryName: "Library")
+/// One search for everything the library holds. The kind picks what comes back (and which filters apply);
+/// the results are Nafyn entities, so a shortcut reads their title, duration, file size, MusicBrainz ID, …
+struct FindLibraryItemsIntent: AppIntent {
+	static let title: LocalizedStringResource = "Find in Library"
+	static let description = IntentDescription("Finds tracks, albums, artists or playlists in your Nafyn library, filtered and sorted.", categoryName: "Library")
+
+	@Parameter(title: "Content Type", default: .tracks)
+	var kind: LibraryContentKind
 
 	@Parameter(title: "Search")
 	var searchText: String?
@@ -31,11 +36,17 @@ struct FindLibraryTracksIntent: AppIntent {
 	@Parameter(title: "Added Before")
 	var addedBefore: Date?
 
+	@Parameter(title: "Minimum Tracks")
+	var minimumTracks: Int?
+
 	@Parameter(title: "Downloaded Only", default: false)
 	var downloadedOnly: Bool
 
+	@Parameter(title: "Created by Me Only", default: false)
+	var createdByMeOnly: Bool
+
 	@Parameter(title: "Sort By", default: .dateAdded)
-	var sortBy: TrackSortOption
+	var sortBy: LibrarySortOption
 
 	@Parameter(title: "Ascending", default: false)
 	var ascending: Bool
@@ -44,34 +55,78 @@ struct FindLibraryTracksIntent: AppIntent {
 	var limit: Int?
 
 	static var parameterSummary: some ParameterSummary {
-		Summary("Find tracks sorted by \(\.$sortBy)") {
-			\.$searchText
-			\.$artist
-			\.$album
-			\.$addedAfter
-			\.$addedBefore
-			\.$downloadedOnly
-			\.$ascending
-			\.$limit
+		Switch(\.$kind) {
+			Case(.tracks) {
+				Summary("Find \(\.$kind) sorted by \(\.$sortBy)") {
+					\.$searchText
+					\.$artist
+					\.$album
+					\.$addedAfter
+					\.$addedBefore
+					\.$downloadedOnly
+					\.$ascending
+					\.$limit
+				}
+			}
+			Case(.albums) {
+				Summary("Find \(\.$kind) sorted by \(\.$sortBy)") {
+					\.$searchText
+					\.$artist
+					\.$addedAfter
+					\.$addedBefore
+					\.$minimumTracks
+					\.$ascending
+					\.$limit
+				}
+			}
+			Case(.playlists) {
+				Summary("Find \(\.$kind) sorted by \(\.$sortBy)") {
+					\.$searchText
+					\.$createdByMeOnly
+					\.$ascending
+					\.$limit
+				}
+			}
+			DefaultCase {
+				Summary("Find \(\.$kind) sorted by \(\.$sortBy)") {
+					\.$searchText
+					\.$ascending
+					\.$limit
+				}
+			}
 		}
 	}
 
 	@MainActor
-	func perform() async throws -> some IntentResult & ReturnsValue<[SongEntity]> {
+	func perform() async throws -> some IntentResult & ReturnsValue<[AudioItem]> {
+		let items: [AudioItem]
+		switch self.kind {
+			case .tracks: items = try await self.tracks()
+			case .albums: items = try await self.albums()
+			case .artists: items = try await self.artists()
+			case .playlists: items = try await self.playlists()
+		}
+
+		if let limit = self.limit, limit > 0 {
+			return .result(value: Array(items.prefix(limit)))
+		}
+		return .result(value: items)
+	}
+
+	// MARK: Kinds
+
+	@MainActor
+	private func tracks() async throws -> [AudioItem] {
 		var tracks = try await LibraryCatalog.shared.tracks()
 
-		if let text = self.searchText?.trimmingCharacters(in: .whitespacesAndNewlines), !text.isEmpty {
-			tracks = tracks.filter {
-				$0.title.localizedCaseInsensitiveContains(text)
-					|| $0.artistName.localizedCaseInsensitiveContains(text)
-					|| ($0.album?.localizedCaseInsensitiveContains(text) ?? false)
-			}
+		if let text = self.searchText, !text.trimmingCharacters(in: .whitespaces).isEmpty {
+			tracks = LibrarySearch.tracks(tracks, matching: text).map(\.row)
 		}
 		if let artist = self.artist, !artist.isEmpty {
-			tracks = tracks.filter { $0.artistName.localizedCaseInsensitiveContains(artist) }
+			tracks = tracks.filter { LibrarySearch.score(artist, in: [$0.artistName]) != nil }
 		}
 		if let album = self.album, !album.isEmpty {
-			tracks = tracks.filter { $0.album?.localizedCaseInsensitiveContains(album) ?? false }
+			tracks = tracks.filter { LibrarySearch.score(album, in: [$0.album]) != nil }
 		}
 		if let addedAfter = self.addedAfter {
 			tracks = tracks.filter { $0.addedAtDate >= addedAfter }
@@ -83,76 +138,30 @@ struct FindLibraryTracksIntent: AppIntent {
 			tracks = tracks.filter { DownloadManager.shared.isDownloaded(trackId: $0.id) }
 		}
 
-		let ascending = self.ascending
-		func order<T: Comparable>(_ lhs: T, _ rhs: T) -> Bool { ascending ? lhs < rhs : lhs > rhs }
-
-		tracks.sort { lhs, rhs in
+		let sorted = self.sort(tracks) { track in
 			switch self.sortBy {
-				case .title: order(lhs.title.localizedLowercase, rhs.title.localizedLowercase)
-				case .artist: order(lhs.artistName.localizedLowercase, rhs.artistName.localizedLowercase)
-				case .album: order((lhs.album ?? "").localizedLowercase, (rhs.album ?? "").localizedLowercase)
-				case .dateAdded: order(lhs.addedAt, rhs.addedAt)
-				case .duration: order(lhs.duration, rhs.duration)
-				case .releaseDate: order(lhs.releaseDate ?? 0, rhs.releaseDate ?? 0)
+				case .artist: .text(track.artistName)
+				case .album: .text(track.album ?? "")
+				case .dateAdded: .number(Double(track.addedAt))
+				case .duration: .number(track.duration)
+				case .releaseDate: .number(Double(track.releaseDate ?? 0))
+				case .trackCount: .number(track.trackNumber ?? 0)
+				case .fileSize: .number(Double(track.fileSize ?? 0))
+				case .title: .text(track.title)
 			}
 		}
-
-		if let limit = self.limit, limit > 0 {
-			tracks = Array(tracks.prefix(limit))
-		}
-		return .result(value: tracks.map(SongEntity.init(row:)))
-	}
-}
-
-struct FindLibraryAlbumsIntent: AppIntent {
-	static let title: LocalizedStringResource = "Find Library Albums"
-	static let description = IntentDescription("Finds albums in your Nafyn library, filtered and sorted.", categoryName: "Library")
-
-	@Parameter(title: "Search")
-	var searchText: String?
-
-	@Parameter(title: "Artist")
-	var artist: String?
-
-	@Parameter(title: "Added After")
-	var addedAfter: Date?
-
-	@Parameter(title: "Added Before")
-	var addedBefore: Date?
-
-	@Parameter(title: "Minimum Tracks")
-	var minimumTracks: Int?
-
-	@Parameter(title: "Sort By", default: .dateAdded)
-	var sortBy: AlbumSortOption
-
-	@Parameter(title: "Ascending", default: false)
-	var ascending: Bool
-
-	@Parameter(title: "Limit", default: 25)
-	var limit: Int?
-
-	static var parameterSummary: some ParameterSummary {
-		Summary("Find albums sorted by \(\.$sortBy)") {
-			\.$searchText
-			\.$artist
-			\.$addedAfter
-			\.$addedBefore
-			\.$minimumTracks
-			\.$ascending
-			\.$limit
-		}
+		return sorted.map { .song(SongEntity(row: $0)) }
 	}
 
 	@MainActor
-	func perform() async throws -> some IntentResult & ReturnsValue<[AlbumEntity]> {
+	private func albums() async throws -> [AudioItem] {
 		var albums = try await LibraryCatalog.shared.albums()
 
-		if let text = self.searchText?.trimmingCharacters(in: .whitespacesAndNewlines), !text.isEmpty {
-			albums = albums.filter { $0.title.localizedCaseInsensitiveContains(text) || $0.artistName.localizedCaseInsensitiveContains(text) }
+		if let text = self.searchText, !text.trimmingCharacters(in: .whitespaces).isEmpty {
+			albums = LibrarySearch.albums(albums, matching: text).map(\.row)
 		}
 		if let artist = self.artist, !artist.isEmpty {
-			albums = albums.filter { $0.artistName.localizedCaseInsensitiveContains(artist) }
+			albums = albums.filter { LibrarySearch.score(artist, in: [$0.artistName]) != nil }
 		}
 		if let addedAfter = self.addedAfter {
 			albums = albums.filter { $0.addedAtDate >= addedAfter }
@@ -164,72 +173,67 @@ struct FindLibraryAlbumsIntent: AppIntent {
 			albums = albums.filter { $0.trackCount >= minimumTracks }
 		}
 
-		let ascending = self.ascending
-		func order<T: Comparable>(_ lhs: T, _ rhs: T) -> Bool { ascending ? lhs < rhs : lhs > rhs }
-
-		albums.sort { lhs, rhs in
+		let sorted = self.sort(albums) { album in
 			switch self.sortBy {
-				case .title: order(lhs.title.localizedLowercase, rhs.title.localizedLowercase)
-				case .artist: order(lhs.artistName.localizedLowercase, rhs.artistName.localizedLowercase)
-				case .dateAdded: order(lhs.addedAt, rhs.addedAt)
-				case .trackCount: order(lhs.trackCount, rhs.trackCount)
-				case .duration: order(lhs.duration, rhs.duration)
-				case .releaseDate: order(lhs.releaseDate ?? 0, rhs.releaseDate ?? 0)
+				case .artist: .text(album.artistName)
+				case .dateAdded: .number(Double(album.addedAt))
+				case .duration: .number(album.duration)
+				case .releaseDate: .number(Double(album.releaseDate ?? 0))
+				case .trackCount: .number(Double(album.trackCount))
+				case .title, .album, .fileSize: .text(album.title)
 			}
 		}
-
-		if let limit = self.limit, limit > 0 {
-			albums = Array(albums.prefix(limit))
-		}
-		return .result(value: albums.map(AlbumEntity.init(row:)))
-	}
-}
-
-struct GetPlaylistsIntent: AppIntent {
-	static let title: LocalizedStringResource = "Get Playlists"
-	static let description = IntentDescription("Gets your Nafyn playlists, including the ones shared with you.", categoryName: "Library")
-
-	@Parameter(title: "Search")
-	var searchText: String?
-
-	@Parameter(title: "Created by Me Only", default: false)
-	var createdByMeOnly: Bool
-
-	@Parameter(title: "Sort By", default: .title)
-	var sortBy: PlaylistSortOption
-
-	@Parameter(title: "Ascending", default: true)
-	var ascending: Bool
-
-	static var parameterSummary: some ParameterSummary {
-		Summary("Get playlists sorted by \(\.$sortBy)") {
-			\.$searchText
-			\.$createdByMeOnly
-			\.$ascending
-		}
+		return sorted.map { .album(AlbumEntity(row: $0)) }
 	}
 
 	@MainActor
-	func perform() async throws -> some IntentResult & ReturnsValue<[PlaylistEntity]> {
+	private func artists() async throws -> [AudioItem] {
+		var names = LibrarySearch.artistNames(in: try await LibraryCatalog.shared.tracks())
+
+		if let text = self.searchText, !text.trimmingCharacters(in: .whitespaces).isEmpty {
+			names = LibrarySearch.artists(names, matching: text).map(\.row)
+		}
+		return self.sort(names) { .text($0) }.map { .artist(ArtistEntity(name: $0)) }
+	}
+
+	@MainActor
+	private func playlists() async throws -> [AudioItem] {
 		var playlists = try await LibraryCatalog.shared.playlists()
 
-		if let text = self.searchText?.trimmingCharacters(in: .whitespacesAndNewlines), !text.isEmpty {
-			playlists = playlists.filter { $0.title.localizedCaseInsensitiveContains(text) }
+		if let text = self.searchText, !text.trimmingCharacters(in: .whitespaces).isEmpty {
+			playlists = LibrarySearch.playlists(playlists, matching: text).map(\.row)
 		}
 		if self.createdByMeOnly, let me = AppSession.shared.userId {
 			playlists = playlists.filter { $0.ownerId == me }
 		}
 
-		let ascending = self.ascending
-		playlists.sort { lhs, rhs in
+		let sorted = self.sort(playlists) { playlist in
 			switch self.sortBy {
-				case .title:
-					ascending ? lhs.title.localizedLowercase < rhs.title.localizedLowercase : lhs.title.localizedLowercase > rhs.title.localizedLowercase
-				case .dateUpdated:
-					ascending ? lhs.updatedAt < rhs.updatedAt : lhs.updatedAt > rhs.updatedAt
+				case .dateAdded, .releaseDate: .number(Double(playlist.updatedAt))
+				default: .text(playlist.title)
 			}
 		}
-		return .result(value: playlists.map(PlaylistEntity.init(row:)))
+		return sorted.map { .playlist(PlaylistEntity(row: $0)) }
+	}
+
+	// MARK: Sorting
+
+	private struct SortValue: Comparable {
+		var number = 0.0
+		var text = ""
+
+		static func text(_ text: String) -> SortValue { SortValue(text: LibrarySearch.normalize(text)) }
+		static func number(_ number: Double) -> SortValue { SortValue(number: number) }
+
+		static func < (lhs: SortValue, rhs: SortValue) -> Bool {
+			(lhs.number, lhs.text) < (rhs.number, rhs.text)
+		}
+	}
+
+	private func sort<Row>(_ rows: [Row], by value: (Row) -> SortValue) -> [Row] {
+		let keyed = rows.map { (value($0), $0) }
+		let ordered = keyed.sorted { self.ascending ? $0.0 < $1.0 : $1.0 < $0.0 }
+		return ordered.map(\.1)
 	}
 }
 
@@ -314,7 +318,7 @@ struct PlaySongIntent: AudioPlaybackIntent {
 	}
 
 	@MainActor
-	func perform() async throws -> some IntentResult {
+	func perform() async throws -> some IntentResult & ProvidesDialog {
 		var queue = try await AudioPlayback.queue(song: self.song.id)
 
 		// the rest of the album after this track
@@ -325,8 +329,8 @@ struct PlaySongIntent: AudioPlaybackIntent {
 			}
 		}
 
-		try AudioPlayback.start(queue, shuffle: false, repeatMode: self.repeatMode)
-		return .result()
+		let outcome = try AudioPlayback.start(queue, shuffle: false, repeatMode: self.repeatMode)
+		return .result(dialog: AudioPlayback.dialog(outcome, title: queue.title))
 	}
 }
 
@@ -351,10 +355,10 @@ struct PlayAlbumIntent: AudioPlaybackIntent {
 	}
 
 	@MainActor
-	func perform() async throws -> some IntentResult {
+	func perform() async throws -> some IntentResult & ProvidesDialog {
 		let queue = try await AudioPlayback.queue(album: self.album.id)
-		try AudioPlayback.start(queue, shuffle: self.shuffle, repeatMode: self.repeatMode)
-		return .result()
+		let outcome = try AudioPlayback.start(queue, shuffle: self.shuffle, repeatMode: self.repeatMode)
+		return .result(dialog: AudioPlayback.dialog(outcome, title: queue.title))
 	}
 }
 
@@ -379,10 +383,39 @@ struct PlayPlaylistIntent: AudioPlaybackIntent {
 	}
 
 	@MainActor
-	func perform() async throws -> some IntentResult {
+	func perform() async throws -> some IntentResult & ProvidesDialog {
 		let queue = try await AudioPlayback.queue(playlist: self.playlist.id)
-		try AudioPlayback.start(queue, shuffle: self.shuffle, repeatMode: self.repeatMode)
-		return .result()
+		let outcome = try AudioPlayback.start(queue, shuffle: self.shuffle, repeatMode: self.repeatMode)
+		return .result(dialog: AudioPlayback.dialog(outcome, title: queue.title))
+	}
+}
+
+/// "Play …" for anything by name: Siri's catch-all, whether the name is a song, an album, an artist or a playlist.
+struct PlayLibraryItemIntent: AudioPlaybackIntent {
+	static let title: LocalizedStringResource = "Play Anything"
+	static let description = IntentDescription("Plays a song, album, artist or playlist from your Nafyn library.", categoryName: "Playback")
+
+	@Parameter(title: "Item")
+	var item: LibraryItemEntity
+
+	@Parameter(title: "Shuffle", default: false)
+	var shuffle: Bool
+
+	@Parameter(title: "Repeat", default: .off)
+	var repeatMode: RepeatOption
+
+	static var parameterSummary: some ParameterSummary {
+		Summary("Play \(\.$item)") {
+			\.$shuffle
+			\.$repeatMode
+		}
+	}
+
+	@MainActor
+	func perform() async throws -> some IntentResult & ProvidesDialog {
+		let queue = try await self.item.queue()
+		let outcome = try AudioPlayback.start(queue, shuffle: self.shuffle, repeatMode: self.repeatMode)
+		return .result(dialog: AudioPlayback.dialog(outcome, title: queue.title))
 	}
 }
 
@@ -391,104 +424,168 @@ struct ShuffleLibraryIntent: AudioPlaybackIntent {
 	static let description = IntentDescription("Plays your whole Nafyn library in random order.", categoryName: "Playback")
 
 	@MainActor
-	func perform() async throws -> some IntentResult {
+	func perform() async throws -> some IntentResult & ProvidesDialog {
 		let tracks = try await LibraryCatalog.shared.tracks()
 		try AudioPlayback.start(AudioPlayback.Queue(tracks: tracks, context: nil), shuffle: true, repeatQueue: true)
-		return .result()
+		return .result(dialog: "Shuffling your music.")
 	}
 }
 
 // MARK: - Transport
 
-struct PauseNafynIntent: AudioPlaybackIntent {
-	static let title: LocalizedStringResource = "Pause Nafyn"
+/// Play, pause, skip: one action instead of one per button.
+struct ControlPlaybackIntent: AudioPlaybackIntent {
+	static let title: LocalizedStringResource = "Control Playback"
+	static let description = IntentDescription("Plays, pauses or skips what Nafyn is playing.", categoryName: "Playback")
 
-	@MainActor
-	func perform() async throws -> some IntentResult {
-		if PlaybackSource.isPlaying { PlaybackSource.togglePlay() }
-		return .result()
+	@Parameter(title: "Action", default: .togglePlayPause)
+	var action: PlaybackAction
+
+	static var parameterSummary: some ParameterSummary {
+		Summary("\(\.$action) in Nafyn")
 	}
-}
 
-struct ResumeNafynIntent: AudioPlaybackIntent {
-	static let title: LocalizedStringResource = "Resume Nafyn"
+	init() {}
 
-	@MainActor
-	func perform() async throws -> some IntentResult {
-		if !PlaybackSource.isPlaying, PlaybackSource.hasTrack { PlaybackSource.togglePlay() }
-		return .result()
+	init(action: PlaybackAction) {
+		self.action = action
 	}
-}
-
-struct NextTrackIntent: AudioPlaybackIntent {
-	static let title: LocalizedStringResource = "Next Track"
 
 	@MainActor
-	func perform() async throws -> some IntentResult {
-		PlaybackSource.next()
-		return .result()
-	}
-}
+	func perform() async throws -> some IntentResult & ProvidesDialog {
+		guard PlaybackSource.hasTrack else {
+			return .result(dialog: "Nothing is playing in Nafyn.")
+		}
 
-struct PreviousTrackIntent: AudioPlaybackIntent {
-	static let title: LocalizedStringResource = "Previous Track"
-
-	@MainActor
-	func perform() async throws -> some IntentResult {
-		PlaybackSource.prev()
-		return .result()
+		switch self.action {
+			case .play:
+				if !PlaybackSource.isPlaying { PlaybackSource.togglePlay() }
+				return .result(dialog: "Resuming playback.")
+			case .pause:
+				if PlaybackSource.isPlaying { PlaybackSource.togglePlay() }
+				return .result(dialog: "Paused.")
+			case .togglePlayPause:
+				let wasPlaying = PlaybackSource.isPlaying
+				PlaybackSource.togglePlay()
+				return wasPlaying ? .result(dialog: "Paused.") : .result(dialog: "Resuming playback.")
+			case .next:
+				PlaybackSource.next()
+				return .result(dialog: "Skipping to the next track.")
+			case .previous:
+				PlaybackSource.prev()
+				return .result(dialog: "Going back to the previous track.")
+		}
 	}
 }
 
 // MARK: - Playlists
 
-struct AddSongToPlaylistIntent: AppIntent {
-	static let title: LocalizedStringResource = "Add Song to Playlist"
-	static let description = IntentDescription("Adds a song from your library to one of your playlists.", categoryName: "Playlists")
+/// Creates a playlist, with songs and albums already in it if the shortcut has some.
+struct CreatePlaylistIntent: AppIntent {
+	static let title: LocalizedStringResource = "Create Playlist"
+	static let description = IntentDescription("Creates a Nafyn playlist, optionally with songs and albums already in it.", categoryName: "Playlists")
 
-	@Parameter(title: "Song")
-	var song: SongEntity
+	@Parameter(title: "Name")
+	var name: String
 
-	@Parameter(title: "Playlist")
-	var playlist: PlaylistEntity
+	@Parameter(title: "Description")
+	var summary: String?
+
+	@Parameter(title: "Visibility", default: .private)
+	var visibility: PlaylistVisibility
+
+	@Parameter(title: "Songs", default: [])
+	var songs: [SongEntity]
+
+	@Parameter(title: "Albums", default: [])
+	var albums: [AlbumEntity]
 
 	static var parameterSummary: some ParameterSummary {
-		Summary("Add \(\.$song) to \(\.$playlist)")
+		Summary("Create the playlist \(\.$name)") {
+			\.$summary
+			\.$visibility
+			\.$songs
+			\.$albums
+		}
 	}
 
 	@MainActor
-	func perform() async throws -> some IntentResult {
-		let queue = try await AudioPlayback.queue(song: self.song.id)
-		try await AudioPlayback.add(queue.tracks, toPlaylist: self.playlist.id)
-		return .result()
+	func perform() async throws -> some IntentResult & ReturnsValue<PlaylistEntity> & ProvidesDialog {
+		let title = self.name.trimmingCharacters(in: .whitespacesAndNewlines)
+		guard !title.isEmpty else { throw AudioPlaybackError.emptyName }
+
+		let server = try await AppSession.shared.resolveServer()
+		let description = self.summary?.trimmingCharacters(in: .whitespacesAndNewlines)
+		let row: PlaylistRow = try await server.send(Playlist.create(
+			title: title,
+			description: (description?.isEmpty ?? true) ? nil : description,
+			privacy: self.visibility == .public ? .public : .private
+		))
+
+		let tracks = try await AudioPlayback.tracks(songs: self.songs.map(\.id), albums: self.albums.map(\.id))
+		if !tracks.isEmpty {
+			try await AudioPlayback.add(tracks, toPlaylist: row.id)
+		}
+		await LibraryCatalog.shared.invalidatePlaylists()
+
+		return .result(value: PlaylistEntity(row: row), dialog: "Created the playlist \(title).")
 	}
 }
 
-struct RemoveSongFromPlaylistIntent: AppIntent {
-	static let title: LocalizedStringResource = "Remove Song from Playlist"
-	static let description = IntentDescription("Removes a song from one of your playlists. The song stays in your library.", categoryName: "Playlists")
+/// Adds any number of songs and albums to a playlist in one go.
+struct AddToPlaylistIntent: AppIntent {
+	static let title: LocalizedStringResource = "Add to Playlist"
+	static let description = IntentDescription("Adds songs and albums from your library to one of your playlists.", categoryName: "Playlists")
 
-	@Parameter(title: "Song")
-	var song: SongEntity
+	@Parameter(title: "Songs", default: [])
+	var songs: [SongEntity]
+
+	@Parameter(title: "Albums", default: [])
+	var albums: [AlbumEntity]
 
 	@Parameter(title: "Playlist")
 	var playlist: PlaylistEntity
 
 	static var parameterSummary: some ParameterSummary {
-		Summary("Remove \(\.$song) from \(\.$playlist)")
+		Summary("Add \(\.$songs) and \(\.$albums) to \(\.$playlist)")
 	}
 
 	@MainActor
-	func perform() async throws -> some IntentResult {
-		let server = try await AppSession.shared.resolveServer()
-		let songId = self.song.id
+	func perform() async throws -> some IntentResult & ProvidesDialog {
+		let tracks = try await AudioPlayback.tracks(songs: self.songs.map(\.id), albums: self.albums.map(\.id))
+		try await AudioPlayback.add(tracks, toPlaylist: self.playlist.id)
 
-		// a playlist entry is the song's place in the list: find every one of this song
+		let name = await AudioPlayback.playlistTitle(self.playlist.id)
+		return .result(dialog: "Added to \(name).")
+	}
+}
+
+/// Takes songs out of a playlist; they stay in the library.
+struct RemoveFromPlaylistIntent: AppIntent {
+	static let title: LocalizedStringResource = "Remove from Playlist"
+	static let description = IntentDescription("Removes songs from one of your playlists. They stay in your library.", categoryName: "Playlists")
+
+	@Parameter(title: "Songs")
+	var songs: [SongEntity]
+
+	@Parameter(title: "Playlist")
+	var playlist: PlaylistEntity
+
+	static var parameterSummary: some ParameterSummary {
+		Summary("Remove \(\.$songs) from \(\.$playlist)")
+	}
+
+	@MainActor
+	func perform() async throws -> some IntentResult & ProvidesDialog {
+		let server = try await AppSession.shared.resolveServer()
+		let songIds = Set(self.songs.map(\.id))
+
+		// a playlist entry is the song's place in the list: find every one of these songs
 		var entryIds: [String] = []
 		var page = 1
 		while true {
 			let response = try await server.fetchPlaylistTracks(pid: self.playlist.id, page: page, limit: 100)
-			entryIds += response.items.filter { $0.media.id == songId }.map(\.entryId)
+			entryIds += response.items.filter { songIds.contains($0.media.id) }.map(\.entryId)
 			guard response.hasMore else { break }
 			page += 1
 		}
@@ -497,8 +594,10 @@ struct RemoveSongFromPlaylistIntent: AppIntent {
 		for entryId in entryIds {
 			_ = try await server.sendRaw(Playlist.removeTrack(pid: self.playlist.id, eid: entryId))
 		}
-		await LibraryCatalog.shared.invalidate()
-		return .result()
+		await LibraryCatalog.shared.invalidatePlaylists()
+
+		let name = await AudioPlayback.playlistTitle(self.playlist.id)
+		return .result(dialog: "Removed from \(name).")
 	}
 }
 

@@ -19,10 +19,11 @@ struct ArtistEntity: IndexedEntity {
 	/// The artist's name: the library knows artists by name (MusicBrainz IDs are missing on some tracks).
 	let id: String
 
+	@Property(title: "Name")
 	var name: String
 
 	var displayRepresentation: DisplayRepresentation {
-		DisplayRepresentation(title: "\(self.name)")
+		DisplayRepresentation(title: "\(self.name)", image: .init(systemName: "music.mic"))
 	}
 
 	init(name: String) {
@@ -37,15 +38,12 @@ struct ArtistEntity: IndexedEntity {
 		}
 
 		func entities(matching string: String) async throws -> [ArtistEntity] {
-			let names = Set(try await LibraryCatalog.shared.tracks().map(\.artistName))
-			return names
-				.filter { $0.localizedCaseInsensitiveContains(string) }
-				.sorted()
-				.map { ArtistEntity(name: $0) }
+			let names = LibrarySearch.artistNames(in: try await LibraryCatalog.shared.tracks())
+			return LibrarySearch.artists(names, matching: string).prefix(50).map { ArtistEntity(name: $0.row) }
 		}
 
 		func suggestedEntities() async throws -> [ArtistEntity] {
-			Array(Set(try await LibraryCatalog.shared.tracks().map(\.artistName)).sorted().prefix(25)).map { ArtistEntity(name: $0) }
+			LibrarySearch.artistNames(in: try await LibraryCatalog.shared.tracks()).prefix(25).map { ArtistEntity(name: $0) }
 		}
 	}
 }

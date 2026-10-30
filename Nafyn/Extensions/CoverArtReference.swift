@@ -9,7 +9,7 @@ import Safyn
 /// can't be loaded as they are: `CoverArtLoader` resolves them against the current session's server and
 /// sends its auth. Anything that isn't such a path (uploaded track covers, playlist images, avatars,
 /// artist photos) has no reference and keeps loading from its own URL.
-struct CoverArtReference: Hashable, Sendable {
+nonisolated struct CoverArtReference: Hashable, Sendable {
 	let kind: CoverArtKind
 	let id: String
 	let size: CoverArtSize

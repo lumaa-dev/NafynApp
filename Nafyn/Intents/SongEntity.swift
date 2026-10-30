@@ -16,13 +16,28 @@ struct SongEntity: IndexedEntity {
 	/// Nafyn's media ID.
 	let id: String
 
+	@Property(title: "Title", indexingKey: \.title)
 	var title: String
+
+	@Property(title: "Artist", indexingKey: \.artist)
 	var artistName: String
+
+	@Property(title: "Composer", indexingKey: \.composer)
 	var composerName: String?
+
+	@Property(title: "Album Title", indexingKey: \.album)
 	var albumTitle: String?
+
+	@Property(title: "Artists")
 	var artists: [ArtistEntity]
+
+	@Property(title: "Album")
 	var album: AlbumEntity?
+
+	@Property(title: "Composers")
 	var composers: [ArtistEntity]
+
+	@Property(title: "ISRC", indexingKey: \.identifier)
 	var internationalStandardRecordingCode: String?
 
 	@Property(title: "Duration")
@@ -34,15 +49,38 @@ struct SongEntity: IndexedEntity {
 	@Property(title: "Track Number")
 	var trackNumber: Int?
 
+	@Property(title: "Disc Number")
+	var discNumber: Int?
+
 	@Property(title: "Release Date")
 	var releaseDate: Date?
 
+	@Property(title: "File Size")
+	var fileSize: Measurement<UnitInformationStorage>?
+
+	@Property(title: "Record Label")
+	var label: String?
+
+	@Property(title: "Album Type")
+	var albumType: String?
+
+	@Property(title: "MusicBrainz ID")
+	var musicBrainzId: String
+
+	@Property(title: "Artist MusicBrainz ID")
+	var artistMusicBrainzId: String?
+
+	@Property(title: "Album MusicBrainz ID")
+	var albumMusicBrainzId: String
+
+	@Property(title: "Cover Art Path")
 	var coverArt: String?
 
 	var displayRepresentation: DisplayRepresentation {
 		DisplayRepresentation(
 			title: "\(self.title)",
-			subtitle: "\(self.artistName)"
+			subtitle: "\(self.artistName)",
+			image: IntentArtwork.data(for: self.coverArt).map { DisplayRepresentation.Image(data: $0) }
 		)
 	}
 
@@ -56,6 +94,7 @@ struct SongEntity: IndexedEntity {
 		attributes.duration = NSNumber(value: self.duration.converted(to: .seconds).value)
 		attributes.contentDescription = [self.artistName, self.albumTitle].compactMap { $0 }.joined(separator: " • ")
 		attributes.keywords = [self.title, self.artistName, self.albumTitle].compactMap { $0 }
+		attributes.thumbnailData = IntentArtwork.data(for: self.coverArt)
 		return attributes
 	}
 
@@ -73,6 +112,13 @@ struct SongEntity: IndexedEntity {
 		self.dateAdded = row.addedAtDate
 		self.trackNumber = row.trackNumber.map { Int($0) }
 		self.releaseDate = row.releaseDateValue
+		self.discNumber = row.discNumber.map { Int($0) }
+		self.fileSize = row.fileSize.map { Measurement(value: Double($0), unit: .bytes) }
+		self.label = row.label
+		self.albumType = row.albumType?.rawValue
+		self.musicBrainzId = row.musicbrainzId
+		self.artistMusicBrainzId = row.artistMbid
+		self.albumMusicBrainzId = row.albumId
 		self.coverArt = row.coverArt
 	}
 
@@ -84,13 +130,9 @@ struct SongEntity: IndexedEntity {
 		}
 
 		func entities(matching string: String) async throws -> [SongEntity] {
-			try await LibraryCatalog.shared.tracks()
-				.filter {
-					$0.title.localizedCaseInsensitiveContains(string)
-						|| $0.artistName.localizedCaseInsensitiveContains(string)
-						|| ($0.album?.localizedCaseInsensitiveContains(string) ?? false)
-				}
-				.map(SongEntity.init(row:))
+			LibrarySearch.tracks(try await LibraryCatalog.shared.tracks(), matching: string)
+				.prefix(50)
+				.map { SongEntity(row: $0.row) }
 		}
 
 		func suggestedEntities() async throws -> [SongEntity] {

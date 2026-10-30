@@ -16,9 +16,16 @@ struct AlbumEntity: IndexedEntity {
 	/// The library album ID.
 	let id: String
 
+	@Property(title: "Title", indexingKey: \.title)
 	var title: String
+
+	@Property(title: "Artist", indexingKey: \.artist)
 	var artistName: String
+
+	@Property(title: "Artists")
 	var artists: [ArtistEntity]
+
+	@Property(title: "UPC")
 	var universalProductCode: String?
 
 	@Property(title: "Track Count")
@@ -33,10 +40,21 @@ struct AlbumEntity: IndexedEntity {
 	@Property(title: "Release Date")
 	var releaseDate: Date?
 
+	@Property(title: "MusicBrainz ID")
+	var musicBrainzId: String
+
+	@Property(title: "Artist MusicBrainz ID")
+	var artistMusicBrainzId: String?
+
+	@Property(title: "Cover Art Path")
 	var coverArt: String?
 
 	var displayRepresentation: DisplayRepresentation {
-		DisplayRepresentation(title: "\(self.title)", subtitle: "\(self.artistName)")
+		DisplayRepresentation(
+			title: "\(self.title)",
+			subtitle: "\(self.artistName)",
+			image: IntentArtwork.data(for: self.coverArt).map { DisplayRepresentation.Image(data: $0) }
+		)
 	}
 
 	var attributeSet: CSSearchableItemAttributeSet {
@@ -46,6 +64,7 @@ struct AlbumEntity: IndexedEntity {
 		attributes.artist = self.artistName
 		attributes.contentDescription = self.artistName
 		attributes.keywords = [self.title, self.artistName]
+		attributes.thumbnailData = IntentArtwork.data(for: self.coverArt)
 		return attributes
 	}
 
@@ -59,6 +78,8 @@ struct AlbumEntity: IndexedEntity {
 		self.duration = Measurement(value: row.duration, unit: .seconds)
 		self.dateAdded = row.addedAtDate
 		self.releaseDate = row.releaseDateValue
+		self.musicBrainzId = row.mbId
+		self.artistMusicBrainzId = row.artistMbid
 		self.coverArt = row.coverArt
 	}
 
@@ -73,6 +94,8 @@ struct AlbumEntity: IndexedEntity {
 		self.duration = Measurement(value: 0, unit: .seconds)
 		self.dateAdded = .distantPast
 		self.releaseDate = nil
+		self.musicBrainzId = albumId
+		self.artistMusicBrainzId = nil
 		self.coverArt = coverArt
 	}
 
@@ -84,9 +107,9 @@ struct AlbumEntity: IndexedEntity {
 		}
 
 		func entities(matching string: String) async throws -> [AlbumEntity] {
-			try await LibraryCatalog.shared.albums()
-				.filter { $0.title.localizedCaseInsensitiveContains(string) || $0.artistName.localizedCaseInsensitiveContains(string) }
-				.map(AlbumEntity.init(row:))
+			LibrarySearch.albums(try await LibraryCatalog.shared.albums(), matching: string)
+				.prefix(50)
+				.map { AlbumEntity(row: $0.row) }
 		}
 
 		func suggestedEntities() async throws -> [AlbumEntity] {

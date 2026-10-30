@@ -54,6 +54,9 @@ final class SpotlightIndexer {
 			let albums = try await LibraryCatalog.shared.albums()
 			let index = CSSearchableIndex(name: Self.indexName)
 
+			// the covers go to disk first: an entity reads its thumbnail synchronously when it is indexed
+			await IntentArtwork.prefetch(albums.map(\.coverArt) + tracks.map(\.coverArt))
+
 			let songs = tracks.map(SongEntity.init(row:))
 			for batch in songs.chunked(into: Self.batchSize) {
 				try await index.indexAppEntities(batch)
@@ -109,6 +112,7 @@ final class SpotlightIndexer {
 	func reset() {
 		self.pending?.cancel()
 		self.lastSync = nil
+		IntentArtwork.removeAll()
 
 		Task {
 			let index = CSSearchableIndex(name: Self.indexName)

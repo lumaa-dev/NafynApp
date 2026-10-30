@@ -14,9 +14,16 @@ struct PlaylistEntity: IndexedEntity {
 
 	let id: String
 
+	@Property(title: "Title")
 	var title: String
+
+	@Property(title: "Owner")
 	var owner: Owner?
+
+	@Property(title: "Created by Me")
 	var createdByMe: Bool?
+
+	@Property(title: "Curated for Me")
 	var curatedForMe: Bool?
 
 	@Property(title: "Description")
@@ -27,6 +34,9 @@ struct PlaylistEntity: IndexedEntity {
 
 	@Property(title: "Date Updated")
 	var dateUpdated: Date
+
+	@Property(title: "Date Created")
+	var dateCreated: Date
 
 	var displayRepresentation: DisplayRepresentation {
 		DisplayRepresentation(title: "\(self.title)", subtitle: self.summary.map { "\($0)" })
@@ -42,6 +52,7 @@ struct PlaylistEntity: IndexedEntity {
 		self.summary = row.description
 		self.isPublic = row.privacy == .public
 		self.dateUpdated = Date(timeIntervalSince1970: TimeInterval(row.updatedAt) / 1000)
+		self.dateCreated = Date(timeIntervalSince1970: TimeInterval(row.createdAt) / 1000)
 	}
 
 	struct PlaylistEntityQuery: EntityQuery, EntityStringQuery {
@@ -53,7 +64,7 @@ struct PlaylistEntity: IndexedEntity {
 		}
 
 		func entities(matching string: String) async throws -> [PlaylistEntity] {
-			let rows = try await LibraryCatalog.shared.playlists().filter { $0.title.localizedCaseInsensitiveContains(string) }
+			let rows = LibrarySearch.playlists(try await LibraryCatalog.shared.playlists(), matching: string).map(\.row)
 			return await MainActor.run { rows.map(PlaylistEntity.init(row:)) }
 		}
 

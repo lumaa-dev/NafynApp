@@ -43,6 +43,7 @@ final class AppSession {
 		self.server = nil
 		self.userId = nil
 		SpotlightIndexer.shared.reset()
+		Task { await LibraryCatalog.shared.invalidate() }
 	}
 
 	/// The live server, or one signed in from the default saved account.

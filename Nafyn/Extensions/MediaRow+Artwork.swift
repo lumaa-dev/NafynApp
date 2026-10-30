@@ -16,7 +16,7 @@ extension MediaRow {
 
 extension String {
 	/// A server `coverArt` path (`/api/v1/art/<type>/<id>/<size>`) at another size (250 / 500 / 1000).
-	func coverArtURL(size: UInt16) -> URL? {
+	nonisolated func coverArtURL(size: UInt16) -> URL? {
 		URL(string: self.replacing(/\d+$/, with: "\(size)"))
 	}
 }

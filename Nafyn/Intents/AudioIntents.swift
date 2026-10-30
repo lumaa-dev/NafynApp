@@ -9,14 +9,14 @@ import Safyn
 // playlist". They share their playback code with the Shortcuts actions (see `ShortcutIntents.swift`).
 
 @AppIntent(schema: .audio.playAudio)
-struct PlayAudioIntent: AudioStartingIntent {
+struct PlayAudioIntent: AudioPlaybackIntent {
 	var audioEntity: AudioItem
 	var playbackAttributes: Set<PlaybackAttributes>
 	var warmupAudioQueueResult: WarmupAudioQueueResult?
 	var queueLocation: QueueInsertionLocation?
 
 	@MainActor
-	func perform() async throws -> some IntentResult {
+	func perform() async throws -> some IntentResult & ProvidesDialog {
 		let queue: AudioPlayback.Queue
 		if let id = self.warmupAudioQueueResult?.queueId, let prepared = AudioPlayback.prepared(id) {
 			queue = prepared
@@ -24,13 +24,15 @@ struct PlayAudioIntent: AudioStartingIntent {
 			queue = try await AudioPlayback.queue(for: self.audioEntity)
 		}
 
-		try AudioPlayback.start(
+		let shuffle = self.playbackAttributes.contains(.shuffle)
+		let outcome = try AudioPlayback.start(
 			queue,
-			shuffle: self.playbackAttributes.contains(.shuffle),
+			shuffle: shuffle,
 			repeatQueue: self.playbackAttributes.contains(.repeat),
 			location: self.queueLocation
 		)
-		return .result()
+		// without a spoken answer Siri keeps listening until the person dismisses it
+		return .result(dialog: AudioPlayback.dialog(outcome, title: queue.title))
 	}
 }
 
@@ -55,10 +57,11 @@ struct AddAudioToPlaylistIntent {
 	var playlist: PlaylistEntity
 
 	@MainActor
-	func perform() async throws -> some IntentResult {
+	func perform() async throws -> some IntentResult & ProvidesDialog {
 		let queue = try await AudioPlayback.queue(for: self.audioEntity)
 		try await AudioPlayback.add(queue.tracks, toPlaylist: self.playlist.id)
-		return .result()
+		let name = await AudioPlayback.playlistTitle(self.playlist.id)
+		return .result(dialog: "Added to \(name).")
 	}
 }
 
@@ -76,40 +79,43 @@ struct AudioSearchQuery: IntentValueQuery {
 					.map { AudioItem.album(AlbumEntity(row: $0)) }
 			case .url:
 				return []
+			@unknown default:
+				return []
 		}
 	}
 
-	/// Songs, albums, artists and playlists whose name contains `text`, exact matches first.
+	/// Songs, albums, artists and playlists that match `text`, best first. A whole-name match of an album
+	/// or artist beats a song that merely contains the words.
 	private static func items(matching text: String) async throws -> [AudioItem] {
-		let query = text.trimmingCharacters(in: .whitespacesAndNewlines)
-		guard !query.isEmpty else { return [] }
+		async let tracks = LibraryCatalog.shared.tracks()
+		async let albums = LibraryCatalog.shared.albums()
+		async let playlists = LibraryCatalog.shared.playlists()
 
-		let tracks = try await LibraryCatalog.shared.tracks()
-		let albums = try await LibraryCatalog.shared.albums()
-		let playlists = (try? await LibraryCatalog.shared.playlists()) ?? []
+		let allTracks = try await tracks
+		let allAlbums = try await albums
+		let allPlaylists = (try? await playlists) ?? []
 
-		func rank(_ name: String) -> Int {
-			if name.caseInsensitiveCompare(query) == .orderedSame { return 0 }
-			if name.range(of: query, options: [.caseInsensitive, .diacriticInsensitive]) != nil { return 1 }
-			return 2
+		var scored: [(score: Int, kind: Int, item: AudioItem)] = []
+
+		for match in LibrarySearch.albums(allAlbums, matching: text).prefix(10) {
+			scored.append((match.score, 1, .album(AlbumEntity(row: match.row))))
+		}
+		for match in LibrarySearch.artists(LibrarySearch.artistNames(in: allTracks), matching: text).prefix(10) {
+			scored.append((match.score, 2, .artist(ArtistEntity(name: match.row))))
+		}
+		for match in LibrarySearch.tracks(allTracks, matching: text).prefix(10) {
+			scored.append((match.score, 0, .song(SongEntity(row: match.row))))
+		}
+		for match in LibrarySearch.playlists(allPlaylists, matching: text).prefix(5) {
+			let entity = await MainActor.run { PlaylistEntity(row: match.row) }
+			scored.append((match.score, 3, .playlist(entity)))
 		}
 
-		var scored: [(rank: Int, item: AudioItem)] = []
-
-		for album in albums where rank(album.title) < 2 {
-			scored.append((rank(album.title), .album(AlbumEntity(row: album))))
-		}
-		for artist in Set(tracks.map(\.artistName)) where rank(artist) < 2 {
-			scored.append((rank(artist), .artist(ArtistEntity(name: artist))))
-		}
-		for track in tracks where rank(track.title) < 2 {
-			scored.append((rank(track.title), .song(SongEntity(row: track))))
-		}
-		for playlist in playlists where rank(playlist.title) < 2 {
-			let entity = await MainActor.run { PlaylistEntity(row: playlist) }
-			scored.append((rank(playlist.title), .playlist(entity)))
-		}
-
-		return scored.sorted { $0.rank < $1.rank }.prefix(10).map(\.item)
+		// stable: equal scores keep the order above (songs, albums, artists, playlists)
+		return scored
+			.enumerated()
+			.sorted { ($0.element.score, $0.element.kind, $0.offset) < ($1.element.score, $1.element.kind, $1.offset) }
+			.prefix(10)
+			.map(\.element.item)
 	}
 }
