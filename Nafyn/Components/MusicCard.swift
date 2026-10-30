@@ -6,19 +6,19 @@ import Safyn
 struct MusicCard: View {
 	@Environment(\.server) private var server: NafynServer?
 	@Environment(\.horizontalSizeClass) private var horizontalSizeClass
-
-	@State private var toast = ToastState()
+	@Environment(\.zoomNamespace) private var zoomNamespace: Namespace.ID?
 
 	var entry: MusicCardEntry
 	var type: Self.ViewType
 
-	/// Adds a destructive "Delete" to the card's context menu; the owner confirms and performs the delete.
-	var onDelete: (() -> Void)?
+	/// Runs after the card's own "Delete" (albums and tracks in the library) succeeded, so the screen showing
+	/// the card can drop it.
+	var onRemoved: (() -> Void)?
 
-	init(_ entry: MusicCardEntry, type: Self.ViewType = .highlight, onDelete: (() -> Void)? = nil) {
+	init(_ entry: MusicCardEntry, type: Self.ViewType = .highlight, onRemoved: (() -> Void)? = nil) {
 		self.entry = entry
 		self.type = type
-		self.onDelete = onDelete
+		self.onRemoved = onRemoved
 	}
 
 	var body: some View {
@@ -33,59 +33,19 @@ struct MusicCard: View {
 		// pointer lift on iPad (and the Duo with a mouse); no effect with touch alone
 		.contentShape(.hoverEffect, RoundedRectangle(cornerRadius: 10.0))
 		.hoverEffect()
-		.contextMenu {
-			self.menu
-		}
-		.toast(self.toast)
+		// the screen this card opens zooms out of its cover while the card is on screen. Deliberately no tap
+		// gesture here: one attached to a card inside a `NavigationLink` swallows the link's own tap.
+		.onAppear { CardZoom.register(self.entry.destination) }
+		.onDisappear { CardZoom.unregister(self.entry.destination) }
+		.libraryItemMenu(
+			item: self.entry.libraryItem,
+			play: self.entry.isPlayable ? { [entry = self.entry, server = self.server] in try await entry.playbackQueue(server: server) } : nil,
+			onRemoved: self.onRemoved
+		)
 	}
 
-	@ViewBuilder
-	private var menu: some View {
-		if self.entry.isPlayable {
-			ControlGroup {
-				Button {
-					self.play(shuffle: false)
-				} label: {
-					Label(String(localized: "play"), systemImage: "play.fill")
-				}
-				.tint(Color.primary)
-
-				Button {
-					self.play(shuffle: true)
-				} label: {
-					Label(String(localized: "shuffle"), systemImage: "shuffle")
-				}
-				.tint(Color.primary)
-			}
-		}
-
-		if let onDelete = self.onDelete {
-			Button(role: .destructive) {
-				onDelete()
-			} label: {
-				Label(String(localized: "delete"), systemImage: "trash")
-			}
-			.tint(DTColor.buttonDanger)
-			.disabled(NetworkMonitor.shared.isOffline)
-		}
-	}
-
-	private func play(shuffle: Bool) {
-		let entry = self.entry
-		let server = self.server
-
-		Task {
-			do {
-				var (queue, context) = try await entry.playbackQueue(server: server)
-				guard !queue.isEmpty else { return }
-				if shuffle {
-					queue.shuffle()
-				}
-				PlaybackSource.play(queue[0], queue: queue, recordContext: context)
-			} catch {
-				self.toast.failure(error)
-			}
-		}
+	private var coverShape: AnyShape {
+		self.entry.isArtist ? AnyShape(Circle()) : AnyShape(RoundedRectangle(cornerRadius: 10.0))
 	}
 
 	/// Fills the width its container proposes (an adaptive grid cell, see ``GridItem/musicCard``) with a
@@ -101,7 +61,8 @@ struct MusicCard: View {
 				.overlay {
 					CoverImage(url: self.entry.coverURL(server: self.server, size: coverSize), cornerRadius: 0)
 				}
-				.clipShape(self.entry.isArtist ? AnyShape(Circle()) : AnyShape(RoundedRectangle(cornerRadius: 10.0)))
+				.clipShape(self.coverShape)
+				.cardZoomSource(self.entry.destination, in: self.zoomNamespace, cornerRadius: self.entry.isArtist ? 1000 : 10)
 
 			Text(self.entry.title)
 				.font(DTFont.serif(18))
@@ -125,7 +86,8 @@ struct MusicCard: View {
 				CoverImage(url: self.entry.coverURL(server: self.server), cornerRadius: 0)
 			}
 			.frame(width: 60, height: 60)
-			.clipShape(self.entry.isArtist ? AnyShape(Circle()) : AnyShape(RoundedRectangle(cornerRadius: 10.0)))
+			.clipShape(self.coverShape)
+			.cardZoomSource(self.entry.destination, in: self.zoomNamespace, cornerRadius: self.entry.isArtist ? 1000 : 10)
 
 			VStack(alignment: .leading) {
 				Text(self.entry.title)
@@ -158,6 +120,26 @@ enum MusicCardEntry: Hashable {
 	case playlist(PlaylistRow)
 	case info(MediaInfo)
 	case artist(ArtistInfo)
+
+	/// The owned album or track this card stands for, if any: what its context menu can delete.
+	var libraryItem: LibraryItem? {
+		switch self {
+			case .album(let album):
+				.album(id: album.id)
+			case .media(let media):
+				.track(id: media.id)
+			case .recentlyPlayed(let entry):
+				switch entry.type {
+					case .album: .album(id: entry.refId)
+					case .track: .track(id: entry.refId)
+					case .playlist: nil
+				}
+			case .info(let info):
+				info.type != .track && info.inLibrary == true ? .album(id: info.id) : nil
+			case .playlist, .artist:
+				nil
+		}
+	}
 
 	var isArtist: Bool {
 		if case .artist = self { return true }

@@ -72,7 +72,7 @@ struct LibraryView: View {
 				FoldGrid(alignment: .leading) {
 					ForEach(entries) { elm in
 						NavigationLink(value: elm.destination) {
-							MusicCard(elm.cardEntry)
+							MusicCard(elm.cardEntry, onRemoved: { self.forget(elm.cardEntry) })
 								.frame(maxWidth: .infinity, alignment: .leading)
 						}
 						.buttonStyle(.plain)
@@ -100,6 +100,12 @@ struct LibraryView: View {
 		}
 
 		return result.sorted { $0.timestamp > $1.timestamp }
+	}
+
+	/// A deleted album/track must leave the grid, with every play of it.
+	private func forget(_ entry: MusicCardEntry) {
+		guard case .recentlyPlayed(let removed) = entry else { return }
+		self.recntPlays.removeAll { $0.refId == removed.refId && $0.type == removed.type }
 	}
 
 	private struct RecentGridEntry: Identifiable {

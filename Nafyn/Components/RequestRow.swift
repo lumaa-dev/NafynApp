@@ -18,6 +18,11 @@ struct RequestRow: View {
 	/// Called with `.searching` (accept) or `.denied` (deny). The owner performs the server call.
 	var onDecision: ((RequestStatus) -> Void)? = nil
 
+	/// Asks the owner to delete this request. Offered only to a manager and never while the pipeline is
+	/// working on it, judged on the *live* status (the list's own copy is stale once progress streams in);
+	/// the server refuses both cases anyway.
+	var onDelete: (() -> Void)? = nil
+
 	private var effectiveStatus: RequestStatus {
 		self.observer.progress?.stage ?? self.request.status
 	}
@@ -86,6 +91,17 @@ struct RequestRow: View {
 			}
 		}
 		.padding(.vertical, 4)
+		.swipeActions(edge: .trailing, allowsFullSwipe: false) {
+			if self.canManage, !self.isLive, let onDelete {
+				Button(role: .destructive) {
+					onDelete()
+				} label: {
+					Label(String(localized: "delete"), systemImage: "trash")
+				}
+				.tint(DTColor.buttonDanger)
+				.disabled(NetworkMonitor.shared.isOffline)
+			}
+		}
 		.task(id: self.request.id) {
 			// denied is as terminal as completed/failed: nothing will ever stream for it
 			guard let server, self.request.status != .denied, self.request.status != .completed, self.request.status != .failed else { return }

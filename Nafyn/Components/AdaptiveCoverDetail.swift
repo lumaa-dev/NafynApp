@@ -92,6 +92,7 @@ struct AdaptiveCoverDetail<Header: View, Compact: View, Primary: View, Secondary
 		.frame(maxWidth: DTLayout.readableWidth, alignment: .leading)
 		.frame(maxWidth: .infinity)
 		.padding(.horizontal)
+		.modifier(CoverSideInsetPadding())
 		.padding(.bottom)
 	}
 
@@ -108,5 +109,16 @@ struct AdaptiveCoverDetail<Header: View, Compact: View, Primary: View, Secondary
 			return !proxy.reservedRegions(kind: .division).isEmpty
 		}
 		return false
+	}
+}
+
+/// Keeps content inside the leading/trailing safe area that a ``CoverScrollView`` scrolls under (zero anywhere else).
+private struct CoverSideInsetPadding: ViewModifier {
+	@Environment(\.coverSideInsets) private var insets
+
+	func body(content: Content) -> some View {
+		content
+			.padding(.leading, self.insets.leading)
+			.padding(.trailing, self.insets.trailing)
 	}
 }

@@ -163,7 +163,7 @@ private struct LibraryTrackDetailContent: View {
 		guard let server else { return }
 		Task {
 			do {
-				_ = try await server.send(Library.remove(id: self.track.id)) as RemovedWithFileResponse
+				try await server.removeFromLibrary(self.track)
 				self.dismiss()
 			} catch {
 				self.toast.failure(error)

@@ -66,6 +66,7 @@ private struct ReplayMixContent: View {
 									.accessibilityLabel(String(localized: "replay-mix-unavailable"))
 							}
 						}
+						.libraryItemMenu(item: entry.media.map { .track(id: $0.id) }, play: nil)
 					}
 				}
 

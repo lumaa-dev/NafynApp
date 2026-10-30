@@ -2,6 +2,8 @@
 
 import SwiftUI
 import TextFlowKit
+import NaturalLanguage
+import FoundationModels
 import Safyn
 
 /// Word/syllable-level "karaoke" lyrics, mirroring Apple Music Sing — ported from the Amber team's own
@@ -28,6 +30,15 @@ struct LyricsPanel: View {
 
 	@State private var isUserScrolling = false
 	@State private var scrollResumeTask: Task<Void, Never>? = nil
+
+	// MARK: Translation
+
+	/// What the lyrics are sung in, detected once they have loaded; `nil` until then or when unsure.
+	@State private var sourceLanguage: Locale.Language? = nil
+	/// Translated text per line ID, filled by the first tap on the translate button.
+	@State private var translations: [String: String] = [:]
+	@State private var isTranslating = false
+	@State private var showsTranslation = false
 	@AppStorage(LyricsPanel.useSystemFontKey) private var useSystemFont = false
 
 	var body: some View {
@@ -67,8 +78,143 @@ struct LyricsPanel: View {
 						proxy.scrollTo(newId, anchor: UnitPoint(x: 0.5, y: 0.35))
 					}
 				}
+				.overlay(alignment: .topTrailing) {
+					if self.canTranslate {
+						self.translateButton(lyrics)
+					}
+				}
+				.task(id: self.trackId) {
+					self.sourceLanguage = Self.detectLanguage(of: lyrics)
+				}
 			}
 		}
+	}
+
+	// MARK: - Translation
+
+	/// The language the app is displayed in (the user's choice for Nafyn, which can differ from the system's).
+	private static var appLanguage: Locale.Language {
+		Locale.Language(identifier: Bundle.main.preferredLocalizations.first ?? "en")
+	}
+
+	/// The on-device model, with the guardrails relaxed for transforming text the user already has: lyrics
+	/// contain profanity and violence that the default guardrails would refuse to translate.
+	private static var permissiveModel: SystemLanguageModel {
+		SystemLanguageModel(guardrails: .permissiveContentTransformations)
+	}
+
+	/// Shown only on Apple Intelligence devices (model available, both languages supported) and only when the
+	/// lyrics are in another language than the app's.
+	private var canTranslate: Bool {
+		guard let source = self.sourceLanguage else { return false }
+		guard source.languageCode != Self.appLanguage.languageCode else { return false }
+
+		let model = SystemLanguageModel.default
+		guard model.availability == .available else { return false }
+
+		let supported = model.supportedLanguages
+		return supported.contains { $0.languageCode == source.languageCode }
+			&& supported.contains { $0.languageCode == Self.appLanguage.languageCode }
+	}
+
+	private static func detectLanguage(of lyrics: Lyrics) -> Locale.Language? {
+		let sample = Self.lines(of: lyrics).prefix(40).map(\.text).joined(separator: "\n")
+		guard !sample.isEmpty else { return nil }
+
+		let recognizer = NLLanguageRecognizer()
+		recognizer.processString(sample)
+		guard let (language, confidence) = recognizer.languageHypotheses(withMaximum: 1).first, confidence >= 0.5 else { return nil }
+		return Locale.Language(identifier: language.rawValue)
+	}
+
+	private static func lines(of lyrics: Lyrics) -> [Lyrics.Line] {
+		lyrics.paragraphs.flatMap(\.lines).filter { !$0.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+	}
+
+	private func translateButton(_ lyrics: Lyrics) -> some View {
+		Button {
+			self.translateTapped(lyrics)
+		} label: {
+			Group {
+				if self.isTranslating {
+					ProgressView()
+						.tint(DTColor.textPrimary)
+				} else {
+					Label(String(localized: "translate"), systemImage: "translate")
+						.labelStyle(.iconOnly)
+						.foregroundStyle(self.showsTranslation ? DTColor.accentStart : DTColor.textPrimary.opacity(0.85))
+				}
+			}
+			.frame(width: 22, height: 22)
+		}
+		.buttonStyle(.glass)
+		.buttonBorderShape(.circle)
+		.tint(Color.primary)
+		.disabled(self.isTranslating)
+		.padding(.trailing, 8)
+		.accessibilityLabel(String(localized: "translate"))
+	}
+
+	/// The first tap generates the translation (and disables the button meanwhile); after that it is a toggle.
+	private func translateTapped(_ lyrics: Lyrics) {
+		guard !self.isTranslating else { return }
+
+		if !self.translations.isEmpty {
+			withAnimation(.smooth(duration: 0.3)) {
+				self.showsTranslation.toggle()
+			}
+			return
+		}
+
+		guard let source = self.sourceLanguage else { return }
+		self.isTranslating = true
+
+		Task {
+			defer { self.isTranslating = false }
+
+			let result = await Self.translate(Self.lines(of: lyrics), from: source, to: Self.appLanguage)
+			guard !result.isEmpty else { return }
+
+			self.translations = result
+			withAnimation(.smooth(duration: 0.3)) {
+				self.showsTranslation = true
+			}
+		}
+	}
+
+	/// Translates in batches that fit the model's context window, one line out per line in. A batch that
+	/// fails is skipped (its lines just stay untranslated) rather than losing the whole song.
+	private static func translate(_ lines: [Lyrics.Line], from source: Locale.Language, to target: Locale.Language) async -> [String: String] {
+		let describe: (Locale.Language) -> String = { Locale.current.localizedString(forLanguageCode: $0.minimalIdentifier) ?? $0.minimalIdentifier }
+		let instructions = """
+		You translate song lyrics from \(describe(source)) to \(describe(target)). \
+		Translate faithfully, including profanity and slang, without censoring, softening or commenting. \
+		The input has one numbered line per lyric line, like "3: text". Answer with the same numbers and one \
+		translated line for each, in the same "3: text" form, and nothing else.
+		"""
+
+		var result: [String: String] = [:]
+
+		for batch in lines.chunked(into: 20) {
+			let prompt = batch.enumerated().map { "\($0.offset + 1): \($0.element.text)" }.joined(separator: "\n")
+			let session = LanguageModelSession(model: Self.permissiveModel, instructions: instructions)
+
+			guard let response = try? await session.respond(to: prompt) else { continue }
+
+			for answer in response.content.split(separator: "\n") {
+				guard let colon = answer.firstIndex(of: ":"),
+					  let number = Int(answer[..<colon].trimmingCharacters(in: .whitespaces)),
+					  batch.indices.contains(number - 1)
+				else { continue }
+
+				let text = answer[answer.index(after: colon)...].trimmingCharacters(in: .whitespaces)
+				if !text.isEmpty {
+					result[batch[number - 1].id] = text
+				}
+			}
+		}
+
+		return result
 	}
 
 	private func markUserScrolling(onResume: @escaping () -> Void) {
@@ -105,6 +251,7 @@ struct LyricsPanel: View {
 		Button {
 			PlaybackSource.seek(to: line.startTime)
 		} label: {
+			VStack(alignment: isAlt ? .trailing : .leading, spacing: 6) {
 			Group {
 				if line.segments.isEmpty {
 					Text(line.text)
@@ -125,6 +272,15 @@ struct LyricsPanel: View {
 						}
 					}
 				}
+			}
+
+			// smaller and a step dimmer than the lyric above it
+			if self.showsTranslation, let translated = self.translations[line.id] {
+				Text(translated)
+					.font(Self.font(isBackground ? 17 : 20, useSystemFont: self.useSystemFont))
+					.foregroundStyle(DTColor.textPrimary.opacity(isActive ? 0.55 : 0.3))
+					.multilineTextAlignment(isAlt ? .trailing : .leading)
+			}
 			}
 			.frame(maxWidth: .infinity, alignment: isAlt ? .trailing : .leading)
 			.scaleEffect((isActive ? 1.0 : 0.85) * sizeMultiplier, anchor: isAlt ? .trailing : .leading)
@@ -190,5 +346,11 @@ private struct SegmentTextView: View {
 			}
 		}
 		.foregroundStyle(DTColor.textPrimary)
+	}
+}
+
+private extension Array {
+	func chunked(into size: Int) -> [[Element]] {
+		stride(from: 0, to: self.count, by: size).map { Array(self[$0..<Swift.min($0 + size, self.count)]) }
 	}
 }

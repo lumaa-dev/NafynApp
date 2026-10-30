@@ -418,6 +418,17 @@ final class PlayerEngine: NSObject {
 		UnityEngine.shared.playerDidChange()
 	}
 
+	/// Queues `tracks` right after the current one ("Play Next"), without interrupting what is playing.
+	func insertNext(_ tracks: [MediaRow]) {
+		guard !tracks.isEmpty else { return }
+		let position = self.queue.indices.contains(self.currentIndex) ? self.currentIndex + 1 : self.queue.count
+		self.queue.insert(contentsOf: tracks, at: position)
+		if self.shuffleEnabled {
+			self.reshuffle()
+		}
+		UnityEngine.shared.playerDidChange()
+	}
+
 	/// Jumps directly to a queue index and plays it, e.g. from a Nafyn Unity `playFromQueue` remote command.
 	func playQueueIndex(_ index: Int) {
 		guard self.queue.indices.contains(index) else { return }

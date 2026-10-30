@@ -63,6 +63,8 @@ extension InsightsSectionHeader where Trailing == EmptyView {
 
 /// One entry of a ranked list (top track/album/artist/playlist), with its rank, artwork, and play count.
 struct RankedEntityRow: View {
+	@Environment(\.server) private var server: NafynServer?
+
 	let entity: RankedEntity
 	var onTap: (() -> Void)? = nil
 
@@ -108,6 +110,10 @@ struct RankedEntityRow: View {
 		}
 		.buttonStyle(.plain)
 		.disabled(self.onTap == nil)
+		.libraryItemMenu(
+			item: self.entity.libraryItem,
+			play: self.entity.libraryItem.map { item in { [server = self.server] in try await item.playbackQueue(server: server) } }
+		)
 	}
 
 	private var subtitle: String {

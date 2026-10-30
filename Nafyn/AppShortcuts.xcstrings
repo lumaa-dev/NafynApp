@@ -1,0 +1,318 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "Next Track" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Titre suivant"
+          }
+        }
+      }
+    },
+    "Next track on ${applicationName}" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringSet" : {
+            "state" : "new",
+            "values" : [
+              "Next track on ${applicationName}",
+              "Skip on ${applicationName}"
+            ]
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Titre suivant sur ${applicationName}"
+          }
+        }
+      }
+    },
+    "Pause" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pause"
+          }
+        }
+      }
+    },
+    "Pause ${applicationName}" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringSet" : {
+            "state" : "new",
+            "values" : [
+              "Pause ${applicationName}"
+            ]
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Mets ${applicationName} en pause"
+          }
+        }
+      }
+    },
+    "Play ${album} on ${applicationName}" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringSet" : {
+            "state" : "new",
+            "values" : [
+              "Play ${album} on ${applicationName}",
+              "Play the album ${album} on ${applicationName}"
+            ]
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Lance ${album} sur ${applicationName}"
+          }
+        }
+      }
+    },
+    "Play ${song} on ${applicationName}" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringSet" : {
+            "state" : "new",
+            "values" : [
+              "Play ${song} on ${applicationName}",
+              "Play the song ${song} on ${applicationName}"
+            ]
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Lance ${song} sur ${applicationName}"
+          }
+        }
+      }
+    },
+    "Play Album" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lire l'album"
+          }
+        }
+      }
+    },
+    "Play my ${playlist} playlist on ${applicationName}" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringSet" : {
+            "state" : "new",
+            "values" : [
+              "Play my ${playlist} playlist on ${applicationName}",
+              "Play the playlist ${playlist} on ${applicationName}"
+            ]
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Lance ma playlist ${playlist} sur ${applicationName}"
+          }
+        }
+      }
+    },
+    "Play Playlist" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lire la playlist"
+          }
+        }
+      }
+    },
+    "Play some music on ${applicationName}" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mets de la musique sur ${applicationName}"
+          }
+        }
+      }
+    },
+    "Play Song" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lire le titre"
+          }
+        }
+      }
+    },
+    "Play the album ${album} on ${applicationName}" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lance l'album ${album} sur ${applicationName}"
+          }
+        }
+      }
+    },
+    "Play the playlist ${playlist} on ${applicationName}" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lance la playlist ${playlist} sur ${applicationName}"
+          }
+        }
+      }
+    },
+    "Play the song ${song} on ${applicationName}" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lance le titre ${song} sur ${applicationName}"
+          }
+        }
+      }
+    },
+    "Previous Track" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Titre précédent"
+          }
+        }
+      }
+    },
+    "Previous track on ${applicationName}" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringSet" : {
+            "state" : "new",
+            "values" : [
+              "Previous track on ${applicationName}"
+            ]
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Titre précédent sur ${applicationName}"
+          }
+        }
+      }
+    },
+    "Resume" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reprendre"
+          }
+        }
+      }
+    },
+    "Resume ${applicationName}" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringSet" : {
+            "state" : "new",
+            "values" : [
+              "Resume ${applicationName}"
+            ]
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Reprends ${applicationName}"
+          }
+        }
+      }
+    },
+    "Shuffle My Library" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ma bibliothèque en aléatoire"
+          }
+        }
+      }
+    },
+    "Shuffle my library on ${applicationName}" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lecture aléatoire de ma bibliothèque sur ${applicationName}"
+          }
+        }
+      }
+    },
+    "Shuffle my music on ${applicationName}" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringSet" : {
+            "state" : "new",
+            "values" : [
+              "Shuffle my music on ${applicationName}",
+              "Shuffle my library on ${applicationName}",
+              "Play some music on ${applicationName}"
+            ]
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Lecture aléatoire de ma musique sur ${applicationName}"
+          }
+        }
+      }
+    },
+    "Skip on ${applicationName}" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passe au suivant sur ${applicationName}"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

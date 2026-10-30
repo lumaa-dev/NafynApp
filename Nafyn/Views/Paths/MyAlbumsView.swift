@@ -6,8 +6,6 @@ import Safyn
 struct MyAlbumsView: View {
 	@Environment(\.server) private var server: NafynServer?
 	@State private var paginator: Paginator<AlbumRow>? = nil
-	@State private var pendingDelete: AlbumRow? = nil
-	@State private var toast = ToastState()
 
 	var body: some View {
 		ScrollView {
@@ -15,7 +13,7 @@ struct MyAlbumsView: View {
 				FoldGrid(spacing: 16) {
 					ForEach(self.mergedAlbums) { album in
 						NavigationLink(value: Navigator.Paths.libraryAlbum(id: album.id)) {
-							MusicCard(.album(album), onDelete: { self.pendingDelete = album })
+							MusicCard(.album(album), onRemoved: { self.paginator?.remove(where: { $0.id == album.id }) })
 								.overlay(alignment: .topTrailing) {
 									if DownloadManager.shared.downloads.contains(where: { $0.albumId == album.id }) {
 										Image(systemName: "arrow.down.circle.fill")
@@ -56,17 +54,6 @@ struct MyAlbumsView: View {
 			await self.paginator?.reset()
 		}
 		.navigationTitle(String(localized: "albums"))
-		.toast(self.toast)
-		.alert(
-			String(localized: "delete-album-confirm"),
-			isPresented: Binding(get: { self.pendingDelete != nil }, set: { if !$0 { self.pendingDelete = nil } }),
-			presenting: self.pendingDelete
-		) { album in
-			Button(String(localized: "cancel"), role: .cancel) {}
-			Button(String(localized: "delete"), role: .destructive) {
-				self.delete(album)
-			}
-		}
 	}
 
 	/// `paginator.items` merged with every album that has at least one downloaded track, so offline
@@ -98,17 +85,5 @@ struct MyAlbumsView: View {
 		}
 
 		return result.sorted { $0.addedAtDate > $1.addedAtDate }
-	}
-
-	private func delete(_ album: AlbumRow) {
-		guard let server else { return }
-		Task {
-			do {
-				try await server.removeLibraryAlbum(id: album.id)
-				self.paginator?.remove(where: { $0.id == album.id })
-			} catch {
-				self.toast.failure(error)
-			}
-		}
 	}
 }

@@ -3,7 +3,7 @@
 import SwiftUI
 import Safyn
 
-/// Docked bar, always present: shows the loaded track (except while the full player is open) and a
+/// Docked bar, always present: shows the loaded track and a
 /// "nothing playing" placeholder otherwise. Tapping the cover/title of a loaded track expands to
 /// ``NowPlayingView``; the placeholder is inert. Transport controls sit alongside as sibling buttons so
 /// they don't fight a wrapping `Button`'s gesture.
@@ -18,7 +18,9 @@ struct MiniPlayerBar: View {
 	var body: some View {
 		if PlaybackSource.track == nil {
 			self.idle
-		} else if let track = PlaybackSource.track, !PlayerEngine.shared.isExpanded {
+		} else if let track = PlaybackSource.track {
+			// Stays in place while the full player is open (it is covered anyway): the zoom needs its cover to
+			// exist when the player opens, to grow out of it, and when the player closes, to shrink back into it.
 			HStack(spacing: 12) {
 				self.cover(track)
 
@@ -130,6 +132,9 @@ struct MiniPlayerBar: View {
 		let image = CoverImage(url: track.coverArt.flatMap { URL(string: $0) })
 			.frame(width: 44, height: 44)
 
-		image.matchedTransitionSource(id: "miniPlayer", in: self.namespace)
+		// the player grows out of the cover itself, clipped to the cover's own rounded shape from the first frame
+		image.matchedTransitionSource(id: "miniPlayer", in: self.namespace) { source in
+			source.clipShape(RoundedRectangle(cornerRadius: 10.0))
+		}
 	}
 }

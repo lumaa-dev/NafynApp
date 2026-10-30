@@ -99,7 +99,12 @@ final class Navigator {
 		case yearComparison
 		case addToPlaylist(mediaIds: [String])
 
+		/// The destination screen. A path opened from a ``MusicCard`` zooms out of that card's cover.
 		var view: AnyView {
+			AnyView(CardZoomDestination(path: self) { self.screen })
+		}
+
+		private var screen: AnyView {
 			switch self {
 				case .album(let id):
 					AnyView(AlbumDetailView(albumId: id))

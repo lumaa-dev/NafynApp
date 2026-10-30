@@ -22,19 +22,6 @@ struct RequestsView: View {
 		self.me?.permissions.has(.manageRequests) ?? false
 	}
 
-	/// Mirrors the server's `DELETE /request/:id`: `manageRequests` is required (owning the request is not
-	/// enough), and a request the download pipeline is working on can't be deleted by anyone.
-	private func canDelete(_ request: NafynRequest) -> Bool {
-		guard self.canManage else { return false }
-
-		return switch request.status {
-			case .searching, .downloading, .processing:
-				false
-			case .waiting, .completed, .failed, .denied:
-				true
-		}
-	}
-
 	private var isFiltering: Bool {
 		!self.filters.isEmpty
 	}
@@ -51,27 +38,25 @@ struct RequestsView: View {
 			Group {
 				if let paginator {
 					PaginatedList(paginator: paginator) { request in
-						RequestRow(request: request, canManage: self.canManage) { status in
+						RequestRow(request: request, canManage: self.canManage, onDecision: { status in
 							self.setStatus(of: request, to: status)
-						}
-						.swipeActions(edge: .trailing, allowsFullSwipe: false) {
-							if self.canDelete(request) {
-								Button(role: .destructive) {
-									self.pendingDelete = request
-								} label: {
-									Label(String(localized: "delete"), systemImage: "trash")
-								}
-								.tint(DTColor.buttonDanger)
-								.disabled(NetworkMonitor.shared.isOffline)
-							}
-						}
+						}, onDelete: {
+							self.pendingDelete = request
+						})
 					}
+					// `PaginatedList` reads its paginator once: a new filter needs a new list
+					.id(self.listGeneration)
 				}
 			}
 			.navigationDestination(for: Navigator.Paths.self) { $0.view }
 			.navigationTitle(String(localized: "requests"))
 			.toolbarTitleDisplayMode(.inlineLarge)
 			.toast(self.toast)
+			.toolbar {
+				ToolbarItem(placement: .primaryAction) {
+					self.filterMenu
+				}
+			}
 			.alert(
 				String(localized: "delete-request-confirm"),
 				isPresented: Binding(get: { self.pendingDelete != nil }, set: { if !$0 { self.pendingDelete = nil } }),
@@ -85,9 +70,7 @@ struct RequestsView: View {
 			.task {
 				guard let server else { return }
 				if self.paginator == nil {
-					self.paginator = Paginator<NafynRequest> { page, limit in
-						try await server.fetchRequests(page: page, limit: limit)
-					}
+					self.paginator = self.makePaginator(server: server)
 				}
 				self.me = try? await server.send(User.me) as NafynUser
 			}

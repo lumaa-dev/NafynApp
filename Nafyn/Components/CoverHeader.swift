@@ -19,6 +19,10 @@ private struct CoverTopInsetKey: EnvironmentKey {
 	static let defaultValue: CGFloat = 0
 }
 
+private struct CoverSideInsetsKey: EnvironmentKey {
+	static let defaultValue = EdgeInsets()
+}
+
 private struct CoverMaxHeightKey: EnvironmentKey {
 	static let defaultValue: CGFloat? = nil
 }
@@ -30,6 +34,15 @@ extension EnvironmentValues {
 	var coverMaxHeight: CGFloat? {
 		get { self[CoverMaxHeightKey.self] }
 		set { self[CoverMaxHeightKey.self] = newValue }
+	}
+
+	/// The leading/trailing safe area around a ``CoverScrollView``: a notch in landscape, or the vertical bar
+	/// an iPhone Duo keeps beside its inner display. Only `leading` and `trailing` are used. The scroll view
+	/// runs under them so the cover's `backgroundExtensionEffect()` has an area to extend into on those
+	/// edges too; everything that isn't the cover pads itself by them.
+	var coverSideInsets: EdgeInsets {
+		get { self[CoverSideInsetsKey.self] }
+		set { self[CoverSideInsetsKey.self] = newValue }
 	}
 
 	var coverStretch: CoverStretch? {
@@ -59,6 +72,7 @@ struct CoverScrollView<Content: View>: View {
 	@ViewBuilder var content: () -> Content
 
 	@State private var stretch = CoverStretch()
+	@State private var sideInsets = EdgeInsets()
 
 	/// The key window's top safe area: the status bar / Dynamic Island, without the navigation bar.
 	private static var statusBarInset: CGFloat {
@@ -74,7 +88,9 @@ struct CoverScrollView<Content: View>: View {
 			ScrollView {
 				self.content()
 			}
-			.ignoresSafeArea(edges: .top)
+			// the sides too, for the same reason as the top: their safe area would otherwise shrink the content
+			// and leave the cover's extension nothing to extend into (see `CoverHeader`)
+			.ignoresSafeArea(edges: [.top, .horizontal])
 			.onScrollGeometryChange(for: CGFloat.self) { geometry in
 				max(0, -(geometry.contentOffset.y + geometry.contentInsets.top))
 			} action: { _, overscroll in
@@ -83,6 +99,17 @@ struct CoverScrollView<Content: View>: View {
 			.scrollEdgeEffectStyle(.soft, for: .all)
 			.environment(\.coverTopInset, min(Self.statusBarInset, outer.safeAreaInsets.top))
 			.environment(\.coverMaxHeight, outer.size.height * 0.7)
+			.environment(\.coverSideInsets, self.sideInsets)
+		}
+		// measured by a view that itself reaches under the safe areas, the only kind that can see them
+		.background {
+			Color.clear
+				.ignoresSafeArea()
+				.onGeometryChange(for: EdgeInsets.self) { proxy in
+					proxy.safeAreaInsets
+				} action: { insets in
+					self.sideInsets = EdgeInsets(top: 0, leading: insets.leading, bottom: 0, trailing: insets.trailing)
+				}
 		}
 		.background(self.palette.background.ignoresSafeArea())
 		.environment(\.coverPalette, self.palette)
@@ -114,6 +141,9 @@ struct CoverHeader<Details: View>: View {
 
 	@Environment(\.coverMaxHeight) private var maxCoverHeight
 
+	/// Leading/trailing safe area handed back by the ``CoverScrollView``; see ``EnvironmentValues/coverSideInsets``.
+	@Environment(\.coverSideInsets) private var sideInsets
+
 	var body: some View {
 		let overscroll = self.stretch?.overscroll ?? 0
 
@@ -134,12 +164,20 @@ struct CoverHeader<Details: View>: View {
 				.safeAreaInset(edge: .top, spacing: 0) {
 					Color.clear.frame(height: self.topInset)
 				}
+				.safeAreaInset(edge: .leading, spacing: 0) {
+					Color.clear.frame(width: self.sideInsets.leading)
+				}
+				.safeAreaInset(edge: .trailing, spacing: 0) {
+					Color.clear.frame(width: self.sideInsets.trailing)
+				}
 				.safeAreaInset(edge: .bottom, spacing: 0) {
 					VStack(alignment: .leading, spacing: 2) {
 						self.details()
 					}
 					.frame(maxWidth: .infinity, alignment: .leading)
 					.padding(.horizontal)
+					.padding(.leading, self.sideInsets.leading)
+					.padding(.trailing, self.sideInsets.trailing)
 					.padding(.top, 15)
 					.padding(.bottom, 12)
 					.background {

@@ -8,8 +8,13 @@ extension NafynServer {
 	/// download and its place in the local queue. Safyn's `Library.remove(id:)` does the server part.
 	@MainActor
 	func removeFromLibrary(_ track: MediaRow) async throws {
-		_ = try await self.send(Library.remove(id: track.id)) as RemovedWithFileResponse
-		Self.forgetLocally(trackIds: [track.id])
+		try await self.removeFromLibrary(trackId: track.id)
+	}
+
+	@MainActor
+	func removeFromLibrary(trackId: String) async throws {
+		_ = try await self.send(Library.remove(id: trackId)) as RemovedWithFileResponse
+		Self.forgetLocally(trackIds: [trackId])
 	}
 
 	/// Removes every track the user owns on an album. Safyn has no album-level delete, so this removes the
@@ -19,6 +24,7 @@ extension NafynServer {
 	func removeLibraryAlbum(id: String) async throws -> [String] {
 		let response: LibraryAlbumResponse = try await self.send(Library.album(id: id))
 		let ids = response.tracks.map(\.id)
+		guard !ids.isEmpty else { throw LibraryDeleteError.notInLibrary }
 
 		try await withThrowingTaskGroup(of: Void.self) { group in
 			for trackId in ids {
@@ -37,10 +43,20 @@ extension NafynServer {
 	@MainActor
 	private static func forgetLocally(trackIds: [String]) {
 		DownloadManager.shared.deleteDownloads(trackIds: trackIds)
+		SpotlightIndexer.shared.remove(trackIds: trackIds)
+		Task { await LibraryCatalog.shared.invalidate() }
 
 		let engine = PlayerEngine.shared
 		for index in engine.queue.indices.reversed() where trackIds.contains(engine.queue[index].id) {
 			engine.removeFromQueue(at: index)
 		}
+	}
+}
+
+enum LibraryDeleteError: LocalizedError {
+	case notInLibrary
+
+	var errorDescription: String? {
+		String(localized: "album-not-in-library")
 	}
 }

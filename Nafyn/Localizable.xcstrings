@@ -1,102 +1,6 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "delete-album-confirm" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Delete this album and all its tracks? This cannot be undone."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Supprimer cet album et tous ses titres ? Cette action est irréversible."
-          }
-        }
-      }
-    },
-    "delete-downloads" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Delete Downloads"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Supprimer les téléchargements"
-          }
-        }
-      }
-    },
-    "delete-downloads-confirm" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Delete the downloaded tracks of this album? They stay in your library."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Supprimer les titres téléchargés de cet album ? Ils restent dans votre bibliothèque."
-          }
-        }
-      }
-    },
-    "share" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Share"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Partager"
-          }
-        }
-      }
-    },
-    "status-in-progress" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "In progress"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "En cours"
-          }
-        }
-      }
-    },
-    "unknown-device" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Unknown device"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Appareil inconnu"
-          }
-        }
-      }
-    },
     "·" : {
       "localizations" : {
         "en" : {
@@ -131,6 +35,9 @@
         }
       },
       "shouldTranslate" : false
+    },
+    "%@" : {
+
     },
     "%@ / %@" : {
       "localizations" : {
@@ -402,6 +309,38 @@
         }
       }
     },
+    "Add ${song} to ${playlist}" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add ${song} to ${playlist}"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajouter ${song} à ${playlist}"
+          }
+        }
+      }
+    },
+    "Add Song to Playlist" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add Song to Playlist"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajouter un titre à une playlist"
+          }
+        }
+      }
+    },
     "add-account" : {
       "localizations" : {
         "en" : {
@@ -466,6 +405,38 @@
         }
       }
     },
+    "Added After" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Added After"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajouté après"
+          }
+        }
+      }
+    },
+    "Added Before" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Added Before"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajouté avant"
+          }
+        }
+      }
+    },
     "added-by" : {
       "comment" : "playlist sort mode: sort tracks by who added them",
       "localizations" : {
@@ -483,6 +454,22 @@
         }
       }
     },
+    "Adds a song from your library to one of your playlists." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adds a song from your library to one of your playlists."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajoute un titre de votre bibliothèque à l’une de vos playlists."
+          }
+        }
+      }
+    },
     "album" : {
       "localizations" : {
         "en" : {
@@ -495,6 +482,54 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Album"
+          }
+        }
+      }
+    },
+    "Album" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Album"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Album"
+          }
+        }
+      }
+    },
+    "Album Sort" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Album Sort"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tri des albums"
+          }
+        }
+      }
+    },
+    "album-not-in-library" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This album isn't in your library."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cet album n'est pas dans votre bibliothèque."
           }
         }
       }
@@ -517,6 +552,22 @@
     },
     "all" : {
       "comment" : "search filter: all result types",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tout"
+          }
+        }
+      }
+    },
+    "All" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -730,6 +781,22 @@
         }
       }
     },
+    "Artist" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Artist"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Artiste"
+          }
+        }
+      }
+    },
     "artists" : {
       "localizations" : {
         "en" : {
@@ -742,6 +809,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Artistes"
+          }
+        }
+      }
+    },
+    "Ascending" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ascending"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ordre croissant"
           }
         }
       }
@@ -807,6 +890,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Fermer"
+          }
+        }
+      }
+    },
+    "Continue with Album" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continue with Album"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continuer avec l’album"
           }
         }
       }
@@ -1183,6 +1282,22 @@
         }
       }
     },
+    "cover-art-unavailable" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This item has no cover art."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cet élément n'a pas de pochette."
+          }
+        }
+      }
+    },
     "create" : {
       "localizations" : {
         "en" : {
@@ -1227,6 +1342,54 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Créer un jeton d'invitation"
+          }
+        }
+      }
+    },
+    "Created by Me Only" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Created by Me Only"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Créées par moi uniquement"
+          }
+        }
+      }
+    },
+    "Date Added" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Date Added"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Date d’ajout"
+          }
+        }
+      }
+    },
+    "Date Updated" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Date Updated"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Date de mise à jour"
           }
         }
       }
@@ -1292,6 +1455,54 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Supprimer ce compte ? Cette action est irréversible."
+          }
+        }
+      }
+    },
+    "delete-album-confirm" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete this album and all its tracks? This cannot be undone."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Supprimer cet album et tous ses titres ? Cette action est irréversible."
+          }
+        }
+      }
+    },
+    "delete-downloads" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete Downloads"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Supprimer les téléchargements"
+          }
+        }
+      }
+    },
+    "delete-downloads-confirm" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete the downloaded tracks of this album? They stay in your library."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Supprimer les titres téléchargés de cet album ? Ils restent dans votre bibliothèque."
           }
         }
       }
@@ -1363,6 +1574,22 @@
       }
     },
     "description" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Description"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Description"
+          }
+        }
+      }
+    },
+    "Description" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1666,6 +1893,22 @@
         }
       }
     },
+    "Downloaded Only" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Downloaded Only"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Téléchargés uniquement"
+          }
+        }
+      }
+    },
     "downloads" : {
       "localizations" : {
         "en" : {
@@ -1747,6 +1990,22 @@
       }
     },
     "duration" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Duration"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Durée"
+          }
+        }
+      }
+    },
+    "Duration" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2071,6 +2330,102 @@
         }
       }
     },
+    "Find albums sorted by ${sortBy}" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Find albums sorted by ${sortBy}"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trouver des albums triés par ${sortBy}"
+          }
+        }
+      }
+    },
+    "Find Library Albums" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Find Library Albums"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trouver des albums de la bibliothèque"
+          }
+        }
+      }
+    },
+    "Find Library Tracks" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Find Library Tracks"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trouver des titres de la bibliothèque"
+          }
+        }
+      }
+    },
+    "Find tracks sorted by ${sortBy}" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Find tracks sorted by ${sortBy}"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trouver des titres triés par ${sortBy}"
+          }
+        }
+      }
+    },
+    "Finds albums in your Nafyn library, filtered and sorted." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Finds albums in your Nafyn library, filtered and sorted."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trouve des albums de votre bibliothèque Nafyn, filtrés et triés."
+          }
+        }
+      }
+    },
+    "Finds tracks in your Nafyn library, filtered and sorted." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Finds tracks in your Nafyn library, filtered and sorted."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trouve des titres de votre bibliothèque Nafyn, filtrés et triés."
+          }
+        }
+      }
+    },
     "follow-confirmation" : {
       "localizations" : {
         "en" : {
@@ -2135,6 +2490,150 @@
         }
       }
     },
+    "Get Album Cover Art" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Get Album Cover Art"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Obtenir la pochette d’un album"
+          }
+        }
+      }
+    },
+    "Get cover art of ${album}" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Get cover art of ${album}"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Obtenir la pochette de ${album}"
+          }
+        }
+      }
+    },
+    "Get cover art of ${song}" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Get cover art of ${song}"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Obtenir la pochette de ${song}"
+          }
+        }
+      }
+    },
+    "Get Playlists" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Get Playlists"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Obtenir les playlists"
+          }
+        }
+      }
+    },
+    "Get playlists sorted by ${sortBy}" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Get playlists sorted by ${sortBy}"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Obtenir les playlists triées par ${sortBy}"
+          }
+        }
+      }
+    },
+    "Get Song Cover Art" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Get Song Cover Art"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Obtenir la pochette d’un titre"
+          }
+        }
+      }
+    },
+    "Gets the cover art of a song in your library, in high resolution." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gets the cover art of a song in your library, in high resolution."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Obtient la pochette d’un titre de votre bibliothèque, en haute résolution."
+          }
+        }
+      }
+    },
+    "Gets the cover art of an album in your library, in high resolution." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gets the cover art of an album in your library, in high resolution."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Obtient la pochette d’un album de votre bibliothèque, en haute résolution."
+          }
+        }
+      }
+    },
+    "Gets your Nafyn playlists, including the ones shared with you." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gets your Nafyn playlists, including the ones shared with you."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Obtient vos playlists Nafyn, y compris celles partagées avec vous."
+          }
+        }
+      }
+    },
     "home" : {
       "localizations" : {
         "en" : {
@@ -2183,6 +2682,24 @@
         }
       }
     },
+    "import-already-owned %lld" : {
+      "comment" : "Apple Music import report: tracks already in the library or already requested (AppleMusicImportSheet)",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld already in your library or requested"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld déjà dans votre bibliothèque ou demandés"
+          }
+        }
+      }
+    },
     "import-apple-music" : {
       "localizations" : {
         "en" : {
@@ -2212,24 +2729,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Importez votre bibliothèque Apple Music et demandez les titres correspondants sur le serveur."
-          }
-        }
-      }
-    },
-    "import-already-owned %lld" : {
-      "comment" : "Apple Music import report: tracks already in the library or already requested (AppleMusicImportSheet)",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld already in your library or requested"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld déjà dans votre bibliothèque ou demandés"
           }
         }
       }
@@ -2982,6 +3481,38 @@
         }
       }
     },
+    "Library" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Library"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bibliothèque"
+          }
+        }
+      }
+    },
+    "Limit" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Limit"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Limite"
+          }
+        }
+      }
+    },
     "listeners %lld" : {
       "comment" : "artist page: number of listeners, e.g. \"1,204 listeners\" (ArtistDetailView)",
       "localizations" : {
@@ -3092,6 +3623,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Membres"
+          }
+        }
+      }
+    },
+    "Minimum Tracks" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Minimum Tracks"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nombre minimum de titres"
           }
         }
       }
@@ -3424,6 +3971,22 @@
         }
       }
     },
+    "Next Track" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Next Track"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Titre suivant"
+          }
+        }
+      }
+    },
     "no-playlists" : {
       "comment" : "empty state when the user has no Apple Music playlists to import (AppleMusicImportSheet)",
       "localizations" : {
@@ -3469,6 +4032,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Aucune lecture en cours"
+          }
+        }
+      }
+    },
+    "nothing-to-play" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "There's nothing to play."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il n'y a rien à lire."
           }
         }
       }
@@ -3533,6 +4112,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Me prévenir"
+          }
+        }
+      }
+    },
+    "Off" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Off"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Désactivée"
           }
         }
       }
@@ -3668,6 +4263,70 @@
         }
       }
     },
+    "One" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "One"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Un titre"
+          }
+        }
+      }
+    },
+    "Open Album" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Album"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ouvrir l’album"
+          }
+        }
+      }
+    },
+    "Open Playlist" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Playlist"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ouvrir la playlist"
+          }
+        }
+      }
+    },
+    "Open Song" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Song"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ouvrir le titre"
+          }
+        }
+      }
+    },
     "open-registration" : {
       "comment" : "server admin toggle: allow anyone to self-register without an invite token (AccountsSettingsSection)",
       "localizations" : {
@@ -3765,6 +4424,25 @@
         }
       }
     },
+    "Pause" : {
+
+    },
+    "Pause Nafyn" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pause Nafyn"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mettre Nafyn en pause"
+          }
+        }
+      }
+    },
     "permissions" : {
       "localizations" : {
         "en" : {
@@ -3787,6 +4465,150 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Play"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lecture"
+          }
+        }
+      }
+    },
+    "Play ${album}" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Play ${album}"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lire ${album}"
+          }
+        }
+      }
+    },
+    "Play ${playlist}" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Play ${playlist}"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lire ${playlist}"
+          }
+        }
+      }
+    },
+    "Play ${song}" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Play ${song}"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lire ${song}"
+          }
+        }
+      }
+    },
+    "Play Album" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Play Album"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lire un album"
+          }
+        }
+      }
+    },
+    "Play Last" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Play Last"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lire en dernier"
+          }
+        }
+      }
+    },
+    "Play Next" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Play Next"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lire ensuite"
+          }
+        }
+      }
+    },
+    "Play Playlist" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Play Playlist"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lire une playlist"
+          }
+        }
+      }
+    },
+    "Play Song" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Play Song"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lire un titre"
+          }
+        }
+      }
+    },
+    "Playback" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Playback"
           }
         },
         "fr" : {
@@ -3845,6 +4667,38 @@
         }
       }
     },
+    "Playlist" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Playlist"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Playlist"
+          }
+        }
+      }
+    },
+    "Playlist Sort" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Playlist Sort"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tri des playlists"
+          }
+        }
+      }
+    },
     "playlists" : {
       "localizations" : {
         "en" : {
@@ -3857,6 +4711,118 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Playlists"
+          }
+        }
+      }
+    },
+    "Playlists" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Playlists"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Playlists"
+          }
+        }
+      }
+    },
+    "Plays a Nafyn playlist." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plays a Nafyn playlist."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lit une playlist Nafyn."
+          }
+        }
+      }
+    },
+    "Plays a song from your Nafyn library." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plays a song from your Nafyn library."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lit un titre de votre bibliothèque Nafyn."
+          }
+        }
+      }
+    },
+    "Plays an album from your Nafyn library." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plays an album from your Nafyn library."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lit un album de votre bibliothèque Nafyn."
+          }
+        }
+      }
+    },
+    "Plays your whole Nafyn library in random order." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plays your whole Nafyn library in random order."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lit toute votre bibliothèque Nafyn dans un ordre aléatoire."
+          }
+        }
+      }
+    },
+    "Prepared queue" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prepared queue"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "File préparée"
+          }
+        }
+      }
+    },
+    "Previous Track" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Previous Track"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Titre précédent"
           }
         }
       }
@@ -3925,6 +4891,22 @@
         }
       }
     },
+    "Public" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Public"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Publique"
+          }
+        }
+      }
+    },
     "recently-played" : {
       "localizations" : {
         "en" : {
@@ -3937,6 +4919,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Écoutés récemment"
+          }
+        }
+      }
+    },
+    "Release Date" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Release Date"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Date de sortie"
           }
         }
       }
@@ -3973,6 +4971,38 @@
         }
       }
     },
+    "Remove ${song} from ${playlist}" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove ${song} from ${playlist}"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Retirer ${song} de ${playlist}"
+          }
+        }
+      }
+    },
+    "Remove Song from Playlist" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove Song from Playlist"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Retirer un titre d’une playlist"
+          }
+        }
+      }
+    },
     "remove-download" : {
       "localizations" : {
         "en" : {
@@ -3985,6 +5015,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Supprimer le téléchargement"
+          }
+        }
+      }
+    },
+    "Removes a song from one of your playlists. The song stays in your library." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Removes a song from one of your playlists. The song stays in your library."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Retire un titre de l’une de vos playlists. Le titre reste dans votre bibliothèque."
+          }
+        }
+      }
+    },
+    "Repeat" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Repeat"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Répétition"
           }
         }
       }
@@ -4134,6 +5196,25 @@
         }
       }
     },
+    "Resume" : {
+
+    },
+    "Resume Nafyn" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resume Nafyn"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reprendre Nafyn"
+          }
+        }
+      }
+    },
     "retry" : {
       "localizations" : {
         "en" : {
@@ -4194,6 +5275,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Rechercher"
+          }
+        }
+      }
+    },
+    "Search" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recherche"
           }
         }
       }
@@ -4279,6 +5376,22 @@
         }
       }
     },
+    "share" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Share"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Partager"
+          }
+        }
+      }
+    },
     "show-duration" : {
       "comment" : "Settings toggle: show track duration in track lists",
       "localizations" : {
@@ -4329,6 +5442,70 @@
         }
       }
     },
+    "Shuffle" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shuffle"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aléatoire"
+          }
+        }
+      }
+    },
+    "Shuffle My Library" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shuffle My Library"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ma bibliothèque en aléatoire"
+          }
+        }
+      }
+    },
+    "Song" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Song"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Titre"
+          }
+        }
+      }
+    },
+    "song-not-in-playlist" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This song isn't in that playlist."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ce titre n'est pas dans cette playlist."
+          }
+        }
+      }
+    },
     "sort" : {
       "localizations" : {
         "en" : {
@@ -4341,6 +5518,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Trier"
+          }
+        }
+      }
+    },
+    "Sort By" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sort By"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trier par"
           }
         }
       }
@@ -4408,6 +5601,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Échoué"
+          }
+        }
+      }
+    },
+    "status-in-progress" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In progress"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En cours"
           }
         }
       }
@@ -4592,6 +5801,22 @@
         }
       }
     },
+    "Title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Title"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Titre"
+          }
+        }
+      }
+    },
     "top-albums" : {
       "localizations" : {
         "en" : {
@@ -4656,6 +5881,54 @@
         }
       }
     },
+    "Track Count" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Track Count"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nombre de titres"
+          }
+        }
+      }
+    },
+    "Track Number" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Track Number"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Numéro de piste"
+          }
+        }
+      }
+    },
+    "Track Sort" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Track Sort"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tri des titres"
+          }
+        }
+      }
+    },
     "track-progress %lld %lld" : {
       "comment" : "Apple Music import progress, e.g. \"Track 3 of 20\" (RequestRow)",
       "localizations" : {
@@ -4685,6 +5958,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Titres"
+          }
+        }
+      }
+    },
+    "translate" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Translate"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Traduire"
           }
         }
       }
@@ -4846,6 +6135,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Afficher dans Lecture en cours"
+          }
+        }
+      }
+    },
+    "unknown-device" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unknown device"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Appareil inconnu"
           }
         }
       }

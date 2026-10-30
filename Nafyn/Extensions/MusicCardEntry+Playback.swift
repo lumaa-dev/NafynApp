@@ -40,7 +40,8 @@ extension MusicCardEntry {
 						let response: LibraryTrackResponse = try await server.send(Library.track(id: entry.refId))
 						return ([response.row], RecordContext(type: .track, refId: entry.refId))
 					case .album:
-						return (try await Self.catalogAlbumTracks(id: id, server: server), RecordContext(type: .album, refId: id))
+						// a recently played album's `refId` is its library album ID
+						return (try await Self.libraryAlbumTracks(id: entry.refId, server: server), RecordContext(type: .album, refId: entry.refId))
 					case .playlist:
 						return (try await Self.playlistTracks(id: id, server: server), RecordContext(type: .playlist, refId: id))
 				}
