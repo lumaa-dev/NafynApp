@@ -63,6 +63,7 @@ private struct LibraryAlbumDetailContent: View {
 	@State private var toast = ToastState()
 	@State private var pendingDelete: MediaRow? = nil
 	@State private var showDeleteDownloadsConfirm = false
+	@State private var showDeleteAlbumConfirm = false
 
 	/// Tracks deleted from this screen, hidden right away instead of re-fetching the album.
 	@State private var removedTrackIds: Set<String> = []
@@ -112,25 +113,37 @@ private struct LibraryAlbumDetailContent: View {
 				DownloadManager.shared.deleteDownloads(trackIds: self.downloadedTrackIds)
 			}
 		}
+		.alert(String(localized: "delete-album-confirm"), isPresented: self.$showDeleteAlbumConfirm) {
+			Button(String(localized: "cancel"), role: .cancel) {}
+			Button(String(localized: "delete"), role: .destructive) {
+				self.deleteAlbum()
+			}
+		}
 		.toolbar {
 			ToolbarItem(placement: .primaryAction) {
 				Menu {
-					Button {
-						DownloadManager.shared.downloadAlbum(id: self.response.album.row.id, title: self.response.album.row.title)
-					} label: {
-						Label(String(localized: "download-album"), systemImage: "arrow.down.circle")
-					}
-					.tint(Color.primary)
-					.disabled(NetworkMonitor.shared.isOffline)
-
-					if !self.downloadedTrackIds.isEmpty {
-						Button(role: .destructive) {
-							self.showDeleteDownloadsConfirm = true
+					// the same items as the album's card in a grid, plus Play / Shuffle which a card's menu leads with
+					ControlGroup {
+						Button {
+							self.playAll(shuffle: false)
 						} label: {
-							Label(String(localized: "delete-downloads"), systemImage: "arrow.down.circle.fill")
+							Label(String(localized: "play"), systemImage: "play.fill")
 						}
-						.tint(DTColor.buttonDanger)
+						.tint(Color.primary)
+
+						Button {
+							self.playAll(shuffle: true)
+						} label: {
+							Label(String(localized: "shuffle"), systemImage: "shuffle")
+						}
+						.tint(Color.primary)
 					}
+
+					AlbumMenuItems(albumId: self.response.album.row.id, title: self.response.album.row.title, onDeleteDownloads: {
+						self.showDeleteDownloadsConfirm = true
+					}, onDelete: {
+						self.showDeleteAlbumConfirm = true
+					})
 				} label: {
 					Label(String(localized: "more"), systemImage: "ellipsis")
 						.labelStyle(.iconOnly)
@@ -226,6 +239,19 @@ private struct LibraryAlbumDetailContent: View {
 		}
 		.font(DTFont.system(16))
 		.foregroundStyle(palette.secondary)
+	}
+
+	private func deleteAlbum() {
+		guard let server else { return }
+		Task {
+			do {
+				try await server.removeLibraryAlbum(id: self.response.album.row.id)
+				await PinStore.shared.refresh(server: server)
+				self.dismiss()
+			} catch {
+				self.toast.failure(error)
+			}
+		}
 	}
 
 	private func delete(_ track: MediaRow) {

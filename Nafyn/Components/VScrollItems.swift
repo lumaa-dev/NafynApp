@@ -26,9 +26,9 @@ struct VScrollItems<Content : View>: View {
         LazyVStack(alignment: .leading, spacing: vspacing) {
             Text(title)
 			#if !os(macOS)
-                .font(.title2.bold())
+                .font(DTFont.text(.title2, weight: .bold))
 			#else
-				.font(.title.bold())
+				.font(DTFont.text(.title, weight: .bold))
 			#endif
 
             ScrollView(.horizontal, showsIndicators: false) {

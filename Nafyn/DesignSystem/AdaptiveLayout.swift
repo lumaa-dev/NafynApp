@@ -79,13 +79,17 @@ struct FoldGrid<Content: View>: View {
 
 	let alignment: HorizontalAlignment
 	let spacing: CGFloat?
+
+	/// A fixed number of columns instead of as many as fit.
+	let columnCount: Int?
 	let content: Content
 
 	@State private var split: FoldSplit? = nil
 
-	init(alignment: HorizontalAlignment = .center, spacing: CGFloat? = nil, @ViewBuilder content: () -> Content) {
+	init(alignment: HorizontalAlignment = .center, spacing: CGFloat? = nil, columns columnCount: Int? = nil, @ViewBuilder content: () -> Content) {
 		self.alignment = alignment
 		self.spacing = spacing
+		self.columnCount = columnCount
 		self.content = content()
 	}
 
@@ -101,11 +105,15 @@ struct FoldGrid<Content: View>: View {
 	}
 
 	private var columns: [GridItem] {
-		guard let split else { return [.musicCard] }
+		guard let split else {
+			guard let columnCount else { return [.musicCard] }
+			return Array(repeating: GridItem(.flexible(), spacing: self.spacing, alignment: .top), count: columnCount)
+		}
 
 		let spacing = Self.columnSpacing
 		let half = min(split.minX, split.width - split.maxX)
-		let perSide = max(1, Int((half + spacing) / (Self.minimumCardWidth + spacing)))
+		// a fixed count is split over both sides of the fold; otherwise as many columns as fit on each
+		let perSide = self.columnCount.map { max(1, ($0 + 1) / 2) } ?? max(1, Int((half + spacing) / (Self.minimumCardWidth + spacing)))
 		let gap = split.maxX - split.minX
 
 		// a column's spacing is the space after it, so the fold's gap goes after the last left column

@@ -443,7 +443,7 @@ struct NowPlayingView: View {
 				PlaybackSource.prev()
 			} label: {
 				Image(systemName: "backward.fill")
-					.font(.title2)
+					.font(DTFont.text(.title2))
 					.foregroundStyle(DTColor.textPrimary)
 			}
 			.frame(maxWidth: .infinity)
@@ -462,7 +462,7 @@ struct NowPlayingView: View {
 				PlaybackSource.next()
 			} label: {
 				Image(systemName: "forward.fill")
-					.font(.title2)
+					.font(DTFont.text(.title2))
 					.foregroundStyle(DTColor.textPrimary)
 			}
 			.frame(maxWidth: .infinity)
@@ -491,7 +491,7 @@ struct NowPlayingView: View {
 		let mode = RepeatMode(wireValue: UnityEngine.shared.remoteState?.repeatMode ?? "off")
 
 		Image(systemName: mode == .track ? "repeat.1" : "repeat")
-			.font(.body)
+			.font(DTFont.text(.body))
 			.foregroundStyle(mode == .off ? DTColor.textPrimary.opacity(0.6) : DTColor.accentStart)
 			.frame(width: 44, height: 44)
 			.contentShape(Rectangle())
@@ -507,7 +507,7 @@ struct NowPlayingView: View {
 		let showingRepeat = repeatMode != .off
 
 		Image(systemName: showingRepeat ? (repeatMode == .track ? "repeat.1" : "repeat") : "shuffle")
-			.font(.body)
+			.font(DTFont.text(.body))
 			.foregroundStyle(showingRepeat || PlayerEngine.shared.shuffleEnabled ? DTColor.accentStart : DTColor.textPrimary.opacity(0.6))
 			.frame(width: 44, height: 44)
 			.contentShape(Rectangle())

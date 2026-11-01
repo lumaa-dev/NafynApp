@@ -30,16 +30,16 @@ struct ButtonVScrollItems<Content : View>: View {
                     HStack(spacing: 12.0) {
                         Text(title)
                             .foregroundStyle(Color.primary)
-                            .font(.title2.bold())
+                            .font(DTFont.text(.title2, weight: .bold))
 
                         Image(systemName: "chevron.forward")
                             .foregroundStyle(Color.secondary.opacity(0.4))
-                            .font(.callout)
+                            .font(DTFont.text(.callout))
                     }
                 } else {
                     Text(title)
                         .foregroundStyle(Color.primary)
-                        .font(.title2.bold())
+                        .font(DTFont.text(.title2, weight: .bold))
                 }
             }
             .buttonStyle(.plain)

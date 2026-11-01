@@ -172,7 +172,7 @@ struct AppleMusicImportSheet: View {
 
 						if let count = playlist.tracks?.count {
 							Text("\(count)")
-								.font(.footnote)
+								.font(DTFont.text(.footnote))
 								.foregroundStyle(DTColor.textPrimary.opacity(0.55))
 						}
 					}
@@ -202,12 +202,12 @@ struct AppleMusicImportSheet: View {
 			}
 
 			Text(step.message)
-				.font(.footnote)
+				.font(DTFont.text(.footnote))
 				.foregroundStyle(DTColor.textPrimary.opacity(0.6))
 
 			if step == .serverImport {
 				Text("import-server-hint")
-					.font(.footnote)
+					.font(DTFont.text(.footnote))
 					.foregroundStyle(DTColor.textPrimary.opacity(0.6))
 					.multilineTextAlignment(.center)
 					.padding(.horizontal, 32)
@@ -223,7 +223,7 @@ struct AppleMusicImportSheet: View {
 			Spacer()
 
 			Image(systemName: "tray.and.arrow.down")
-				.font(.largeTitle)
+				.font(DTFont.text(.largeTitle))
 				.foregroundStyle(DTColor.textPrimary)
 
 			Text("import-confirm-title \(plan.entries.count)")
@@ -233,7 +233,7 @@ struct AppleMusicImportSheet: View {
 
 			if !plan.missing.isEmpty {
 				Text("import-confirm-missing \(plan.missing.count)")
-					.font(.footnote)
+					.font(DTFont.text(.footnote))
 					.foregroundStyle(DTColor.textPrimary.opacity(0.6))
 					.multilineTextAlignment(.center)
 			}
@@ -304,14 +304,14 @@ struct AppleMusicImportSheet: View {
 										Text(track.title)
 											.foregroundStyle(DTColor.textPrimary)
 										Text(track.artist)
-											.font(.footnote)
+											.font(DTFont.text(.footnote))
 											.foregroundStyle(DTColor.textPrimary.opacity(0.55))
 									}
 
 									Spacer(minLength: 8)
 
 									Image(systemName: "magnifyingglass")
-										.font(.footnote)
+										.font(DTFont.text(.footnote))
 										.foregroundStyle(DTColor.textPrimary.opacity(0.55))
 								}
 								.contentShape(Rectangle())

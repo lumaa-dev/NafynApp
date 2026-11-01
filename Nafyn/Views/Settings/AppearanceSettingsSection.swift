@@ -29,6 +29,11 @@ struct AppearanceSettingsSection: View {
 
 			Toggle(String(localized: "lyrics-system-font"), isOn: self.$lyricsUseSystemFont)
 
+			Toggle(String(localized: "dyslexic-font"), isOn: Binding(
+				get: { FontPreferences.shared.useDyslexic },
+				set: { FontPreferences.shared.useDyslexic = $0 }
+			))
+
 			Toggle(String(localized: "show-duration"), isOn: self.$showDuration)
 				.onChange(of: self.showDuration) { _, newValue in
 					DisplayPreferences.shared.showDuration = newValue
@@ -49,6 +54,7 @@ struct AppearanceSettingsSection: View {
 			VStack(alignment: .leading, spacing: 4) {
 				Text(String(localized: "appearance-theme-footer"))
 				Text(String(localized: "appearance-lyrics-font-footer"))
+				Text(String(localized: "appearance-dyslexic-footer"))
 				Text(String(localized: "appearance-duration-footer"))
 				if self.canManageFileSize {
 					Text(String(localized: "appearance-file-size-footer"))

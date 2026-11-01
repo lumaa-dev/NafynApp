@@ -45,7 +45,7 @@ struct DownloadsSettingsSection: View {
 									.lineLimit(1)
 								
 								Text(track.artistName)
-									.font(.footnote)
+									.font(DTFont.text(.footnote))
 									.foregroundStyle(DTColor.textPrimary.opacity(0.55))
 									.lineLimit(1)
 							}
@@ -53,7 +53,7 @@ struct DownloadsSettingsSection: View {
 							Spacer()
 
 							Text(Self.formattedSize(track.fileSize))
-								.font(.footnote)
+								.font(DTFont.text(.footnote))
 								.foregroundStyle(DTColor.textPrimary.opacity(0.45))
 						}
 						.swipeActions {

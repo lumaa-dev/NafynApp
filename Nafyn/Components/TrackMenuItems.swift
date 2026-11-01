@@ -3,7 +3,7 @@
 import SwiftUI
 import Safyn
 
-/// The context menu items every owned track shares: add to a playlist, open it, download or remove the
+/// The context menu items every owned track shares: add to a playlist, pin, open it, download or remove the
 /// download, delete from the library. Used by library track rows, cards, charts and the mini player; each
 /// place adds its own extras (Play / Shuffle, …) around it.
 ///
@@ -42,6 +42,8 @@ struct TrackMenuItems: View {
 			Label(String(localized: "add-to-playlist"), systemImage: "text.badge.plus")
 		}
 		.tint(Color.primary)
+
+		PinMenuButton(target: .track(self.trackId))
 
 		if self.showsViewTrack {
 			Button {

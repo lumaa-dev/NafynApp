@@ -31,14 +31,14 @@ struct NavigationVScrollItems<Content : View>: View {
                     Text(title)
                         .foregroundStyle(Color.primary)
 						#if !os(macOS)
-						.font(.title2.bold())
+						.font(DTFont.text(.title2, weight: .bold))
 						#else
-						.font(.title.bold())
+						.font(DTFont.text(.title, weight: .bold))
 						#endif
 
                     Image(systemName: "chevron.forward")
                         .foregroundStyle(Color.secondary.opacity(0.4))
-                        .font(.callout)
+                        .font(DTFont.text(.callout))
                 }
             }
             .navigationLinkIndicatorVisibility(.hidden)

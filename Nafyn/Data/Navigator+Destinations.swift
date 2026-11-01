@@ -41,6 +41,12 @@ extension MusicCardEntry {
 				info.type == .track ? .track(id: info.id) : .album(id: info.id)
 			case .artist(let artist):
 				.artist(id: artist.musicbrainzId)
+			case .pinned(let pin):
+				switch pin.kind {
+					case .track: .libraryTrack(id: pin.refId)
+					case .album: .libraryAlbum(id: pin.refId)
+					case .playlist: .playlist(id: pin.refId)
+				}
 		}
 	}
 }

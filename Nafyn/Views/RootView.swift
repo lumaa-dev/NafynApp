@@ -41,6 +41,9 @@ struct RootView: View {
 	/// `@Observable` property (as before) makes the transition start from the screen center instead.
 	@State private var isPlayerExpanded = false
 
+	/// Mirrors `Navigator.shared.sheet != nil` as plain `@State`, for the same reason as ``isPlayerExpanded``.
+	@State private var isNavigatorSheetPresented = false
+
 	var body: some View {
 		ZStack {
 			self.warmup
@@ -67,16 +70,27 @@ struct RootView: View {
 				.onChange(of: self.isPlayerExpanded) { _, newValue in
 					PlayerEngine.shared.isExpanded = newValue
 				}
-				.sheet(isPresented: Binding(get: { Navigator.shared.sheet != nil }, set: { if !$0 { Navigator.shared.sheet = nil } })) {
-					Navigator.shared.sheet?.view
-						.environment(\.server, self.server)
-				}
 			} else {
 				OnboardingView(onboarding: $onboarding)
 			}
 		}
-		.id(ThemeManager.shared.current)
+		// rebuilt on a theme or font change, so bars and every cached font are drawn again
+		.id("\(ThemeManager.shared.current.rawValue)-\(FontPreferences.shared.useDyslexic)")
+		.font(DTFont.base)
+		// Hosted here, not on the tabs: `attemptLogin()` swaps the tabs for the launch spinner (and an account
+		// switch tears them down), which dismissed a sheet opened in the first moments after launch.
+		.sheet(isPresented: self.$isNavigatorSheetPresented) {
+			Navigator.shared.sheet?.view
+				.environment(\.server, self.server)
+		}
+		.onChange(of: Navigator.shared.sheet != nil) { _, hasSheet in
+			self.isNavigatorSheetPresented = hasSheet
+		}
+		.onChange(of: self.isNavigatorSheetPresented) { _, isPresented in
+			if !isPresented { Navigator.shared.sheet = nil }
+		}
 		.preferredColorScheme(ThemeManager.shared.preferredColorScheme)
+		.toast(.app)
 		.task {
 			await self.attemptLogin()
 		}

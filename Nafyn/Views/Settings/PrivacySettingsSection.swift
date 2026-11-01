@@ -24,7 +24,7 @@ struct PrivacySettingsSection: View {
 							Text(session.deviceLabel)
 								.foregroundStyle(DTColor.textPrimary)
 							Text(session.createdAtDate, style: .date)
-								.font(.footnote)
+								.font(DTFont.text(.footnote))
 								.foregroundStyle(DTColor.textPrimary.opacity(0.55))
 						}
 					}

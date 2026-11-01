@@ -37,6 +37,15 @@ struct AlbumDetailView: View {
 				self.trackList(album, palette: palette, reload: reload)
 			}
 			.toast(self.toast)
+			.toolbar {
+				// pinning needs the album in the library; the Request button covers the rest
+				if album.inLibrary {
+					ToolbarItem(placement: .primaryAction) {
+						PinMenuButton(target: .album(album.id))
+							.labelStyle(.iconOnly)
+					}
+				}
+			}
 		}
 		.navigationBarTitleDisplayMode(.inline)
 	}
@@ -173,11 +182,31 @@ struct AlbumDetailView: View {
 		.contextMenu {
 			if let mediaId = track.mediaId {
 				Button {
+					self.play(track, album: album)
+				} label: {
+					Label(String(localized: "play"), systemImage: "play.fill")
+				}
+				.tint(Color.primary)
+
+				Button {
 					Navigator.shared.sheet = Navigator.Paths.addToPlaylist(mediaIds: [mediaId])
 				} label: {
 					Label(String(localized: "add-to-playlist"), systemImage: "text.badge.plus")
 				}
 				.tint(Color.primary)
+
+				PinMenuButton(target: .track(mediaId))
+			}
+
+			// the row's own download arrow, for when the row is held instead of tapped
+			if track.released, !track.requested, !track.inLibrary {
+				Button {
+					self.request(track: track, reload: reload)
+				} label: {
+					Label(String(localized: "request"), systemImage: "arrow.down.circle")
+				}
+				.tint(Color.primary)
+				.disabled(NetworkMonitor.shared.isOffline)
 			}
 		}
 	}

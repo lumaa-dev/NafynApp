@@ -238,6 +238,86 @@
         }
       }
     },
+    "%lld-selected" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld selected"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld selected"
+                }
+              }
+            }
+          }
+        },
+        "fr" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld sélectionné"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld sélectionnés"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld-tracks" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld track"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld tracks"
+                }
+              }
+            }
+          }
+        },
+        "fr" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld titre"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld titres"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "%lld-tracks-count" : {
       "localizations" : {
         "en" : {
@@ -818,6 +898,22 @@
         }
       }
     },
+    "appearance-dyslexic-footer" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sets all text in OpenDyslexic, a typeface designed to be easier to read with dyslexia. Applies to this device only."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Affiche tous les textes en OpenDyslexic, une police conçue pour faciliter la lecture en cas de dyslexie. Ne s'applique qu'à cet appareil."
+          }
+        }
+      }
+    },
     "appearance-file-size-footer" : {
       "comment" : "footer explaining the show-file-size toggle in Settings, only shown to users who can turn it on",
       "localizations" : {
@@ -1003,8 +1099,26 @@
         }
       }
     },
+    "bulk-actions" : {
+      "comment" : "Toolbar menu of the actions that apply to every selected item",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Actions"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Actions"
+          }
+        }
+      }
+    },
     "bytes" : {
       "comment" : "internal SectorMark data key for the storage usage chart (StorageSettingsSection), not directly shown to users",
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1765,6 +1879,46 @@
         }
       }
     },
+    "delete-albums-confirm %lld" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Delete %lld album and all its tracks? This cannot be undone."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Delete %lld albums and all their tracks? This cannot be undone."
+                }
+              }
+            }
+          }
+        },
+        "fr" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Supprimer %lld album et tous ses titres ? Cette action est irréversible."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Supprimer %lld albums et tous leurs titres ? Cette action est irréversible."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "delete-downloads" : {
       "localizations" : {
         "en" : {
@@ -1813,6 +1967,46 @@
         }
       }
     },
+    "delete-playlists-confirm %lld" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Delete %lld playlist? This cannot be undone."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Delete %lld playlists? This cannot be undone."
+                }
+              }
+            }
+          }
+        },
+        "fr" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Supprimer %lld playlist ? Cette action est irréversible."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Supprimer %lld playlists ? Cette action est irréversible."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "delete-request-confirm" : {
       "comment" : "confirmation alert title when deleting a request (RequestsView)",
       "localizations" : {
@@ -1830,6 +2024,22 @@
         }
       }
     },
+    "delete-selected-downloads-confirm" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete the downloads of the selected items? They stay in your library."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Supprimer les téléchargements des éléments sélectionnés ? Ils restent dans votre bibliothèque."
+          }
+        }
+      }
+    },
     "delete-track-confirm" : {
       "localizations" : {
         "en" : {
@@ -1842,6 +2052,46 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Supprimer ce titre ? Cette action est irréversible."
+          }
+        }
+      }
+    },
+    "delete-tracks-confirm %lld" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Delete %lld track? This cannot be undone."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Delete %lld tracks? This cannot be undone."
+                }
+              }
+            }
+          }
+        },
+        "fr" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Supprimer %lld titre ? Cette action est irréversible."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Supprimer %lld titres ? Cette action est irréversible."
+                }
+              }
+            }
           }
         }
       }
@@ -1891,6 +2141,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Description"
+          }
+        }
+      }
+    },
+    "deselect-all" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deselect All"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tout désélectionner"
           }
         }
       }
@@ -2329,6 +2595,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Durée"
+          }
+        }
+      }
+    },
+    "dyslexic-font" : {
+      "comment" : "Appearance setting: set all text in the OpenDyslexic typeface",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OpenDyslexic Font"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Police OpenDyslexic"
           }
         }
       }
@@ -4451,6 +4734,22 @@
         }
       }
     },
+    "not-selected" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not selected"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Non sélectionné"
+          }
+        }
+      }
+    },
     "Nothing is playing in Nafyn." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4928,6 +5227,56 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Autorisations"
+          }
+        }
+      }
+    },
+    "pin" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pin"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Épingler"
+          }
+        }
+      }
+    },
+    "pinned" : {
+      "comment" : "Header of the pinned items grid at the top of the Library tab",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pinned"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Épinglés"
+          }
+        }
+      }
+    },
+    "pinned-toast" : {
+      "comment" : "Toast after pinning something",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pinned"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Épinglé"
           }
         }
       }
@@ -5979,6 +6328,55 @@
         }
       }
     },
+    "select" : {
+      "comment" : "Toolbar button that starts selecting several items",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Select"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sélectionner"
+          }
+        }
+      }
+    },
+    "select-all" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Select All"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tout sélectionner"
+          }
+        }
+      }
+    },
+    "selected" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Selected"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sélectionné"
+          }
+        }
+      }
+    },
     "server.url" : {
       "localizations" : {
         "en" : {
@@ -6697,6 +7095,39 @@
         }
       }
     },
+    "tracks-per-user" : {
+      "comment" : "Storage settings: header of the pie chart of each user's track count",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tracks per User"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Titres par utilisateur"
+          }
+        }
+      }
+    },
+    "tracks-per-user-empty" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No user has any track yet."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucun utilisateur n'a encore de titre."
+          }
+        }
+      }
+    },
     "translate" : {
       "localizations" : {
         "en" : {
@@ -6907,6 +7338,39 @@
         }
       }
     },
+    "unpin" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unpin"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Désépingler"
+          }
+        }
+      }
+    },
+    "unpinned" : {
+      "comment" : "Toast after unpinning something",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unpinned"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Désépinglé"
+          }
+        }
+      }
+    },
     "UPC" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -6965,6 +7429,9 @@
           }
         }
       }
+    },
+    "value" : {
+
     },
     "view-album" : {
       "localizations" : {

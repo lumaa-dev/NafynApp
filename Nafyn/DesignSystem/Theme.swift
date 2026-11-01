@@ -83,6 +83,17 @@ enum AppAppearance {
 				UINavigationBar.appearance().tintColor = nil
 		}
 
+		if FontPreferences.shared.useDyslexic {
+			// OpenDyslexic for the bar titles, whichever theme (scaled through UIFontMetrics like the serif ones)
+			let titleFont = UIFontMetrics(forTextStyle: .headline).scaledFont(for: UIFont(name: "OpenDyslexic-Bold", size: 17 * DTFont.dyslexicScale) ?? UIFont.boldSystemFont(ofSize: 17))
+			let largeTitleFont = UIFontMetrics(forTextStyle: .largeTitle).scaledFont(for: UIFont(name: "OpenDyslexic-Bold", size: 34 * DTFont.dyslexicScale) ?? UIFont.boldSystemFont(ofSize: 34))
+			navAppearance.titleTextAttributes[.font] = titleFont
+			navAppearance.largeTitleTextAttributes[.font] = largeTitleFont
+			UITabBarItem.appearance().setTitleTextAttributes([.font: UIFontMetrics(forTextStyle: .caption2).scaledFont(for: UIFont(name: "OpenDyslexic-Regular", size: 10 * DTFont.dyslexicScale) ?? UIFont.systemFont(ofSize: 10))], for: .normal)
+		} else {
+			UITabBarItem.appearance().setTitleTextAttributes(nil, for: .normal)
+		}
+
 		UINavigationBar.appearance().standardAppearance = navAppearance
 		UINavigationBar.appearance().scrollEdgeAppearance = navAppearance
 		UINavigationBar.appearance().compactAppearance = navAppearance

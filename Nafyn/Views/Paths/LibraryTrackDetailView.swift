@@ -53,30 +53,10 @@ private struct LibraryTrackDetailContent: View {
 		.toolbar {
 			ToolbarItem(placement: .primaryAction) {
 				Menu {
-					if DownloadManager.shared.isDownloaded(trackId: self.track.id) {
-						Button(role: .destructive) {
-							self.removeDownload()
-						} label: {
-							Label(String(localized: "remove-download"), systemImage: "arrow.down.circle.fill")
-						}
-						.tint(DTColor.buttonDanger)
-					} else {
-						Button {
-							DownloadManager.shared.downloadTrack(self.track)
-						} label: {
-							Label(String(localized: "download"), systemImage: "arrow.down.circle")
-						}
-						.tint(Color.primary)
-						.disabled(DownloadManager.shared.isDownloading(trackId: self.track.id) || NetworkMonitor.shared.isOffline)
-					}
-
-					Button(role: .destructive) {
+					// the same items as the track's row and card
+					TrackMenuItems(track: self.track, showsViewTrack: false) {
 						self.showDeleteConfirm = true
-					} label: {
-						Label(String(localized: "delete"), systemImage: "trash")
 					}
-					.tint(DTColor.buttonDanger)
-					.disabled(NetworkMonitor.shared.isOffline)
 				} label: {
 					Label(String(localized: "more"), systemImage: "ellipsis")
 						.labelStyle(.iconOnly)
@@ -154,16 +134,12 @@ private struct LibraryTrackDetailContent: View {
 		PlaybackSource.play(self.track, recordContext: RecordContext(type: .track, refId: self.track.id))
 	}
 
-	private func removeDownload() {
-		guard let entry = DownloadManager.shared.downloads.first(where: { $0.id == self.track.id }) else { return }
-		DownloadManager.shared.delete(entry)
-	}
-
 	private func delete() {
 		guard let server else { return }
 		Task {
 			do {
 				try await server.removeFromLibrary(self.track)
+				await PinStore.shared.refresh(server: server)
 				self.dismiss()
 			} catch {
 				self.toast.failure(error)

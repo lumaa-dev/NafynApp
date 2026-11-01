@@ -48,6 +48,16 @@ struct MusicCard: View {
 		self.entry.isArtist ? AnyShape(Circle()) : AnyShape(RoundedRectangle(cornerRadius: 10.0))
 	}
 
+	/// The card's picture. An artist's comes from the server's lookup (`ArtistPhoto`); the rest are plain covers.
+	@ViewBuilder
+	private func cover(size: UInt16?) -> some View {
+		if case .artist(let artist) = self.entry {
+			ArtistPhoto(artistId: artist.musicbrainzId, fallback: self.entry.coverURL(server: self.server), cornerRadius: 0)
+		} else {
+			CoverImage(url: self.entry.coverURL(server: self.server, size: size), cornerRadius: 0)
+		}
+	}
+
 	/// Fills the width its container proposes (an adaptive grid cell, see ``GridItem/musicCard``) with a
 	/// square cover, instead of a fixed 170pt box that left gaps in wider windows.
 	@ContentBuilder
@@ -59,7 +69,7 @@ struct MusicCard: View {
 			Color.clear
 				.aspectRatio(1.0, contentMode: .fit)
 				.overlay {
-					CoverImage(url: self.entry.coverURL(server: self.server, size: coverSize), cornerRadius: 0)
+					self.cover(size: coverSize)
 				}
 				.clipShape(self.coverShape)
 				.cardZoomSource(self.entry.destination, in: self.zoomNamespace, cornerRadius: self.entry.isArtist ? 1000 : 10)
@@ -83,7 +93,7 @@ struct MusicCard: View {
 	func row() -> some View {
 		HStack {
 			Group {
-				CoverImage(url: self.entry.coverURL(server: self.server), cornerRadius: 0)
+				self.cover(size: nil)
 			}
 			.frame(width: 60, height: 60)
 			.clipShape(self.coverShape)
@@ -120,10 +130,17 @@ enum MusicCardEntry: Hashable {
 	case playlist(PlaylistRow)
 	case info(MediaInfo)
 	case artist(ArtistInfo)
+	case pinned(PinnedItem)
 
 	/// The owned album or track this card stands for, if any: what its context menu can delete.
 	var libraryItem: LibraryItem? {
 		switch self {
+			case .pinned(let pin):
+				switch pin.kind {
+					case .album: .album(id: pin.refId)
+					case .track: .track(id: pin.refId)
+					case .playlist: nil
+				}
 			case .album(let album):
 				.album(id: album.id)
 			case .media(let media):
@@ -160,6 +177,8 @@ enum MusicCardEntry: Hashable {
 				info.title
 			case .artist(let artist):
 				artist.name
+			case .pinned(let pin):
+				pin.title
 		}
 	}
 
@@ -178,6 +197,8 @@ enum MusicCardEntry: Hashable {
 				info.artist.name
 			case .artist:
 				nil
+			case .pinned(let pin):
+				pin.kind == .playlist ? String(localized: "playlist") : pin.subtitle
 		}
 	}
 
@@ -201,6 +222,35 @@ enum MusicCardEntry: Hashable {
 				return Self.artURL(info.coverArt, size: size)
 			case .artist(let artist):
 				return artist.image.flatMap { URL(string: $0) }
+			case .pinned(let pin):
+				if pin.kind == .playlist {
+					return Self.playlistImageURL(pid: pin.refId, server: server)
+				}
+				return Self.artURL(pin.coverArt, size: size)
+		}
+	}
+
+	/// What this card pins, if it stands for something pinnable (an owned track or album, a playlist).
+	var pinTarget: PinTarget? {
+		switch self {
+			case .recentlyPlayed(let entry):
+				switch entry.type {
+					case .album: .album(entry.refId)
+					case .track: .track(entry.refId)
+					case .playlist: .playlist(entry.destinationId)
+				}
+			case .album(let album):
+				.album(album.id)
+			case .media(let media):
+				.track(media.id)
+			case .playlist(let playlist):
+				.playlist(playlist.id)
+			case .info(let info):
+				info.type != .track && info.inLibrary == true ? .album(info.id) : nil
+			case .pinned(let pin):
+				PinTarget(kind: pin.kind, refId: pin.refId)
+			case .artist:
+				nil
 		}
 	}
 

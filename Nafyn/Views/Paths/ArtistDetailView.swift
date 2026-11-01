@@ -38,7 +38,7 @@ struct ArtistDetailView: View {
 	private func about(_ artist: ArtistDetail) -> some View {
 		VStack(alignment: .leading, spacing: 16) {
 			VStack(spacing: 10) {
-				CoverImage(url: artist.image.flatMap { URL(string: $0) })
+				ArtistPhoto(artistId: artist.id, fallback: artist.image.flatMap { URL(string: $0) })
 					.clipShape(Circle())
 					.frame(width: 140, height: 140)
 

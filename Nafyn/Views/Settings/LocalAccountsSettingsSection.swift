@@ -35,7 +35,7 @@ struct LocalAccountsSettingsSection: View {
 						Text(auth.username)
 							.foregroundStyle(DTColor.textPrimary)
 						Text(auth.server)
-							.font(.footnote)
+							.font(DTFont.text(.footnote))
 							.foregroundStyle(DTColor.textPrimary.opacity(0.55))
 							.lineLimit(1)
 					}

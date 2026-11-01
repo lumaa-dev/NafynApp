@@ -50,10 +50,12 @@ private struct LibraryItemMenuHost<Content: View>: View {
 
 	let item: LibraryItem?
 	let playQueue: PlaybackQueueLoader?
+	let pin: PinTarget?
 	let onRemoved: (() -> Void)?
 
 	@State private var toast = ToastState()
 	@State private var isConfirmingDelete = false
+	@State private var isConfirmingDeleteDownloads = false
 
 	var body: some View {
 		self.content
@@ -65,6 +67,14 @@ private struct LibraryItemMenuHost<Content: View>: View {
 				Button(String(localized: "cancel"), role: .cancel) {}
 				Button(String(localized: "delete"), role: .destructive) {
 					self.delete()
+				}
+			}
+			.alert(String(localized: "delete-downloads-confirm"), isPresented: self.$isConfirmingDeleteDownloads) {
+				Button(String(localized: "cancel"), role: .cancel) {}
+				Button(String(localized: "delete"), role: .destructive) {
+					if case .album(let id)? = self.item {
+						DownloadManager.shared.deleteDownloads(trackIds: DownloadManager.shared.downloadedTrackIds(albumId: id))
+					}
 				}
 			}
 	}
@@ -93,14 +103,14 @@ private struct LibraryItemMenuHost<Content: View>: View {
 			TrackMenuItems(trackId: id, onDelete: {
 				self.isConfirmingDelete = true
 			})
-		} else if case .album? = self.item {
-			Button(role: .destructive) {
+		} else if case .album(let id)? = self.item {
+			AlbumMenuItems(albumId: id, onDeleteDownloads: {
+				self.isConfirmingDeleteDownloads = true
+			}, onDelete: {
 				self.isConfirmingDelete = true
-			} label: {
-				Label(String(localized: "delete"), systemImage: "trash")
-			}
-			.tint(DTColor.buttonDanger)
-			.disabled(NetworkMonitor.shared.isOffline)
+			})
+		} else if let pin = self.pin {
+			PinMenuButton(target: pin)
 		}
 	}
 
@@ -135,9 +145,10 @@ private struct LibraryItemMenuHost<Content: View>: View {
 extension View {
 	/// The long-press menu of anything that can be played and/or lives in the user's library: Play / Shuffle
 	/// (when `play` is given), then the track items or Delete for `item`, with the delete confirmation.
-	/// `onRemoved` runs after a successful delete so the owner can drop the entry from its list.
-	func libraryItemMenu(item: LibraryItem?, play: PlaybackQueueLoader?, onRemoved: (() -> Void)? = nil) -> some View {
-		LibraryItemMenuHost(content: self, item: item, playQueue: play, onRemoved: onRemoved)
+	/// `onRemoved` runs after a successful delete so the owner can drop the entry from its list. `pin` is for what
+	/// isn't an owned track or album (a playlist): those two get their pin item from `item`.
+	func libraryItemMenu(item: LibraryItem?, play: PlaybackQueueLoader?, pin: PinTarget? = nil, onRemoved: (() -> Void)? = nil) -> some View {
+		LibraryItemMenuHost(content: self, item: item, playQueue: play, pin: pin, onRemoved: onRemoved)
 	}
 }
 

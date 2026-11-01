@@ -103,7 +103,7 @@ struct UnitySettingsSection: View {
 						Task { await RemoteMediaCoordinator.shared.presentCurrentSession() }
 					}
 					.buttonStyle(.borderless)
-					.font(.subheadline)
+					.font(DTFont.text(.subheadline))
 				}
 			}
 			.buttonStyle(.plain)

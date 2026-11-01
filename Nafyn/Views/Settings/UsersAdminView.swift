@@ -48,7 +48,7 @@ struct UsersAdminView: View {
 
 	@ViewBuilder
 	private func row(_ user: NafynUser) -> some View {
-		let canManage = self.currentUserId.map { Permissions.canManage(actorId: $0, actorPermissions: self.currentPermissions, targetId: user.id, targetPermissions: user.permissions) } ?? false
+		let canManage = self.currentUserId.map { Permissions.canManageAccount(actorId: $0, actorPermissions: self.currentPermissions, targetId: user.id, targetPermissions: user.permissions) } ?? false
 
 		Button {
 			guard canManage else { return }
@@ -73,6 +73,22 @@ struct UsersAdminView: View {
 		}
 		.buttonStyle(.plain)
 		.disabled(!canManage)
+	}
+}
+
+extension Permissions {
+	/// Whether the server lets this actor edit or delete that account (`canManageUser` in the server's
+	/// `entity/Permission.ts`). Safyn's `Permissions.canManage(...)` still follows the older rule, where an
+	/// `admin` could edit anyone and a `manageAccounts` holder themselves; the server now answers 401 to both.
+	///
+	/// - Nobody edits themselves through the accounts routes (their own profile lives in Settings > Profile).
+	/// - `admin` edits anyone except another `admin`.
+	/// - `manageAccounts` edits only accounts that hold neither `manageAccounts` nor `admin`.
+	static func canManageAccount(actorId: String, actorPermissions: Permissions, targetId: String, targetPermissions: Permissions) -> Bool {
+		if actorId == targetId { return false }
+		if actorPermissions.contains(.admin) { return !targetPermissions.contains(.admin) }
+		if actorPermissions.contains(.manageAccounts) { return targetPermissions.isDisjoint(with: [.manageAccounts, .admin]) }
+		return false
 	}
 }
 

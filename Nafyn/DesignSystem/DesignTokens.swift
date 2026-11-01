@@ -74,12 +74,41 @@ enum DTColor {
 	static var statusFailure: Color { isSystemTheme ? Color.red : Color(hex: "E06666") }
 }
 
+/// Per-device font choices, kept in `UserDefaults` (not on the server): the OpenDyslexic switch.
+@Observable
+final class FontPreferences {
+	static let shared = FontPreferences()
+
+	private static let dyslexicKey = "app.useOpenDyslexic"
+
+	/// Sets every text of the app in OpenDyslexic, in place of Instrument Serif and the system font.
+	var useDyslexic: Bool {
+		didSet {
+			guard oldValue != self.useDyslexic else { return }
+			UserDefaults.standard.set(self.useDyslexic, forKey: Self.dyslexicKey)
+			AppAppearance.configureNavigationBar()
+		}
+	}
+
+	private init() {
+		self.useDyslexic = UserDefaults.standard.bool(forKey: Self.dyslexicKey)
+	}
+}
+
 /// Every font scales with the user's Dynamic Type setting: a point size is mapped to the closest system
 /// text style, and that style drives the scaling (`Font.custom(_:size:relativeTo:)` for Instrument Serif,
 /// the style's own font for the system theme). Sizes therefore stay as design-time "base" sizes at the
 /// default content size, and grow/shrink with the accessibility setting.
+///
+/// With ``FontPreferences/useDyslexic`` on, every token below answers with OpenDyslexic instead, whatever the
+/// theme. OpenDyslexic sets much larger than the fonts the sizes were drawn for, so its sizes are shrunk by
+/// ``dyslexicScale`` to keep rows and buttons from clipping.
 enum DTFont {
 	private static var isSystemTheme: Bool { ThemeManager.shared.current == .system }
+	private static var isDyslexic: Bool { FontPreferences.shared.useDyslexic }
+
+	/// How much smaller OpenDyslexic is set than the design size.
+	static let dyslexicScale: CGFloat = 0.8
 
 	/// The text style whose default size is closest to (and not above) `size`.
 	static func textStyle(for size: CGFloat) -> Font.TextStyle {
@@ -97,16 +126,65 @@ enum DTFont {
 		}
 	}
 
+	/// A system text style's default size (at the default content size).
+	private static func defaultSize(of style: Font.TextStyle) -> CGFloat {
+		switch style {
+			case .largeTitle: 34
+			case .title: 28
+			case .title2: 22
+			case .title3: 20
+			case .headline, .body: 17
+			case .callout: 16
+			case .subheadline: 15
+			case .footnote: 13
+			case .caption: 12
+			case .caption2: 11
+			@unknown default: 17
+		}
+	}
+
+	private static func isBold(_ weight: Font.Weight) -> Bool {
+		weight == .semibold || weight == .bold || weight == .heavy || weight == .black
+	}
+
+	/// OpenDyslexic at `size` design points, shrunk and scaled with `style` under Dynamic Type.
+	private static func dyslexic(_ size: CGFloat, style: Font.TextStyle, bold: Bool = false, italic: Bool = false) -> Font {
+		let face = switch (bold, italic) {
+			case (true, true): "OpenDyslexic-BoldItalic"
+			case (true, false): "OpenDyslexic-Bold"
+			case (false, true): "OpenDyslexic-Italic"
+			case (false, false): "OpenDyslexic-Regular"
+		}
+		return .custom(face, size: size * self.dyslexicScale, relativeTo: style)
+	}
+
 	public static func serif(_ size: CGFloat) -> Font {
-		isSystemTheme ? .system(textStyle(for: size)) : .custom("InstrumentSerif-Regular", size: size, relativeTo: textStyle(for: size))
+		if isDyslexic { return dyslexic(size, style: textStyle(for: size)) }
+		return isSystemTheme ? .system(textStyle(for: size)) : .custom("InstrumentSerif-Regular", size: size, relativeTo: textStyle(for: size))
 	}
 
 	public static func serifItalic(_ size: CGFloat) -> Font {
-		isSystemTheme ? .system(textStyle(for: size)) : .custom("InstrumentSerif-Italic", size: size, relativeTo: textStyle(for: size))
+		if isDyslexic { return dyslexic(size, style: textStyle(for: size), italic: true) }
+		return isSystemTheme ? .system(textStyle(for: size)) : .custom("InstrumentSerif-Italic", size: size, relativeTo: textStyle(for: size))
 	}
 
 	public static func system(_ size: CGFloat, weight: Font.Weight = .regular, design: Font.Design = .default, width: Font.Width = .standard) -> Font {
+		// code and tokens stay monospaced
+		if isDyslexic, design != .monospaced { return dyslexic(size, style: textStyle(for: size), bold: isBold(weight)) }
 		return .system(textStyle(for: size), design: design, weight: weight).width(width)
+	}
+
+	/// A system text style (`.footnote`, `.title2`, …) for text that is set by style rather than by size: the system
+	/// font, or OpenDyslexic when that is on.
+	public static func text(_ style: Font.TextStyle, weight: Font.Weight = .regular) -> Font {
+		if isDyslexic { return dyslexic(defaultSize(of: style), style: style, bold: isBold(weight)) }
+		return .system(style, weight: weight)
+	}
+
+	/// The font text gets when nothing sets one (form rows, plain `Text`, buttons): OpenDyslexic when it is on,
+	/// otherwise `nil`, i.e. the system's own.
+	static var base: Font? {
+		isDyslexic ? dyslexic(defaultSize(of: .body), style: .body) : nil
 	}
 }
 
@@ -126,12 +204,17 @@ enum DTMotion {
 	static let sidebar = Animation.easeOut(duration: 0.25)
 	static let buttonHover = Animation.easeOut(duration: 0.15)
 	static let toast = Animation.easeOut(duration: 0.35)
+	static let toolbar = Animation.smooth(duration: 0.35)
 }
 
 enum DTFontRegistration {
 	static func registerCustomFonts() {
-		for name in ["InstrumentSerif-Regular", "InstrumentSerif-Italic"] {
-			guard let url = Bundle.main.url(forResource: name, withExtension: "ttf") else { continue }
+		let fonts: [(name: String, fileExtension: String)] = [
+			("InstrumentSerif-Regular", "ttf"), ("InstrumentSerif-Italic", "ttf"),
+			("OpenDyslexic-Regular", "otf"), ("OpenDyslexic-Italic", "otf"), ("OpenDyslexic-Bold", "otf"), ("OpenDyslexic-BoldItalic", "otf")
+		]
+		for font in fonts {
+			guard let url = Bundle.main.url(forResource: font.name, withExtension: font.fileExtension) else { continue }
 			CTFontManagerRegisterFontsForURL(url as CFURL, .process, nil)
 		}
 	}

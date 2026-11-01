@@ -12,7 +12,7 @@ extension MusicCardEntry {
 				false
 			case .info(let info):
 				info.type != .track
-			case .recentlyPlayed, .album, .media, .playlist:
+			case .recentlyPlayed, .album, .media, .playlist, .pinned:
 				true
 		}
 	}
@@ -44,6 +44,18 @@ extension MusicCardEntry {
 						return (try await Self.libraryAlbumTracks(id: entry.refId, server: server), RecordContext(type: .album, refId: entry.refId))
 					case .playlist:
 						return (try await Self.playlistTracks(id: id, server: server), RecordContext(type: .playlist, refId: id))
+				}
+
+			case .pinned(let pin):
+				switch pin.kind {
+					case .track:
+						guard let server else { throw NafynError.unauthenticated }
+						let response: LibraryTrackResponse = try await server.send(Library.track(id: pin.refId))
+						return ([response.row], RecordContext(type: .track, refId: pin.refId))
+					case .album:
+						return (try await Self.libraryAlbumTracks(id: pin.refId, server: server), RecordContext(type: .album, refId: pin.refId))
+					case .playlist:
+						return (try await Self.playlistTracks(id: pin.refId, server: server), RecordContext(type: .playlist, refId: pin.refId))
 				}
 
 			case .artist:
@@ -89,7 +101,7 @@ extension MusicCardEntry {
 	}
 }
 
-private extension RecentlyPlayedEntry {
+extension RecentlyPlayedEntry {
 	/// The ID `destination` resolves: the trailing path component of `href`, else `refId`.
 	var destinationId: String {
 		self.href.split(separator: "/").last.map(String.init) ?? self.refId

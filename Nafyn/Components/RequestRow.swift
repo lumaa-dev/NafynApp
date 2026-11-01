@@ -45,6 +45,17 @@ struct RequestRow: View {
 		}
 	}
 
+	/// The requested album's or track's page: an album the user now owns opens its library page, anything
+	/// else the MusicBrainz one (which is also where a failed or denied request can be asked for again).
+	private var destination: Navigator.Paths {
+		switch self.request.type {
+			case .album:
+				.recentAlbum(id: self.request.musicbrainzId)
+			case .track:
+				.track(id: self.request.musicbrainzId)
+		}
+	}
+
 	var body: some View {
 		HStack(alignment: .top, spacing: 12) {
 			CoverImage(url: self.request.info?.coverArt.flatMap { URL(string: $0) })
@@ -91,6 +102,12 @@ struct RequestRow: View {
 			}
 		}
 		.padding(.vertical, 4)
+		// open what was requested; the accept / deny buttons keep their own taps
+		.contentShape(Rectangle())
+		.onTapGesture {
+			Navigator.shared.send(to: self.destination)
+		}
+		.accessibilityAddTraits(.isButton)
 		.swipeActions(edge: .trailing, allowsFullSwipe: false) {
 			if self.canManage, !self.isLive, let onDelete {
 				Button(role: .destructive) {

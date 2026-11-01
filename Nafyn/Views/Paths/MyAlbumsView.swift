@@ -6,26 +6,18 @@ import Safyn
 struct MyAlbumsView: View {
 	@Environment(\.server) private var server: NafynServer?
 	@State private var paginator: Paginator<AlbumRow>? = nil
+	@State private var toast = ToastState()
+	@State private var selection = BulkSelection()
+	@State private var isConfirmingBulkDelete = false
+	@State private var isConfirmingBulkDeleteDownloads = false
 
 	var body: some View {
 		ScrollView {
 			if let paginator {
 				FoldGrid(spacing: 16) {
 					ForEach(self.mergedAlbums) { album in
-						NavigationLink(value: Navigator.Paths.libraryAlbum(id: album.id)) {
-							MusicCard(.album(album), onRemoved: { self.paginator?.remove(where: { $0.id == album.id }) })
-								.overlay(alignment: .topTrailing) {
-									if DownloadManager.shared.downloads.contains(where: { $0.albumId == album.id }) {
-										Image(systemName: "arrow.down.circle.fill")
-											.foregroundStyle(DTColor.textPrimary)
-											.padding(6)
-											.background(Circle().fill(DTColor.surfaceSelect))
-											.padding(6)
-									}
-								}
-						}
-						.buttonStyle(.plain)
-						.onAppear { paginator.loadNextPageIfNeeded(currentItem: album) }
+						self.card(album)
+							.onAppear { paginator.loadNextPageIfNeeded(currentItem: album) }
 					}
 				}
 				.padding()
@@ -54,6 +46,143 @@ struct MyAlbumsView: View {
 			await self.paginator?.reset()
 		}
 		.navigationTitle(String(localized: "albums"))
+		.bulkSelectionSubtitle(self.selection)
+		.bulkSelectionToolbar(self.selection, allIds: self.mergedAlbums.map(\.id)) {
+			self.bulkActions
+		}
+		.toast(self.toast)
+		.alert(
+			String(localized: "delete-albums-confirm \(self.selection.count)"),
+			isPresented: self.$isConfirmingBulkDelete
+		) {
+			Button(String(localized: "cancel"), role: .cancel) {}
+			Button(String(localized: "delete"), role: .destructive) {
+				self.bulkDelete()
+			}
+		}
+		.alert(String(localized: "delete-selected-downloads-confirm"), isPresented: self.$isConfirmingBulkDeleteDownloads) {
+			Button(String(localized: "cancel"), role: .cancel) {}
+			Button(String(localized: "delete"), role: .destructive) {
+				for album in self.selectedAlbums {
+					DownloadManager.shared.deleteDownloads(trackIds: DownloadManager.shared.downloadedTrackIds(albumId: album.id))
+				}
+				self.selection.end()
+			}
+		}
+	}
+
+	/// One album: opens it, or ticks it while selecting.
+	@ViewBuilder
+	private func card(_ album: AlbumRow) -> some View {
+		let content = MusicCard(.album(album), onRemoved: { self.paginator?.remove(where: { $0.id == album.id }) })
+			.overlay(alignment: .topTrailing) {
+				if DownloadManager.shared.downloads.contains(where: { $0.albumId == album.id }) {
+					Image(systemName: "arrow.down.circle.fill")
+						.foregroundStyle(DTColor.textPrimary)
+						.padding(6)
+						.background(Circle().fill(DTColor.surfaceSelect))
+						.padding(6)
+				}
+			}
+
+		if self.selection.isActive {
+			// a plain button instead of the link: the tap ticks the card
+			Button {
+				self.selection.toggle(album.id)
+			} label: {
+				content
+					.overlay(alignment: .topLeading) {
+						SelectionMark(isSelected: self.selection.contains(album.id))
+							.padding(6)
+					}
+					.opacity(self.selection.contains(album.id) ? 1 : 0.7)
+			}
+			.buttonStyle(.plain)
+		} else {
+			NavigationLink(value: Navigator.Paths.libraryAlbum(id: album.id)) {
+				content
+			}
+			.buttonStyle(.plain)
+		}
+	}
+
+	/// The ticked albums, as listed.
+	private var selectedAlbums: [AlbumRow] {
+		self.mergedAlbums.filter { self.selection.contains($0.id) }
+	}
+
+	@ViewBuilder
+	private var bulkActions: some View {
+		let albums = self.selectedAlbums
+
+		Button {
+			self.addToPlaylist(albums)
+		} label: {
+			Label(String(localized: "add-to-playlist"), systemImage: "text.badge.plus")
+		}
+		.tint(Color.primary)
+
+		BulkPinButton(targets: albums.map { .album($0.id) }, toast: self.toast) {
+			self.selection.end()
+		}
+
+		Button {
+			for album in albums {
+				DownloadManager.shared.downloadAlbum(id: album.id, title: album.title)
+			}
+			self.selection.end()
+		} label: {
+			Label(String(localized: "download"), systemImage: "arrow.down.circle")
+		}
+		.tint(Color.primary)
+		.disabled(NetworkMonitor.shared.isOffline)
+
+		if albums.contains(where: { !DownloadManager.shared.downloadedTrackIds(albumId: $0.id).isEmpty }) {
+			Button(role: .destructive) {
+				self.isConfirmingBulkDeleteDownloads = true
+			} label: {
+				Label(String(localized: "delete-downloads"), systemImage: "arrow.down.circle.fill")
+			}
+			.tint(DTColor.buttonDanger)
+		}
+
+		Button(role: .destructive) {
+			self.isConfirmingBulkDelete = true
+		} label: {
+			Label(String(localized: "delete"), systemImage: "trash")
+		}
+		.tint(DTColor.buttonDanger)
+		.disabled(NetworkMonitor.shared.isOffline)
+	}
+
+	/// Opens the playlist picker with every owned track of the ticked albums.
+	private func addToPlaylist(_ albums: [AlbumRow]) {
+		guard let server else { return }
+		let ids = albums.map(\.id)
+		Task { @MainActor in
+			do {
+				let trackIds = try await BulkActions.trackIds(ofAlbums: ids, server: server)
+				guard !trackIds.isEmpty else { return }
+				Navigator.shared.sheet = Navigator.Paths.addToPlaylist(mediaIds: trackIds)
+				self.selection.end()
+			} catch {
+				self.toast.failure(error)
+			}
+		}
+	}
+
+	private func bulkDelete() {
+		guard let server else { return }
+		let ids = Array(self.selection.ids)
+		Task { @MainActor in
+			let result = await BulkActions.removeAlbums(ids, server: server)
+			self.paginator?.remove(where: { result.succeeded.contains($0.id) })
+			if let error = result.error {
+				self.toast.failure(error)
+			}
+			await PinStore.shared.refresh(server: server)
+			self.selection.end()
+		}
 	}
 
 	/// `paginator.items` merged with every album that has at least one downloaded track, so offline

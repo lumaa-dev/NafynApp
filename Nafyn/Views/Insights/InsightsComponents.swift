@@ -78,10 +78,18 @@ struct RankedEntityRow: View {
 					.foregroundStyle(DTColor.textPrimary.opacity(0.5))
 					.frame(width: 28, alignment: .trailing)
 
-				CoverImage(
-					url: self.entity.cover.flatMap(URL.init(string:)),
-					cornerRadius: self.entity.entityType == .artist ? DTRadius.pill : 10
-				)
+				Group {
+					// an artist ranked by name rather than MBID has nothing to look up
+					if self.entity.entityType == .artist {
+						ArtistPhoto(
+							artistId: self.entity.entityId.contains("-") ? self.entity.entityId : nil,
+							fallback: self.entity.cover.flatMap(URL.init(string:)),
+							cornerRadius: DTRadius.pill
+						)
+					} else {
+						CoverImage(url: self.entity.cover.flatMap(URL.init(string:)), cornerRadius: 10)
+					}
+				}
 				.frame(width: 44, height: 44)
 
 				VStack(alignment: .leading, spacing: 2) {

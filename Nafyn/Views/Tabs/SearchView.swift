@@ -104,7 +104,7 @@ struct SearchView: View {
 	private func section<Content: View>(title: LocalizedStringKey, @ViewBuilder content: () -> Content) -> some View {
 		VStack(alignment: .leading, spacing: 10) {
 			Text(title)
-				.font(.title2.bold())
+				.font(DTFont.text(.title2, weight: .bold))
 
 			content()
 		}

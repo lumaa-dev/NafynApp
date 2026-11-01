@@ -210,18 +210,18 @@ struct WebhooksSettingsSection: View {
 				.lineLimit(1)
 
 			Text(self.eventSummary(webhook))
-				.font(.footnote)
+				.font(DTFont.text(.footnote))
 				.foregroundStyle(DTColor.textPrimary.opacity(0.55))
 
 			if let delivered = webhook.lastDeliveredAtDate {
 				Text("webhook-last-delivered \(delivered.formatted(.relative(presentation: .named)))")
-					.font(.footnote)
+					.font(DTFont.text(.footnote))
 					.foregroundStyle(DTColor.textPrimary.opacity(0.55))
 			}
 
 			if let failure = self.failureText(webhook) {
 				Text(failure)
-					.font(.footnote)
+					.font(DTFont.text(.footnote))
 					.foregroundStyle(DTColor.statusFailure)
 			}
 
@@ -238,7 +238,7 @@ struct WebhooksSettingsSection: View {
 				.disabled(self.busyIds.contains(webhook.id) || NetworkMonitor.shared.isOffline)
 			}
 			.buttonStyle(.borderless)
-			.font(.subheadline)
+			.font(DTFont.text(.subheadline))
 		}
 		.padding(.vertical, 4)
 		.swipeActions {
@@ -429,7 +429,7 @@ struct InstanceWebhooksSettingsSection: View {
 	var body: some View {
 		Section {
 			Text("webhooks-global-intro")
-				.font(.footnote)
+				.font(DTFont.text(.footnote))
 				.foregroundStyle(DTColor.textPrimary.opacity(0.6))
 		}
 

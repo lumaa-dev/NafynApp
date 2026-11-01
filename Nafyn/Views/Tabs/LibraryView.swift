@@ -11,6 +11,10 @@ struct LibraryView: View {
     var body: some View {
 		NavigationStack(path: Binding(get: { Navigator.shared.currentPath[Navigator.Tabs.library] ?? [] }, set: { Navigator.shared.currentPath[Navigator.Tabs.library] = $0 } )) {
 			ScrollView {
+				self.pins
+					.padding(.top)
+					.padding(.horizontal)
+
 				self.navItems
 					.padding(.top)
 					.padding(.horizontal)
@@ -38,11 +42,42 @@ struct LibraryView: View {
 				}
 			}
 			.task {
+				await PinStore.shared.refresh(server: self.server)
+			}
+			.task {
 				guard let server else { return }
 				self.recntPlays = (try? await server.send(Library.recentlyPlayed)) ?? []
 			}
 		}
     }
+
+	/// The user's pins, newest first, in three columns. Absent until something is pinned.
+	@ContentBuilder
+	private var pins: some View {
+		let pinned = PinStore.shared.items
+		if !pinned.isEmpty {
+			VStack(alignment: .leading) {
+				Text("pinned")
+					.font(DTFont.serifItalic(25))
+
+				FoldGrid(alignment: .leading, spacing: 12, columns: 3) {
+					ForEach(pinned, id: \.self) { pin in
+						let entry = MusicCardEntry.pinned(pin)
+						if let destination = entry.destination {
+							NavigationLink(value: destination) {
+								MusicCard(entry)
+									.frame(maxWidth: .infinity, alignment: .leading)
+							}
+							.buttonStyle(.plain)
+						}
+					}
+				}
+				// three columns would blow the covers up in a wide window
+				.frame(maxWidth: 3 * 180 + 2 * 12, alignment: .leading)
+			}
+			.frame(maxWidth: .infinity, alignment: .leading)
+		}
+	}
 
 	@ContentBuilder
 	private var navItems: some View {

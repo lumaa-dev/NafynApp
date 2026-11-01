@@ -9,6 +9,9 @@ struct MyTracksView: View {
 	@State private var toast = ToastState()
 	@State private var pendingDelete: MediaRow? = nil
 	@State private var paginator: Paginator<MediaRow>? = nil
+	@State private var selection = BulkSelection()
+	@State private var isConfirmingBulkDelete = false
+	@State private var isConfirmingBulkDeleteDownloads = false
 
 	var body: some View {
 		Group {
@@ -70,7 +73,27 @@ struct MyTracksView: View {
 			await paginator.reset()
 		}
 		.navigationTitle(String(localized: "tracks"))
+		.bulkSelectionSubtitle(self.selection)
+		.bulkSelectionToolbar(self.selection, allIds: self.mergedTracks.map(\.id)) {
+			self.bulkActions
+		}
 		.toast(self.toast)
+		.alert(
+			String(localized: "delete-tracks-confirm \(self.selection.count)"),
+			isPresented: self.$isConfirmingBulkDelete
+		) {
+			Button(String(localized: "cancel"), role: .cancel) {}
+			Button(String(localized: "delete"), role: .destructive) {
+				self.bulkDelete()
+			}
+		}
+		.alert(String(localized: "delete-selected-downloads-confirm"), isPresented: self.$isConfirmingBulkDeleteDownloads) {
+			Button(String(localized: "cancel"), role: .cancel) {}
+			Button(String(localized: "delete"), role: .destructive) {
+				DownloadManager.shared.deleteDownloads(trackIds: self.selectedTracks.map(\.id))
+				self.selection.end()
+			}
+		}
 		.alert(
 			String(localized: "delete-track-confirm"),
 			isPresented: Binding(get: { self.pendingDelete != nil }, set: { if !$0 { self.pendingDelete = nil } }),
@@ -80,6 +103,70 @@ struct MyTracksView: View {
 			Button(String(localized: "delete"), role: .destructive) {
 				self.delete(track)
 			}
+		}
+	}
+
+	/// The ticked tracks, as listed.
+	private var selectedTracks: [MediaRow] {
+		self.mergedTracks.filter { self.selection.contains($0.id) }
+	}
+
+	@ViewBuilder
+	private var bulkActions: some View {
+		let tracks = self.selectedTracks
+
+		Button {
+			Navigator.shared.sheet = Navigator.Paths.addToPlaylist(mediaIds: tracks.map(\.id))
+			self.selection.end()
+		} label: {
+			Label(String(localized: "add-to-playlist"), systemImage: "text.badge.plus")
+		}
+		.tint(Color.primary)
+
+		BulkPinButton(targets: tracks.map { .track($0.id) }, toast: self.toast) {
+			self.selection.end()
+		}
+
+		Button {
+			for track in tracks where !DownloadManager.shared.isDownloaded(trackId: track.id) {
+				DownloadManager.shared.downloadTrack(track)
+			}
+			self.selection.end()
+		} label: {
+			Label(String(localized: "download"), systemImage: "arrow.down.circle")
+		}
+		.tint(Color.primary)
+		.disabled(NetworkMonitor.shared.isOffline || tracks.allSatisfy { DownloadManager.shared.isDownloaded(trackId: $0.id) })
+
+		if tracks.contains(where: { DownloadManager.shared.isDownloaded(trackId: $0.id) }) {
+			Button(role: .destructive) {
+				self.isConfirmingBulkDeleteDownloads = true
+			} label: {
+				Label(String(localized: "delete-downloads"), systemImage: "arrow.down.circle.fill")
+			}
+			.tint(DTColor.buttonDanger)
+		}
+
+		Button(role: .destructive) {
+			self.isConfirmingBulkDelete = true
+		} label: {
+			Label(String(localized: "delete"), systemImage: "trash")
+		}
+		.tint(DTColor.buttonDanger)
+		.disabled(NetworkMonitor.shared.isOffline)
+	}
+
+	private func bulkDelete() {
+		guard let server else { return }
+		let ids = Array(self.selection.ids)
+		Task { @MainActor in
+			let result = await BulkActions.removeTracks(ids, server: server)
+			self.paginator?.remove(where: { result.succeeded.contains($0.id) })
+			if let error = result.error {
+				self.toast.failure(error)
+			}
+			await PinStore.shared.refresh(server: server)
+			self.selection.end()
 		}
 	}
 
@@ -101,34 +188,53 @@ struct MyTracksView: View {
 
 	@ViewBuilder
 	private func row(_ track: MediaRow) -> some View {
-		TrackRow(coverURL: track.coverArt.flatMap { URL(string: $0) }, title: track.title, subtitle: track.artistName, duration: track.duration, fileSize: track.fileSize, onTap: {
-			PlaybackSource.play(track, recordContext: RecordContext(type: .track, refId: track.id))
-		}) {
-			if DownloadManager.shared.isDownloaded(trackId: track.id) {
-				Image(systemName: "arrow.down.circle.fill")
-					.foregroundStyle(DTColor.textPrimary.opacity(0.4))
+		let isSelecting = self.selection.isActive
+
+		HStack(spacing: 8) {
+			if isSelecting {
+				SelectionMark(isSelected: self.selection.contains(track.id))
+			}
+
+			TrackRow(coverURL: track.coverArt.flatMap { URL(string: $0) }, title: track.title, subtitle: track.artistName, duration: track.duration, fileSize: track.fileSize, onTap: {
+				if isSelecting {
+					self.selection.toggle(track.id)
+				} else {
+					PlaybackSource.play(track, recordContext: RecordContext(type: .track, refId: track.id))
+				}
+			}) {
+				if DownloadManager.shared.isDownloaded(trackId: track.id) {
+					Image(systemName: "arrow.down.circle.fill")
+						.foregroundStyle(DTColor.textPrimary.opacity(0.4))
+				}
 			}
 		}
+		// while selecting, a row only ticks: no swipe, no menu
 		.swipeActions(edge: .trailing) {
-			Button(role: .destructive) {
-				self.pendingDelete = track
-			} label: {
-				Label(String(localized: "delete"), systemImage: "trash")
+			if !isSelecting {
+				Button(role: .destructive) {
+					self.pendingDelete = track
+				} label: {
+					Label(String(localized: "delete"), systemImage: "trash")
+				}
+				.tint(DTColor.buttonDanger)
+				.disabled(NetworkMonitor.shared.isOffline)
 			}
-			.tint(DTColor.buttonDanger)
-			.disabled(NetworkMonitor.shared.isOffline)
 		}
 		.swipeActions(edge: .leading) {
-			Button {
-				Navigator.shared.sheet = Navigator.Paths.addToPlaylist(mediaIds: [track.id])
-			} label: {
-				Label(String(localized: "add"), systemImage: "text.badge.plus")
+			if !isSelecting {
+				Button {
+					Navigator.shared.sheet = Navigator.Paths.addToPlaylist(mediaIds: [track.id])
+				} label: {
+					Label(String(localized: "add"), systemImage: "text.badge.plus")
+				}
+				.tint(DTColor.accentStart)
 			}
-			.tint(DTColor.accentStart)
 		}
 		.contextMenu {
-			TrackMenuItems(track: track) {
-				self.pendingDelete = track
+			if !isSelecting {
+				TrackMenuItems(track: track) {
+					self.pendingDelete = track
+				}
 			}
 		}
 	}

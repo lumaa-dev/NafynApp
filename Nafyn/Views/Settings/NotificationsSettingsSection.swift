@@ -30,7 +30,7 @@ private struct NotificationPermissionBanner: View {
 						.foregroundStyle(DTColor.textPrimary)
 
 					Text("notifications-disabled-detail")
-						.font(.footnote)
+						.font(DTFont.text(.footnote))
 						.foregroundStyle(DTColor.textPrimary.opacity(0.6))
 
 					Button(String(localized: "open-settings")) {
@@ -106,7 +106,7 @@ private struct AppleDevicesSection: View {
 			}
 
 			Text("device-last-seen \(device.lastSeenAtDate.formatted(.relative(presentation: .named)))")
-				.font(.footnote)
+				.font(DTFont.text(.footnote))
 				.foregroundStyle(DTColor.textPrimary.opacity(0.55))
 		}
 		.padding(.vertical, 2)
@@ -195,7 +195,7 @@ private struct FollowedReleasesSection: View {
 
 					if let artist = subscription.artistName {
 						Text(artist)
-							.font(.footnote)
+							.font(DTFont.text(.footnote))
 							.foregroundStyle(DTColor.textPrimary.opacity(0.55))
 							.lineLimit(1)
 					}
@@ -216,7 +216,7 @@ private struct FollowedReleasesSection: View {
 					self.unfollow(subscription)
 				}
 				.buttonStyle(.borderless)
-				.font(.subheadline)
+				.font(DTFont.text(.subheadline))
 				.disabled(NetworkMonitor.shared.isOffline)
 			}
 		}

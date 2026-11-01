@@ -119,6 +119,8 @@ private struct PlaylistDetailContent: View {
 						.disabled(NetworkMonitor.shared.isOffline)
 					}
 
+					PinMenuButton(target: .playlist(self.playlistId))
+
 					Button {
 						DownloadManager.shared.downloadPlaylist(id: self.playlistId, title: self.detail.playlist.title)
 					} label: {
