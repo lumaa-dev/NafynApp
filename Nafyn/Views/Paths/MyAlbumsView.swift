@@ -10,6 +10,18 @@ struct MyAlbumsView: View {
 	@State private var selection = BulkSelection()
 	@State private var isConfirmingBulkDelete = false
 	@State private var isConfirmingBulkDeleteDownloads = false
+	@State private var searchText = ""
+	@State private var sort: LibrarySort = .added
+
+	/// What the list is asked for; a change starts it over from the server.
+	private struct ListKey: Equatable {
+		var search: String
+		var sort: LibrarySort
+	}
+
+	private var listKey: ListKey {
+		ListKey(search: self.searchText.trimmingCharacters(in: .whitespacesAndNewlines), sort: self.sort)
+	}
 
 	var body: some View {
 		ScrollView {
@@ -25,6 +37,12 @@ struct MyAlbumsView: View {
 				if paginator.isLoadingPage {
 					SkeletonMusicGrid(count: 2)
 						.padding(.horizontal)
+				} else if self.mergedAlbums.isEmpty, !self.listKey.search.isEmpty, paginator.error == nil {
+					Text("no-results")
+						.font(DTFont.system(18))
+						.foregroundStyle(DTColor.textPrimary.opacity(0.5))
+						.frame(maxWidth: .infinity)
+						.padding(.top, 40)
 				}
 			} else {
 				SkeletonMusicGrid()
@@ -34,13 +52,29 @@ struct MyAlbumsView: View {
 		.scrollEdgeEffectStyle(.soft, for: .all)
 		.contentColumn(maxWidth: DTLayout.gridWidth)
 		.background(DTColor.background.ignoresSafeArea())
-		.task {
-			guard self.paginator == nil, let server else { return }
+		// `id` runs this again on every change of the search or the order and cancels the previous run, so the
+		// sleep is the debounce; the first run (no list yet) goes straight through
+		.task(id: self.listKey) {
+			guard let server else { return }
+			if self.paginator != nil {
+				try? await Task.sleep(for: .milliseconds(350))
+				guard !Task.isCancelled else { return }
+			}
+			let key = self.listKey
 			let paginator = Paginator<AlbumRow> { page, limit in
-				try await server.fetchPaginated(path: "/api/v1/library/albums", page: page, limit: limit)
+				try await server.fetchLibraryPage(path: "/api/v1/library/albums", page: page, limit: limit, query: key.search, sort: key.sort)
 			}
 			self.paginator = paginator
 			await paginator.reset()
+		}
+		.searchable(text: self.$searchText, prompt: String(localized: "search-albums"))
+		.toolbar {
+			ToolbarItem(placement: .primaryAction) {
+				LibrarySortMenu(sort: self.$sort)
+			}
+		}
+		.onReceive(NotificationCenter.default.publisher(for: .nafynLibraryChanged)) { _ in
+			Task { await self.paginator?.reset() }
 		}
 		.refreshable {
 			await self.paginator?.reset()
@@ -199,7 +233,7 @@ struct MyAlbumsView: View {
 		let downloadedByAlbum = Dictionary(grouping: DownloadManager.shared.downloads, by: \.albumId)
 		for (albumId, tracks) in downloadedByAlbum where seen.insert(albumId).inserted {
 			guard let first = tracks.first else { continue }
-			result.append(AlbumRow(
+			let downloaded = AlbumRow(
 				id: albumId,
 				mbId: "",
 				title: first.album ?? first.artistName,
@@ -210,9 +244,13 @@ struct MyAlbumsView: View {
 				duration: tracks.reduce(0) { $0 + $1.duration },
 				trackCount: tracks.count,
 				addedAt: Int64((tracks.map(\.downloadedAt).max() ?? .now).timeIntervalSince1970 * 1000)
-			))
+			)
+			// the server already narrowed its own rows; the downloaded ones are matched here
+			if downloaded.matchesLibrarySearch(self.listKey.search) {
+				result.append(downloaded)
+			}
 		}
 
-		return result.sorted { $0.addedAtDate > $1.addedAtDate }
+		return result.sorted { self.sort.areInOrder($0, $1) }
 	}
 }

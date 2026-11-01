@@ -11,6 +11,14 @@ import Safyn
 /// request against the same paths and decoding the `PaginatedResponse` envelope every one of them
 /// actually returns server-side (confirmed against the Nafyn server source, not just its OpenAPI spec).
 extension NafynServer {
+	/// A library list (`/library/tracks`, `/library/albums`) narrowed and ordered by the server. Safyn's
+	/// `Library.tracks/albums(query:sort:)` carry the same parameters but send `?offset=` instead of `?page=`, so
+	/// the paging stays on ``fetchPaginated(path:page:limit:extraQueryItems:)`` and only the query items are borrowed.
+	func fetchLibraryPage<Item: Decodable & Sendable & Hashable>(path: String, page: Int, limit: Int, query: String, sort: LibrarySort) async throws -> PaginatedResponse<Item> {
+		let endpoint = path.hasSuffix("albums") ? Library.albums(query: query, sort: sort).queries : Library.tracks(query: query, sort: sort).queries
+		return try await self.fetchPaginated(path: path, page: page, limit: limit, extraQueryItems: endpoint)
+	}
+
 	/// Issues an authenticated `GET` against `path` with the given query items, returning the raw response body.
 	///
 	/// Shared low-level plumbing for every local workaround that needs to bypass a Safyn `NafynEndpoint`
@@ -56,11 +64,12 @@ extension NafynServer {
 		return data
 	}
 
-	func fetchPaginated<Item: Decodable & Sendable & Hashable>(path: String, page: Int, limit: Int) async throws -> PaginatedResponse<Item> {
+	/// - Parameter extraQueryItems: Further query items (the library lists' `q` and `sort`).
+	func fetchPaginated<Item: Decodable & Sendable & Hashable>(path: String, page: Int, limit: Int, extraQueryItems: [URLQueryItem] = []) async throws -> PaginatedResponse<Item> {
 		let data = try await self.fetchGET(path: path, queryItems: [
 			URLQueryItem(name: "page", value: String(page)),
 			URLQueryItem(name: "limit", value: String(limit)),
-		])
+		] + extraQueryItems)
 
 		let decoder = JSONDecoder()
 		decoder.dateDecodingStrategy = .iso8601

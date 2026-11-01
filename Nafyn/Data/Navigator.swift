@@ -98,6 +98,7 @@ final class Navigator {
 		case replayMix(year: String?)
 		case yearComparison
 		case addToPlaylist(mediaIds: [String])
+		case changeAlbum(trackId: String)
 
 		/// The destination screen. A path opened from a ``MusicCard`` zooms out of that card's cover.
 		var view: AnyView {
@@ -182,6 +183,8 @@ final class Navigator {
 					AnyView(YearComparisonView())
 				case .addToPlaylist(let mediaIds):
 					AnyView(AddToPlaylistSheet(mediaIds: mediaIds))
+				case .changeAlbum(let trackId):
+					AnyView(ChangeAlbumSheet(trackId: trackId))
 			}
 		}
 

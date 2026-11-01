@@ -12,6 +12,22 @@ struct MyTracksView: View {
 	@State private var selection = BulkSelection()
 	@State private var isConfirmingBulkDelete = false
 	@State private var isConfirmingBulkDeleteDownloads = false
+	@State private var searchText = ""
+	@State private var sort: LibrarySort = .added
+
+	/// What the list is asked for; a change starts it over from the server.
+	private struct ListKey: Equatable {
+		var search: String
+		var sort: LibrarySort
+	}
+
+	private var listKey: ListKey {
+		ListKey(search: self.searchText.trimmingCharacters(in: .whitespacesAndNewlines), sort: self.sort)
+	}
+
+	private var isSearching: Bool {
+		!self.listKey.search.isEmpty
+	}
 
 	var body: some View {
 		Group {
@@ -25,6 +41,16 @@ struct MyTracksView: View {
 
 					if paginator.isLoadingPage {
 						SkeletonTrackRows(count: self.mergedTracks.isEmpty ? 8 : 2)
+							.listRowSeparator(.hidden)
+							.listRowBackground(Color.clear)
+					}
+
+					if self.mergedTracks.isEmpty, self.isSearching, !paginator.isLoadingPage, paginator.error == nil {
+						Text("no-results")
+							.font(DTFont.system(18))
+							.foregroundStyle(DTColor.textPrimary.opacity(0.5))
+							.frame(maxWidth: .infinity)
+							.padding(.top, 40)
 							.listRowSeparator(.hidden)
 							.listRowBackground(Color.clear)
 					}
@@ -64,13 +90,29 @@ struct MyTracksView: View {
 				.scrollContentBackground(.hidden)
 			}
 		}
-		.task {
-			guard self.paginator == nil, let server else { return }
+		// `id` runs this again on every change of the search or the order and cancels the previous run, so the
+		// sleep is the debounce; the first run (no list yet) goes straight through
+		.task(id: self.listKey) {
+			guard let server else { return }
+			if self.paginator != nil {
+				try? await Task.sleep(for: .milliseconds(350))
+				guard !Task.isCancelled else { return }
+			}
+			let key = self.listKey
 			let paginator = Paginator<MediaRow> { page, limit in
-				try await server.fetchPaginated(path: "/api/v1/library/tracks", page: page, limit: limit)
+				try await server.fetchLibraryPage(path: "/api/v1/library/tracks", page: page, limit: limit, query: key.search, sort: key.sort)
 			}
 			self.paginator = paginator
 			await paginator.reset()
+		}
+		.searchable(text: self.$searchText, prompt: String(localized: "search-tracks"))
+		.toolbar {
+			ToolbarItem(placement: .primaryAction) {
+				LibrarySortMenu(sort: self.$sort)
+			}
+		}
+		.onReceive(NotificationCenter.default.publisher(for: .nafynLibraryChanged)) { _ in
+			Task { await self.paginator?.reset() }
 		}
 		.navigationTitle(String(localized: "tracks"))
 		.bulkSelectionSubtitle(self.selection)
@@ -179,11 +221,12 @@ struct MyTracksView: View {
 		for track in self.paginator?.items ?? [] where seen.insert(track.id).inserted {
 			result.append(track)
 		}
-		for entry in DownloadManager.shared.downloads where seen.insert(entry.id).inserted {
+		// the server already narrowed its own rows; the downloaded ones are matched here
+		for entry in DownloadManager.shared.downloads where entry.mediaRow.matchesLibrarySearch(self.listKey.search) && seen.insert(entry.id).inserted {
 			result.append(entry.mediaRow)
 		}
 
-		return result.sorted { $0.addedAtDate > $1.addedAtDate }
+		return result.sorted { self.sort.areInOrder($0, $1) }
 	}
 
 	@ViewBuilder
