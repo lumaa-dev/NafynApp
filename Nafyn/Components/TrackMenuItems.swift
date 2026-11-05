@@ -54,6 +54,25 @@ struct TrackMenuItems: View {
 		.tint(Color.primary)
 		.disabled(NetworkMonitor.shared.isOffline)
 
+		// the MusicBrainz versions of the track's album and artist, not the library's
+		if self.track.map({ !$0.albumId.isEmpty }) ?? true {
+			Button {
+				self.openCatalogAlbum()
+			} label: {
+				Label(String(localized: "view-catalog-album"), systemImage: "opticaldisc")
+			}
+			.tint(Color.primary)
+		}
+
+		if self.track.map({ $0.artistMbid != nil }) ?? true {
+			Button {
+				self.openArtist()
+			} label: {
+				Label(String(localized: "view-artist"), systemImage: "person")
+			}
+			.tint(Color.primary)
+		}
+
 		if self.showsViewTrack {
 			Button {
 				// the full player is a cover over the tabs; close it so the pushed screen is visible
@@ -90,6 +109,30 @@ struct TrackMenuItems: View {
 			}
 			.tint(DTColor.buttonDanger)
 			.disabled(NetworkMonitor.shared.isOffline)
+		}
+	}
+
+	/// The row, from the one already known or else fetched.
+	private func resolvedTrack() async -> MediaRow? {
+		if let track = self.track { return track }
+		guard let server else { return nil }
+		return (try? await server.send(Library.track(id: self.trackId)) as LibraryTrackResponse)?.row
+	}
+
+	private func openCatalogAlbum() {
+		Task { @MainActor in
+			guard let albumId = await self.resolvedTrack()?.albumId, !albumId.isEmpty else { return }
+			// the full player is a cover over the tabs; close it so the pushed screen is visible
+			PlayerEngine.shared.isExpanded = false
+			Navigator.shared.send(to: .album(id: albumId))
+		}
+	}
+
+	private func openArtist() {
+		Task { @MainActor in
+			guard let artistId = await self.resolvedTrack()?.artistMbid else { return }
+			PlayerEngine.shared.isExpanded = false
+			Navigator.shared.send(to: .artist(id: artistId))
 		}
 	}
 

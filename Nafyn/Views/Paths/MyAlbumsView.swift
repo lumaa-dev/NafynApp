@@ -72,6 +72,9 @@ struct MyAlbumsView: View {
 			ToolbarItem(placement: .primaryAction) {
 				LibrarySortMenu(sort: self.$sort)
 			}
+
+			// sorting and selecting have nothing to do with one another
+			ToolbarSpacer(.fixed, placement: .primaryAction)
 		}
 		.onReceive(NotificationCenter.default.publisher(for: .nafynLibraryChanged)) { _ in
 			Task { await self.paginator?.reset() }

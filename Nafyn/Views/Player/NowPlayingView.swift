@@ -514,7 +514,7 @@ struct NowPlayingView: View {
 			.onTapGesture {
 				PlayerEngine.shared.toggleShuffle()
 			}
-			.onLongPressGesture(minimumDuration: 0.45) {
+			.onLongPressGesture(minimumDuration: 0.25) {
 				PlayerEngine.shared.repeatMode = PlayerEngine.shared.repeatMode.next
 			}
 			.sensoryFeedback(.selection, trigger: repeatMode)

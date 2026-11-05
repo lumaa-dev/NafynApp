@@ -110,6 +110,9 @@ struct MyTracksView: View {
 			ToolbarItem(placement: .primaryAction) {
 				LibrarySortMenu(sort: self.$sort)
 			}
+
+			// sorting and selecting have nothing to do with one another
+			ToolbarSpacer(.fixed, placement: .primaryAction)
 		}
 		.onReceive(NotificationCenter.default.publisher(for: .nafynLibraryChanged)) { _ in
 			Task { await self.paginator?.reset() }
@@ -273,13 +276,13 @@ struct MyTracksView: View {
 				.tint(DTColor.accentStart)
 			}
 		}
-		.contextMenu {
-			if !isSelecting {
-				TrackMenuItems(track: track) {
-					self.pendingDelete = track
-				}
-			}
-		}
+		// while selecting there is no menu; the tracks may be downloads only, so the queue is the row itself
+		.libraryItemMenu(
+			item: .track(id: track.id),
+			play: { ([track], RecordContext(type: .track, refId: track.id)) },
+			isEnabled: !isSelecting,
+			onRemoved: { self.paginator?.remove(where: { $0.id == track.id }) }
+		)
 	}
 
 	private func delete(_ track: MediaRow) {

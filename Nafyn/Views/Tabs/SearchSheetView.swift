@@ -18,6 +18,8 @@ struct SearchSheetView: View {
 	@State private var bestResult: MediaInfo? = nil
 	@State private var isSearching = false
 	@State private var searchTask: Task<Void, Never>? = nil
+	/// Which search is the latest; see ``search()``.
+	@State private var searchGeneration = 0
 	/// Whether the first (pre-filled) search already ran; later edits are debounced, that one is not.
 	@State private var hasStarted = false
 
@@ -183,24 +185,30 @@ struct SearchSheetView: View {
 	}
 
 	private func search() async {
+		// only the latest search may touch the state: a cancelled one ends after its replacement started
+		self.searchGeneration += 1
+		let generation = self.searchGeneration
+
 		guard let server, !self.query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
 			self.result = nil
 			self.bestResult = nil
+			self.isSearching = false
 			return
 		}
 
 		self.isSearching = true
-		defer { self.isSearching = false }
 
 		do {
 			let result: SearchResult = try await server.send(Search.search(q: self.query, filter: self.filter == .all ? nil : self.filter))
-			guard !Task.isCancelled else { return }
+			guard generation == self.searchGeneration, !Task.isCancelled else { return }
 			self.result = result
 			self.bestResult = (result.albums + result.tracks).first { $0.bestResult == true }
+			self.isSearching = false
 		} catch {
-			guard !Task.isCancelled else { return }
+			guard generation == self.searchGeneration, !Task.isCancelled else { return }
 			self.result = nil
 			self.bestResult = nil
+			self.isSearching = false
 		}
 	}
 }

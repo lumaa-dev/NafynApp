@@ -16,6 +16,9 @@ struct AlbumMenuItems: View {
 	/// The album's title when the place knows it; otherwise it is fetched together with the tracks on "Download".
 	var title: String?
 
+	/// The album's artist (MusicBrainz ID) when the place knows it; otherwise it is fetched on "View Artist".
+	var artistId: String?
+
 	/// Called when "Delete downloads" is chosen. `nil` leaves the item out.
 	var onDeleteDownloads: (() -> Void)?
 
@@ -31,6 +34,22 @@ struct AlbumMenuItems: View {
 		.tint(Color.primary)
 
 		PinMenuButton(target: .album(self.albumId))
+
+		// the MusicBrainz version of the album and its artist, not the library's
+		Button {
+			PlayerEngine.shared.isExpanded = false
+			Navigator.shared.send(to: .album(id: self.albumId))
+		} label: {
+			Label(String(localized: "view-catalog-album"), systemImage: "opticaldisc")
+		}
+		.tint(Color.primary)
+
+		Button {
+			self.openArtist()
+		} label: {
+			Label(String(localized: "view-artist"), systemImage: "person")
+		}
+		.tint(Color.primary)
 
 		Button {
 			self.download()
@@ -68,6 +87,28 @@ struct AlbumMenuItems: View {
 				guard let server else { throw NafynError.unauthenticated }
 				let response: LibraryAlbumResponse = try await server.send(Library.album(id: albumId))
 				Navigator.shared.sheet = Navigator.Paths.addToPlaylist(mediaIds: response.tracks.map(\.id))
+			} catch {
+				ToastState.app.failure(error)
+			}
+		}
+	}
+
+	private func openArtist() {
+		if let artistId = self.artistId {
+			PlayerEngine.shared.isExpanded = false
+			Navigator.shared.send(to: .artist(id: artistId))
+			return
+		}
+
+		let albumId = self.albumId
+		let server = self.server
+		Task { @MainActor in
+			do {
+				guard let server else { throw NafynError.unauthenticated }
+				let response: LibraryAlbumResponse = try await server.send(Library.album(id: albumId))
+				guard let artistId = response.album.row.artistMbid else { return }
+				PlayerEngine.shared.isExpanded = false
+				Navigator.shared.send(to: .artist(id: artistId))
 			} catch {
 				ToastState.app.failure(error)
 			}

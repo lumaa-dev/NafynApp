@@ -22,15 +22,19 @@ private struct SheetBackgroundModifier: ViewModifier {
 			content
 				.scrollContentBackground(.hidden)
 				.presentationBackground(DTColor.background)
+				// a zoom transition inside a sheet glitches (an iOS bug): no card in a sheet is a zoom source
+				.environment(\.zoomNamespace, nil)
 		} else {
 			content
+				.environment(\.zoomNamespace, nil)
 		}
 	}
 }
 
 extension View {
 	/// Apply to the root of a sheet (its `NavigationStack`): the sheet itself, and every `List`/`Form`/`ScrollView`
-	/// background inside it, is the app background instead of the system's lighter sheet gray.
+	/// background inside it, is the app background instead of the system's lighter sheet gray. Also turns off card
+	/// zoom transitions inside the sheet.
 	func sheetBackground() -> some View {
 		self.modifier(SheetBackgroundModifier())
 	}

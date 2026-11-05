@@ -152,7 +152,7 @@ struct AlbumDetailView: View {
 
 	@ViewBuilder
 	private func trackRow(_ track: TrackInfo, album: AlbumDetail, palette: CoverPalette, reload: @escaping () async -> Void) -> some View {
-		TrackRow(
+		let row = TrackRow(
 			index: String(Int(track.trackNumber)),
 			title: track.title,
 			duration: track.duration,
@@ -179,27 +179,17 @@ struct AlbumDetailView: View {
 				.disabled(NetworkMonitor.shared.isOffline)
 			}
 		}
-		.contextMenu {
-			if let mediaId = track.mediaId {
-				Button {
-					self.play(track, album: album)
-				} label: {
-					Label(String(localized: "play"), systemImage: "play.fill")
-				}
-				.tint(Color.primary)
 
-				Button {
-					Navigator.shared.sheet = Navigator.Paths.addToPlaylist(mediaIds: [mediaId])
-				} label: {
-					Label(String(localized: "add-to-playlist"), systemImage: "text.badge.plus")
-				}
-				.tint(Color.primary)
-
-				PinMenuButton(target: .track(mediaId))
-			}
-
+		if let mediaId = track.mediaId {
+			// a track the user owns gets the menu every owned track has
+			row.libraryItemMenu(
+				item: .track(id: mediaId),
+				play: { [server = self.server] in try await LibraryItem.track(id: mediaId).playbackQueue(server: server) },
+				onRemoved: { Task { await reload() } }
+			)
+		} else if track.released, !track.requested, !track.inLibrary {
 			// the row's own download arrow, for when the row is held instead of tapped
-			if track.released, !track.requested, !track.inLibrary {
+			row.contextMenu {
 				Button {
 					self.request(track: track, reload: reload)
 				} label: {
@@ -208,6 +198,8 @@ struct AlbumDetailView: View {
 				.tint(Color.primary)
 				.disabled(NetworkMonitor.shared.isOffline)
 			}
+		} else {
+			row
 		}
 	}
 

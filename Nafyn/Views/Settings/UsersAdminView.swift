@@ -28,12 +28,14 @@ struct UsersAdminView: View {
 		}
 		.task {
 			guard self.paginator == nil, let server else { return }
-			self.paginator = Paginator<NafynUser> { page, limit in
-				try await server.fetchPaginated(path: "/api/v1/users", page: page, limit: limit)
-			}
+			// Who is asking comes first: the rows decide whether they are editable when they are built, and a
+			// list that loads before this answer arrives never rebuilds them (every account stayed locked).
 			if let me = try? await server.send(User.me) as NafynUser {
 				self.currentUserId = me.id
 				self.currentPermissions = me.permissions
+			}
+			self.paginator = Paginator<NafynUser> { page, limit in
+				try await server.fetchPaginated(path: "/api/v1/users", page: page, limit: limit)
 			}
 		}
 		.navigationTitle(String(localized: "users"))
@@ -81,7 +83,7 @@ extension Permissions {
 	/// `entity/Permission.ts`). Safyn's `Permissions.canManage(...)` still follows the older rule, where an
 	/// `admin` could edit anyone and a `manageAccounts` holder themselves; the server now answers 401 to both.
 	///
-	/// - Nobody edits themselves through the accounts routes (their own profile lives in Settings > Profile).
+	/// - Nobody edits themselves through the accounts routes (their own profile is edited from the profile screen).
 	/// - `admin` edits anyone except another `admin`.
 	/// - `manageAccounts` edits only accounts that hold neither `manageAccounts` nor `admin`.
 	static func canManageAccount(actorId: String, actorPermissions: Permissions, targetId: String, targetPermissions: Permissions) -> Bool {

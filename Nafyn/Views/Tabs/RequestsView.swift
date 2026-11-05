@@ -34,7 +34,7 @@ struct RequestsView: View {
 	}
 
 	var body: some View {
-		NavigationStack(path: Binding(get: { Navigator.shared.currentPath[Navigator.Tabs.requests] ?? [] }, set: { Navigator.shared.currentPath[Navigator.Tabs.requests] = $0 })) {
+		NavigationStack(path: Navigator.shared.path(for: .requests)) {
 			Group {
 				if let paginator {
 					PaginatedList(paginator: paginator) { request in

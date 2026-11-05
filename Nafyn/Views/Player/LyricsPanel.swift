@@ -43,49 +43,68 @@ struct LyricsPanel: View {
 
 	var body: some View {
 		AsyncContentView(
-			load: {
+			load: { () async throws -> Lyrics? in
 				guard let server else { throw NafynError.unauthenticated }
-				return try await server.send(Library.lyrics(id: self.trackId)) as Lyrics
+				do {
+					return try await server.send(Library.lyrics(id: self.trackId)) as Lyrics
+				} catch NafynError.server(let statusCode, _) where statusCode == 404 {
+					// a track without lyrics is not an error worth a retry button
+					return nil
+				}
 			},
 			skeleton: { AnyView(SkeletonTextLines()) },
 			showsBackground: false
 		) { lyrics, _ in
-			ScrollViewReader { proxy in
-				ScrollView {
-					VStack(alignment: .leading, spacing: 18) {
-						ForEach(lyrics.paragraphs, id: \.id) { paragraph in
-							ForEach(paragraph.lines, id: \.id) { line in
-								self.lineView(line)
-									.id(line.id)
-							}
-						}
-					}
+			if let lyrics {
+				self.lyricsView(lyrics)
+			} else {
+				Text("no-lyrics")
+					.font(DTFont.system(18))
+					.foregroundStyle(DTColor.textPrimary.opacity(0.5))
+					.multilineTextAlignment(.center)
 					.padding()
-				}
-				.scrollEdgeEffectStyle(.soft, for: .all)
-				.simultaneousGesture(DragGesture(minimumDistance: 0).onChanged { _ in
-					self.markUserScrolling {
-						if let id = self.activeLineId(in: lyrics) {
-							withAnimation(.smooth(duration: 0.4)) {
-								proxy.scrollTo(id, anchor: UnitPoint(x: 0.5, y: 0.35))
-							}
+					.frame(maxWidth: .infinity, maxHeight: .infinity)
+			}
+		}
+	}
+
+	@ViewBuilder
+	private func lyricsView(_ lyrics: Lyrics) -> some View {
+		ScrollViewReader { proxy in
+			ScrollView {
+				VStack(alignment: .leading, spacing: 18) {
+					ForEach(lyrics.paragraphs, id: \.id) { paragraph in
+						ForEach(paragraph.lines, id: \.id) { line in
+							self.lineView(line)
+								.id(line.id)
 						}
 					}
-				})
-				.onChange(of: self.activeLineId(in: lyrics)) { _, newId in
-					guard let newId, !self.isUserScrolling else { return }
-					withAnimation(.smooth(duration: 0.4)) {
-						proxy.scrollTo(newId, anchor: UnitPoint(x: 0.5, y: 0.35))
+				}
+				.padding()
+			}
+			.scrollEdgeEffectStyle(.soft, for: .all)
+			.simultaneousGesture(DragGesture(minimumDistance: 0).onChanged { _ in
+				self.markUserScrolling {
+					if let id = self.activeLineId(in: lyrics) {
+						withAnimation(.smooth(duration: 0.4)) {
+							proxy.scrollTo(id, anchor: UnitPoint(x: 0.5, y: 0.35))
+						}
 					}
 				}
-				.overlay(alignment: .topTrailing) {
-					if self.canTranslate {
-						self.translateButton(lyrics)
-					}
+			})
+			.onChange(of: self.activeLineId(in: lyrics)) { _, newId in
+				guard let newId, !self.isUserScrolling else { return }
+				withAnimation(.smooth(duration: 0.4)) {
+					proxy.scrollTo(newId, anchor: UnitPoint(x: 0.5, y: 0.35))
 				}
-				.task(id: self.trackId) {
-					self.sourceLanguage = Self.detectLanguage(of: lyrics)
+			}
+			.overlay(alignment: .topTrailing) {
+				if self.canTranslate {
+					self.translateButton(lyrics)
 				}
+			}
+			.task(id: self.trackId) {
+				self.sourceLanguage = Self.detectLanguage(of: lyrics)
 			}
 		}
 	}

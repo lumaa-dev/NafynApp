@@ -68,34 +68,30 @@ extension View {
 	/// which are disabled while nothing is ticked) and "Done".
 	func bulkSelectionToolbar<Actions: View>(_ selection: BulkSelection, allIds: [String], @ViewBuilder actions: @escaping () -> Actions) -> some View {
 		self.toolbar {
-			ToolbarItemGroup(placement: .primaryAction) {
-				if selection.isActive {
-					Menu {
-						let allSelected = !allIds.isEmpty && allIds.allSatisfy { selection.contains($0) }
+			if selection.isActive {
+				ToolbarOverflowMenu {
+					let allSelected = !allIds.isEmpty && allIds.allSatisfy { selection.contains($0) }
 
-						Button {
-							if allSelected {
-								selection.clear()
-							} else {
-								selection.selectAll(allIds)
-							}
-						} label: {
-							Label(allSelected ? String(localized: "deselect-all") : String(localized: "select-all"), systemImage: allSelected ? "circle" : "checkmark.circle")
+					Button {
+						if allSelected {
+							selection.clear()
+						} else {
+							selection.selectAll(allIds)
 						}
-						.tint(Color.primary)
-
-						Divider()
-
-						Group {
-							actions()
-						}
-						.disabled(selection.count == 0)
 					} label: {
-						Label(String(localized: "bulk-actions"), systemImage: "ellipsis.circle")
-							.labelStyle(.iconOnly)
+						Label(allSelected ? String(localized: "deselect-all") : String(localized: "select-all"), systemImage: allSelected ? "circle" : "checkmark.circle")
 					}
 					.tint(Color.primary)
 
+					Divider()
+
+					Group {
+						actions()
+					}
+					.disabled(selection.count == 0)
+				}
+
+				ToolbarItem(placement: .primaryAction) {
 					Button {
 						selection.end()
 					} label: {
@@ -103,7 +99,9 @@ extension View {
 							.labelStyle(.iconOnly)
 					}
 					.tint(Color.primary)
-				} else {
+				}
+			} else {
+				ToolbarItem(placement: .primaryAction) {
 					Button {
 						selection.begin()
 					} label: {

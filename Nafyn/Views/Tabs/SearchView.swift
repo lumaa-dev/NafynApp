@@ -13,9 +13,11 @@ struct SearchView: View {
 	@State private var bestResult: MediaInfo? = nil
 	@State private var isSearching = false
 	@State private var searchTask: Task<Void, Never>? = nil
+	/// Which search is the latest; see ``search()``.
+	@State private var searchGeneration = 0
 
 	var body: some View {
-		NavigationStack(path: Binding(get: { Navigator.shared.currentPath[Navigator.Tabs.search] ?? [] }, set: { Navigator.shared.currentPath[Navigator.Tabs.search] = $0 })) {
+		NavigationStack(path: Navigator.shared.path(for: .search)) {
 			ScrollView {
 				VStack(alignment: .leading, spacing: 20) {
 					Picker(String(localized: "filter"), selection: self.$filter) {
@@ -143,24 +145,32 @@ struct SearchView: View {
 	}
 
 	private func search() async {
+		// Only the latest search may touch the state. A cancelled one finishes later than its replacement
+		// starts: letting it clear `isSearching` made the skeleton vanish (and the old results or nothing show)
+		// while the new search was still running, the glitch of changing the filter before results are in.
+		self.searchGeneration += 1
+		let generation = self.searchGeneration
+
 		guard let server, !self.query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
 			self.result = nil
 			self.bestResult = nil
+			self.isSearching = false
 			return
 		}
 
 		self.isSearching = true
-		defer { self.isSearching = false }
 
 		do {
 			let result: SearchResult = try await server.send(Search.search(q: self.query, filter: self.filter == .all ? nil : self.filter))
-			guard !Task.isCancelled else { return }
+			guard generation == self.searchGeneration, !Task.isCancelled else { return }
 			self.result = result
 			self.bestResult = (result.albums + result.tracks).first { $0.bestResult == true }
+			self.isSearching = false
 		} catch {
-			guard !Task.isCancelled else { return }
+			guard generation == self.searchGeneration, !Task.isCancelled else { return }
 			self.result = nil
 			self.bestResult = nil
+			self.isSearching = false
 		}
 	}
 }

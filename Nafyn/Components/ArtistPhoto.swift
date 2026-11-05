@@ -1,6 +1,7 @@
 // Made by Lumaa
 
 import SwiftUI
+import OSLog
 import Safyn
 
 /// Looks artists' pictures up (`Artist.image`) and remembers the answers for the session. A lookup hits
@@ -11,6 +12,8 @@ final class ArtistImageLoader {
 	static let shared = ArtistImageLoader()
 
 	private static let maxConcurrentLookups = 3
+	private static let maxAttempts = 3
+	private static let logger = Logger(subsystem: "fr.lumaa.Nafyn", category: "ArtistImage")
 
 	/// `.some(nil)` means the server has no picture for that artist.
 	private var resolved: [String: URL?] = [:]
@@ -33,22 +36,39 @@ final class ArtistImageLoader {
 
 		let task = Task { [weak self] () -> URL? in
 			guard let self else { return nil }
-			await self.acquireSlot()
-			defer { self.releaseSlot() }
 
-			do {
-				let response: ArtistImageResponse = try await server.send(Artist.image(aid: artistId))
-				let url = response.image.flatMap { URL(string: $0) }
-				self.resolved[artistId] = .some(url)
-				return url
-			} catch {
-				return nil
+			// 429 ("too many lookups") and 503 (MusicBrainz is down) are asked again a little later: the slot is
+			// handed back while waiting, and nothing is remembered until the server really answered
+			for attempt in 0..<Self.maxAttempts {
+				await self.acquireSlot()
+				do {
+					let response: ArtistImageResponse = try await server.send(Artist.image(aid: artistId))
+					self.releaseSlot()
+					let url = response.image.flatMap { URL(string: $0) }
+					self.resolved[artistId] = .some(url)
+					return url
+				} catch {
+					self.releaseSlot()
+					guard Self.isTemporary(error), attempt < Self.maxAttempts - 1 else {
+						Self.logger.error("artist image lookup failed: \(error.localizedDescription, privacy: .public)")
+						return nil
+					}
+					try? await Task.sleep(for: .seconds(3 * (attempt + 1)))
+				}
 			}
+			return nil
 		}
 		self.inFlight[artistId] = task
 		let url = await task.value
 		self.inFlight[artistId] = nil
 		return url
+	}
+
+	private static func isTemporary(_ error: Error) -> Bool {
+		if case NafynError.server(let statusCode, _) = error {
+			return statusCode == 429 || statusCode == 503
+		}
+		return false
 	}
 
 	private func acquireSlot() async {

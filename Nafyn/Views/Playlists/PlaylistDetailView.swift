@@ -88,69 +88,66 @@ private struct PlaylistDetailContent: View {
 					}
 					.tint(Color.primary)
 				}
+
+				// sharing and the rest of the actions have nothing to do with one another
+				ToolbarSpacer(.fixed, placement: .primaryAction)
 			}
 
-			ToolbarItem(placement: .primaryAction) {
-				Menu {
-					if self.detail.viewer.isOwner {
-						Button {
-							self.showEdit = true
-						} label: {
-							Label(String(localized: "edit"), systemImage: "pencil")
-						}
-						.tint(Color.primary)
-						.disabled(NetworkMonitor.shared.isOffline)
-					}
-
+			ToolbarOverflowMenu {
+				if self.detail.viewer.isOwner {
 					Button {
-						self.showMembers = true
+						self.showEdit = true
 					} label: {
-						Label(String(localized: "members"), systemImage: "person.2")
-					}
-					.tint(Color.primary)
-
-					if self.detail.viewer.isOwner || self.detail.viewer.isMember {
-						Button {
-							self.showAddTracks = true
-						} label: {
-							Label(String(localized: "add-tracks"), systemImage: "plus")
-						}
-						.tint(Color.primary)
-						.disabled(NetworkMonitor.shared.isOffline)
-					}
-
-					PinMenuButton(target: .playlist(self.playlistId))
-
-					Button {
-						DownloadManager.shared.downloadPlaylist(id: self.playlistId, title: self.detail.playlist.title)
-					} label: {
-						Label(String(localized: "download-playlist"), systemImage: "arrow.down.circle")
+						Label(String(localized: "edit"), systemImage: "pencil")
 					}
 					.tint(Color.primary)
 					.disabled(NetworkMonitor.shared.isOffline)
+				}
 
-					if self.detail.viewer.isOwner {
-						Button(role: .destructive) {
-							self.showDeleteConfirm = true
-						} label: {
-							Label(String(localized: "delete"), systemImage: "trash")
-						}
-						.tint(DTColor.buttonDanger)
-						.disabled(NetworkMonitor.shared.isOffline)
-					} else if self.detail.viewer.isMember {
-						Button(role: .destructive) {
-							self.showLeaveConfirm = true
-						} label: {
-							Label(String(localized: "leave"), systemImage: "rectangle.portrait.and.arrow.right")
-						}
-						.tint(DTColor.buttonDanger)
-						.disabled(NetworkMonitor.shared.isOffline)
-					}
+				Button {
+					self.showMembers = true
 				} label: {
-					Label(String(localized: "more"), systemImage: "ellipsis")
-						.labelStyle(.iconOnly)
+					Label(String(localized: "members"), systemImage: "person.2")
 				}
 				.tint(Color.primary)
+
+				if self.detail.viewer.isOwner || self.detail.viewer.isMember {
+					Button {
+						self.showAddTracks = true
+					} label: {
+						Label(String(localized: "add-tracks"), systemImage: "plus")
+					}
+					.tint(Color.primary)
+					.disabled(NetworkMonitor.shared.isOffline)
+				}
+
+				PinMenuButton(target: .playlist(self.playlistId))
+
+				Button {
+					DownloadManager.shared.downloadPlaylist(id: self.playlistId, title: self.detail.playlist.title)
+				} label: {
+					Label(String(localized: "download-playlist"), systemImage: "arrow.down.circle")
+				}
+				.tint(Color.primary)
+				.disabled(NetworkMonitor.shared.isOffline)
+
+				if self.detail.viewer.isOwner {
+					Button(role: .destructive) {
+						self.showDeleteConfirm = true
+					} label: {
+						Label(String(localized: "delete"), systemImage: "trash")
+					}
+					.tint(DTColor.buttonDanger)
+					.disabled(NetworkMonitor.shared.isOffline)
+				} else if self.detail.viewer.isMember {
+					Button(role: .destructive) {
+						self.showLeaveConfirm = true
+					} label: {
+						Label(String(localized: "leave"), systemImage: "rectangle.portrait.and.arrow.right")
+					}
+					.tint(DTColor.buttonDanger)
+					.disabled(NetworkMonitor.shared.isOffline)
+				}
 			}
 		}
 		// attached to the toolbar's host view: both are triggered from the toolbar menu

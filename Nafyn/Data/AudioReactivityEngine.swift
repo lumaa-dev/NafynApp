@@ -5,7 +5,9 @@ import CoreMedia
 /// `CoverMeshBackground`'s subtle motion in `NowPlayingView`, plus a 6-band level signal driving the
 /// mini waveform indicator in `QueuePanel`.
 ///
-/// Both come from one `MTAudioProcessingTap` on the playing item. Each of the 6 bars owns a frequency
+/// Both come from one `MTAudioProcessingTap` on the playing item. That same tap also runs the user's
+/// equalizer (``EqualizerProcessor``) and the spectrum analyzer behind it: the levels below are measured on
+/// the untouched signal, then the buffer is equalized in place and analyzed again for the EQ screen. Each of the 6 bars owns a frequency
 /// range (see ``Band``), isolated by a 4th-order band-pass (a Butterworth high-pass then low-pass), so a
 /// bar moves when the instruments living in that range play: kick and bass at the left, voices and
 /// guitars in the middle, cymbals at the right. Ranges stay within what a speaker or headphone reproduces
@@ -65,6 +67,8 @@ final class AudioReactivityEngine: NSObject {
 	/// previous tap. `PlayerEngine` calls this right after creating the item, well before playback needs it.
 	func attach(to item: AVPlayerItem) {
 		self.detach()
+		// Loads the saved equalizer before the tap can ask for it: tap callbacks run off the main actor.
+		_ = EqualizerEngine.shared
 
 		let asset = item.asset
 		Task {
@@ -253,24 +257,43 @@ private final class BandFilterBank {
 
 // MARK: - MTAudioProcessingTap C callbacks
 
-/// These must be plain top-level functions (no captured state) to be usable as the C function pointers
-/// `MTAudioProcessingTapCallbacks` expects; `clientInfo`/the tap's storage carries the `AudioReactivityEngine`
-/// instance across the boundary instead.
+// These must be plain top-level functions (no captured state) to be usable as the C function pointers
+// `MTAudioProcessingTapCallbacks` expects; the tap's storage carries a `TapContext` across the boundary instead.
+
+/// What one tap carries through the C callbacks: the shared reactivity engine and, once the stream format is
+/// known, this item's own equalizer. Per tap rather than shared, so the previous item's tap being torn down
+/// can't stop the next item's equalizer while a fast skip overlaps them.
+private final class TapContext {
+	let reactivity: AudioReactivityEngine
+	var equalizer: EqualizerProcessor?
+
+	init(reactivity: AudioReactivityEngine) {
+		self.reactivity = reactivity
+	}
+}
 
 private func audioReactivityTapInit(tap: MTAudioProcessingTap, clientInfo: UnsafeMutableRawPointer?, tapStorageOut: UnsafeMutablePointer<UnsafeMutableRawPointer?>) {
-	tapStorageOut.pointee = clientInfo
+	guard let clientInfo else { return }
+	let reactivity = Unmanaged<AudioReactivityEngine>.fromOpaque(clientInfo).takeUnretainedValue()
+	tapStorageOut.pointee = Unmanaged.passRetained(TapContext(reactivity: reactivity)).toOpaque()
 }
 
-private func audioReactivityTapFinalize(tap: MTAudioProcessingTap) {}
+private func audioReactivityTapFinalize(tap: MTAudioProcessingTap) {
+	Unmanaged<TapContext>.fromOpaque(MTAudioProcessingTapGetStorage(tap)).release()
+}
 
 private func audioReactivityTapPrepare(tap: MTAudioProcessingTap, maxFrames: CMItemCount, processingFormat: UnsafePointer<AudioStreamBasicDescription>) {
-	let engine = Unmanaged<AudioReactivityEngine>.fromOpaque(MTAudioProcessingTapGetStorage(tap)).takeUnretainedValue()
+	let context = Unmanaged<TapContext>.fromOpaque(MTAudioProcessingTapGetStorage(tap)).takeUnretainedValue()
 	let format = processingFormat.pointee
 	let isInterleaved = format.mFormatFlags & kAudioFormatFlagIsNonInterleaved == 0
-	engine.prepare(sampleRate: format.mSampleRate, channels: Int(format.mChannelsPerFrame), isInterleaved: isInterleaved)
+	context.reactivity.prepare(sampleRate: format.mSampleRate, channels: Int(format.mChannelsPerFrame), isInterleaved: isInterleaved)
+	context.equalizer = EqualizerProcessor(description: format, maxFrames: Int(maxFrames))
 }
 
-private func audioReactivityTapUnprepare(tap: MTAudioProcessingTap) {}
+private func audioReactivityTapUnprepare(tap: MTAudioProcessingTap) {
+	let context = Unmanaged<TapContext>.fromOpaque(MTAudioProcessingTapGetStorage(tap)).takeUnretainedValue()
+	context.equalizer = nil
+}
 
 private func audioReactivityTapProcess(
 	tap: MTAudioProcessingTap,
@@ -284,7 +307,7 @@ private func audioReactivityTapProcess(
 	let status = MTAudioProcessingTapGetSourceAudio(tap, numberFrames, bufferListInOut, flagsOut, &timeRange, numberFramesOut)
 	guard status == noErr else { return }
 
-	let engine = Unmanaged<AudioReactivityEngine>.fromOpaque(MTAudioProcessingTapGetStorage(tap)).takeUnretainedValue()
+	let context = Unmanaged<TapContext>.fromOpaque(MTAudioProcessingTapGetStorage(tap)).takeUnretainedValue()
 
 	let buffers = UnsafeMutableAudioBufferListPointer(bufferListInOut)
 	guard let buffer = buffers.first, let rawData = buffer.mData else { return }
@@ -295,5 +318,9 @@ private func audioReactivityTapProcess(
 	// signal — never a crash, since the byte count read is derived from the same buffer's own size.
 	let floatCount = Int(buffer.mDataByteSize) / MemoryLayout<Float>.size
 	let floatData = rawData.assumingMemoryBound(to: Float.self)
-	engine.processSamples(floatData, count: floatCount)
+	context.reactivity.processSamples(floatData, count: floatCount)
+
+	// After the levels above, so the cover animation keeps following the original recording rather than
+	// the user's EQ curve.
+	context.equalizer?.process(bufferListInOut, frames: numberFramesOut.pointee)
 }

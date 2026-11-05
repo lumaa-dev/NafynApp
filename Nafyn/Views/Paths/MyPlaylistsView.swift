@@ -65,6 +65,9 @@ struct MyPlaylistsView: View {
 				.tint(Color.primary)
 				.disabled(self.selection.isActive)
 			}
+
+			// creating and selecting have nothing to do with one another
+			ToolbarSpacer(.fixed, placement: .primaryAction)
 		}
 		.bulkSelectionToolbar(self.selection, allIds: self.paginator?.items.map(\.id) ?? []) {
 			self.bulkActions

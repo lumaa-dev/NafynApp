@@ -22,6 +22,17 @@ enum PlaybackSource {
 		self.isRemote ? UnityEngine.shared.masterDeviceLabel : nil
 	}
 
+	/// The equalizer and its spectrum only shape audio this device plays itself: while another device is the
+	/// Unity master the sound comes out of that device.
+	static var isEqualizerApplicable: Bool {
+		!self.isRemote
+	}
+
+	/// Audio is flowing through the equalizer right now, so the spectrum has something to show.
+	static var isSpectrumLive: Bool {
+		self.isEqualizerApplicable && PlayerEngine.shared.isPlaying
+	}
+
 	static var track: MediaRow? {
 		self.isRemote ? UnityEngine.shared.remoteTrack : PlayerEngine.shared.currentTrack
 	}

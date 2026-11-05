@@ -26,13 +26,26 @@ final class Navigator {
 	/// after it is dropped instead of appending a duplicate — so re-sending an already-visited path pops
 	/// back to it rather than growing the stack with a second copy.
 	func send(to path: Navigator.Paths) {
-		var stack = self.currentPath[self.currentTab] ?? []
-		if let existingIndex = stack.firstIndex(of: path) {
-			stack.removeSubrange((existingIndex + 1)...)
-		} else {
-			stack.append(path)
-		}
-		self.currentPath[self.currentTab] = stack
+		let stack = self.currentPath[self.currentTab] ?? []
+		self.currentPath[self.currentTab] = Self.folded(stack + [path], pushed: true)
+	}
+
+	/// The binding for a tab's `NavigationStack(path:)`. Pushes that don't go through ``send(to:)`` (a
+	/// `NavigationLink(value:)`) get the same rule: a path that is already in the stack pops back to it.
+	func path(for tab: Navigator.Tabs) -> Binding<[Navigator.Paths]> {
+		Binding(
+			get: { self.currentPath[tab] ?? [] },
+			set: { newValue in
+				let old = self.currentPath[tab] ?? []
+				self.currentPath[tab] = Self.folded(newValue, pushed: newValue.count > old.count)
+			}
+		)
+	}
+
+	/// `stack` with its last path folded back onto an earlier copy of itself, when it was just pushed.
+	private static func folded(_ stack: [Navigator.Paths], pushed: Bool) -> [Navigator.Paths] {
+		guard pushed, let last = stack.last, let existing = stack.dropLast().firstIndex(of: last) else { return stack }
+		return Array(stack.prefix(through: existing))
 	}
 
 	enum Tabs: String, Hashable, Viewable {
@@ -82,11 +95,13 @@ final class Navigator {
 		case myPlaylists
 		case everyoneLibrary
 		case settings
+		case userProfile
 		case settingsAccounts
 		case settingsStorage
 		case settingsDownloads
 		case settingsPrivacy
 		case settingsAppearance
+		case settingsEqualizer
 		case settingsInsights
 		case settingsUnity
 		case settingsNotifications
@@ -100,9 +115,15 @@ final class Navigator {
 		case addToPlaylist(mediaIds: [String])
 		case changeAlbum(trackId: String)
 
-		/// The destination screen. A path opened from a ``MusicCard`` zooms out of that card's cover.
+		/// The destination screen. A path opened from a ``MusicCard`` zooms out of that card's cover; the
+		/// ones shown as a sheet never zoom.
 		var view: AnyView {
-			AnyView(CardZoomDestination(path: self) { self.screen })
+			switch self {
+				case .addToPlaylist, .changeAlbum:
+					self.screen
+				default:
+					AnyView(CardZoomDestination(path: self) { self.screen })
+			}
 		}
 
 		private var screen: AnyView {
@@ -133,6 +154,8 @@ final class Navigator {
 					AnyView(AllLibraryView())
 				case .settings:
 					AnyView(SettingsView())
+				case .userProfile:
+					AnyView(UserProfileView())
 				case .settingsAccounts:
 					AnyView(SettingsSectionScreen(title: String(localized: "accounts")) {
 						AccountsSettingsSection()
@@ -153,6 +176,8 @@ final class Navigator {
 					AnyView(SettingsSectionScreen(title: String(localized: "appearance")) {
 						AppearanceSettingsSection()
 					})
+				case .settingsEqualizer:
+					AnyView(EqualizerSettingsView())
 				case .settingsInsights:
 					AnyView(SettingsSectionScreen(title: String(localized: "insights")) {
 						InsightsSettingsSection()

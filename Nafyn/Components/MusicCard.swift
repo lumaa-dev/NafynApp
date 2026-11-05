@@ -35,8 +35,9 @@ struct MusicCard: View {
 		.hoverEffect()
 		// the screen this card opens zooms out of its cover while the card is on screen. Deliberately no tap
 		// gesture here: one attached to a card inside a `NavigationLink` swallows the link's own tap.
-		.onAppear { CardZoom.register(self.entry.destination) }
-		.onDisappear { CardZoom.unregister(self.entry.destination) }
+		// (a card without a namespace, i.e. inside a sheet, is no zoom source)
+		.onAppear { if self.zoomNamespace != nil { CardZoom.register(self.entry.destination) } }
+		.onDisappear { if self.zoomNamespace != nil { CardZoom.unregister(self.entry.destination) } }
 		.libraryItemMenu(
 			item: self.entry.libraryItem,
 			play: self.entry.isPlayable ? { [entry = self.entry, server = self.server] in try await entry.playbackQueue(server: server) } : nil,
@@ -262,7 +263,7 @@ enum MusicCardEntry: Hashable {
 		return URL(string: path)
 	}
 
-	private static func playlistImageURL(pid: String, server: NafynServer?) -> URL? {
+	static func playlistImageURL(pid: String, server: NafynServer?) -> URL? {
 		guard let server else { return nil }
 
 		let endpoint = Playlist.image(pid: pid, token: server.authToken)

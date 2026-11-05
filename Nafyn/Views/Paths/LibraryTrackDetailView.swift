@@ -51,17 +51,28 @@ private struct LibraryTrackDetailContent: View {
 		}
 		.toast(self.toast)
 		.toolbar {
-			ToolbarItem(placement: .primaryAction) {
-				Menu {
-					// the same items as the track's row and card
-					TrackMenuItems(track: self.track, showsViewTrack: false) {
-						self.showDeleteConfirm = true
+			ToolbarOverflowMenu {
+				// the same menu as the track's card: Play / Shuffle, then the shared track items
+				ControlGroup {
+					Button {
+						self.play()
+					} label: {
+						Label(String(localized: "play"), systemImage: "play.fill")
 					}
-				} label: {
-					Label(String(localized: "more"), systemImage: "ellipsis")
-						.labelStyle(.iconOnly)
+					.tint(Color.primary)
+
+					Button {
+						// a single track: shuffling it is playing it
+						self.play()
+					} label: {
+						Label(String(localized: "shuffle"), systemImage: "shuffle")
+					}
+					.tint(Color.primary)
 				}
-				.tint(Color.primary)
+
+				TrackMenuItems(track: self.track, showsViewTrack: false) {
+					self.showDeleteConfirm = true
+				}
 			}
 		}
 		// attached to the toolbar's host view: triggered from the toolbar menu

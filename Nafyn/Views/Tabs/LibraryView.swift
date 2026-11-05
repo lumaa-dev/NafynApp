@@ -7,9 +7,11 @@ struct LibraryView: View {
 	@Environment(\.server) private var server: NafynServer?
 
 	@State private var recntPlays: [RecentlyPlayedEntry] = []
+	/// The signed-in user, for the picture of the profile button; `nil` until fetched (or offline).
+	@State private var me: NafynUser? = nil
 
     var body: some View {
-		NavigationStack(path: Binding(get: { Navigator.shared.currentPath[Navigator.Tabs.library] ?? [] }, set: { Navigator.shared.currentPath[Navigator.Tabs.library] = $0 } )) {
+		NavigationStack(path: Navigator.shared.path(for: .library)) {
 			ScrollView {
 				self.pins
 					.padding(.top)
@@ -32,6 +34,18 @@ struct LibraryView: View {
 			.toolbar {
 				ToolbarItem(placement: .primaryAction) {
 					Button {
+						Navigator.shared.send(to: .userProfile)
+					} label: {
+						ProfileAvatarLabel(url: self.me.flatMap { self.server?.avatarURL(userId: $0.id, version: $0.avatar) })
+					}
+					.tint(Color.primary)
+				}
+
+				// the profile and the settings have nothing to do with one another
+				ToolbarSpacer(.fixed, placement: .primaryAction)
+
+				ToolbarItem(placement: .primaryAction) {
+					Button {
 						Navigator.shared.send(to: .settings)
 					} label: {
 						// title + symbol: the vertical toolbar on the Duo's outer display drops icon-only items
@@ -43,6 +57,10 @@ struct LibraryView: View {
 			}
 			.task {
 				await PinStore.shared.refresh(server: self.server)
+			}
+			.task {
+				guard let server else { return }
+				self.me = try? await server.send(User.me) as NafynUser
 			}
 			.task {
 				guard let server else { return }

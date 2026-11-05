@@ -5,7 +5,8 @@ import PhotosUI
 import Safyn
 
 /// The "profile" section (avatar) plus an unheaded section for the editable profile fields, matching
-/// the web app's settings layout — avatar upload is visually separate from the text fields below it.
+/// the web app's settings layout — avatar upload is visually separate from the text fields below it. Lives in
+/// the profile screen's edit sheet (``ProfileEditSheet``).
 struct ProfileSettingsSection: View {
 	@Environment(\.server) private var server: NafynServer?
 
@@ -20,22 +21,16 @@ struct ProfileSettingsSection: View {
 	@State private var isUploadingAvatar = false
 	@State private var avatarPickerItem: PhotosPickerItem? = nil
 
-	/// `NafynUser.avatar` is NOT a URL — confirmed against `user/avatar.post.ts`, it's just a
-	/// cache-busting timestamp string (`Date.now().toString()`) the server bumps on every upload. The
-	/// actual image lives behind the authenticated `User.avatar(id:token:)` endpoint (same pattern as a
-	/// playlist's `image` field). Folding that timestamp into the URL as a query item both builds the
-	/// right URL and — as a free side effect — busts `AsyncImage`'s cache on every new upload.
 	private var avatarURL: URL? {
-		guard let avatarVersion = self.user.avatar, let server else { return nil }
-		let endpoint = User.avatar(id: self.user.id, token: server.authToken)
-		guard var components = URLComponents(url: server.instance.baseURL, resolvingAgainstBaseURL: false) else { return nil }
-		components.path += endpoint.path
-		components.queryItems = endpoint.queries + [URLQueryItem(name: "v", value: avatarVersion)]
-		return components.url
+		self.server?.avatarURL(userId: self.user.id, version: self.user.avatar)
 	}
 
-	init(user: NafynUser, onUpdated: @escaping (NafynUser) -> Void) {
+	/// Called once the profile fields were saved (the avatar uploads on its own).
+	var onSaved: (() -> Void)? = nil
+
+	init(user: NafynUser, onSaved: (() -> Void)? = nil, onUpdated: @escaping (NafynUser) -> Void) {
 		self.user = user
+		self.onSaved = onSaved
 		self.onUpdated = onUpdated
 		self._displayName = State(initialValue: user.displayName ?? "")
 		self._lastFm = State(initialValue: user.lastFm ?? "")

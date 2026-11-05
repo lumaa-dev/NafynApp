@@ -120,35 +120,29 @@ private struct LibraryAlbumDetailContent: View {
 			}
 		}
 		.toolbar {
-			ToolbarItem(placement: .primaryAction) {
-				Menu {
-					// the same items as the album's card in a grid, plus Play / Shuffle which a card's menu leads with
-					ControlGroup {
-						Button {
-							self.playAll(shuffle: false)
-						} label: {
-							Label(String(localized: "play"), systemImage: "play.fill")
-						}
-						.tint(Color.primary)
-
-						Button {
-							self.playAll(shuffle: true)
-						} label: {
-							Label(String(localized: "shuffle"), systemImage: "shuffle")
-						}
-						.tint(Color.primary)
+			ToolbarOverflowMenu {
+				// the same items as the album's card in a grid, plus Play / Shuffle which a card's menu leads with
+				ControlGroup {
+					Button {
+						self.playAll(shuffle: false)
+					} label: {
+						Label(String(localized: "play"), systemImage: "play.fill")
 					}
+					.tint(Color.primary)
 
-					AlbumMenuItems(albumId: self.response.album.row.id, title: self.response.album.row.title, onDeleteDownloads: {
-						self.showDeleteDownloadsConfirm = true
-					}, onDelete: {
-						self.showDeleteAlbumConfirm = true
-					})
-				} label: {
-					Label(String(localized: "more"), systemImage: "ellipsis")
-						.labelStyle(.iconOnly)
+					Button {
+						self.playAll(shuffle: true)
+					} label: {
+						Label(String(localized: "shuffle"), systemImage: "shuffle")
+					}
+					.tint(Color.primary)
 				}
-				.tint(Color.primary)
+
+				AlbumMenuItems(albumId: self.response.album.row.id, title: self.response.album.row.title, artistId: self.response.album.row.artistMbid, onDeleteDownloads: {
+					self.showDeleteDownloadsConfirm = true
+				}, onDelete: {
+					self.showDeleteAlbumConfirm = true
+				})
 			}
 		}
 	}

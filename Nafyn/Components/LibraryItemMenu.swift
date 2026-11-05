@@ -52,6 +52,7 @@ private struct LibraryItemMenuHost<Content: View>: View {
 	let playQueue: PlaybackQueueLoader?
 	let pin: PinTarget?
 	let onRemoved: (() -> Void)?
+	let isEnabled: Bool
 
 	@State private var toast = ToastState()
 	@State private var isConfirmingDelete = false
@@ -60,7 +61,9 @@ private struct LibraryItemMenuHost<Content: View>: View {
 	var body: some View {
 		self.content
 			.contextMenu {
-				self.menu
+				if self.isEnabled {
+					self.menu
+				}
 			}
 			.toast(self.toast)
 			.alert(self.item?.confirmation ?? "", isPresented: self.$isConfirmingDelete) {
@@ -147,8 +150,9 @@ extension View {
 	/// (when `play` is given), then the track items or Delete for `item`, with the delete confirmation.
 	/// `onRemoved` runs after a successful delete so the owner can drop the entry from its list. `pin` is for what
 	/// isn't an owned track or album (a playlist): those two get their pin item from `item`.
-	func libraryItemMenu(item: LibraryItem?, play: PlaybackQueueLoader?, pin: PinTarget? = nil, onRemoved: (() -> Void)? = nil) -> some View {
-		LibraryItemMenuHost(content: self, item: item, playQueue: play, pin: pin, onRemoved: onRemoved)
+	/// `isEnabled: false` shows no menu at all (a list that is selecting).
+	func libraryItemMenu(item: LibraryItem?, play: PlaybackQueueLoader?, pin: PinTarget? = nil, isEnabled: Bool = true, onRemoved: (() -> Void)? = nil) -> some View {
+		LibraryItemMenuHost(content: self, item: item, playQueue: play, pin: pin, onRemoved: onRemoved, isEnabled: isEnabled)
 	}
 }
 

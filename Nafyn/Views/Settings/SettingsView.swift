@@ -71,27 +71,15 @@ private enum CachedUserStore {
 }
 
 private struct SettingsForm: View {
-	@State private var user: NafynUser
+	let user: NafynUser
 
 	init(initialUser: NafynUser) {
-		self._user = State(initialValue: initialUser)
+		self.user = initialUser
 	}
 
 	var body: some View {
 		Form {
 			LocalAccountsSettingsSection()
-
-			NavigationLink {
-				SettingsSectionScreen(title: String(localized: "profile")) {
-					ProfileSettingsSection(user: self.user) { updated in
-						self.user = updated
-					}
-				}
-			} label: {
-				Label(String(localized: "profile"), systemImage: "person.crop.circle")
-					.foregroundStyle(Color.primary)
-			}
-			.tint(Color.primary)
 
 			if self.user.permissions.has(.manageAccounts) {
 				NavigationLink(value: Navigator.Paths.settingsAccounts) {
@@ -145,6 +133,14 @@ private struct SettingsForm: View {
 				.tint(Color.primary)
 			}
 
+			Section {
+				NavigationLink(value: Navigator.Paths.settingsEqualizer) {
+					Label(String(localized: "equalizer"), systemImage: "slider.vertical.3")
+						.foregroundStyle(Color.primary)
+				}
+				.tint(Color.primary)
+			}
+
 			if self.user.permissions.has(.manageWebhooks) {
 				NavigationLink(value: Navigator.Paths.settingsWebhooks) {
 					Label(String(localized: "webhooks"), systemImage: "point.3.connected.trianglepath.dotted")
@@ -171,7 +167,7 @@ private struct SettingsForm: View {
 	}
 }
 
-/// Hosts one of the major settings sections (accounts/storage, plus profile inline) as its own pushed
+/// Hosts one of the major settings sections (accounts, storage, …) as its own pushed
 /// screen, since each is a `Section`-returning view meant to live inside a `Form`. Not `private` — the
 /// accounts/storage cases are constructed from `Navigator.Paths.view` in `Navigator.swift`, since they
 /// need to be typed pushes on the tab's own stack (see that file's `.settingsAccounts`/`.settingsStorage`).
