@@ -34,8 +34,38 @@ struct TrackDetailView: View {
 				self.footer(track.detail, palette: palette)
 			}
 			.toast(self.toast)
+			.toolbar {
+				// DESIGN.md "Track/Album Detail view": an overflow menu with the actions of the track's row, minus the
+				// ones that would navigate back to this very screen
+				if track.detail.albumMbid != nil || Self.artistId(of: track.detail.info.artist) != nil {
+					ToolbarOverflowMenu {
+						if let albumMbid = track.detail.albumMbid {
+							Button {
+								Navigator.shared.send(to: .album(id: albumMbid))
+							} label: {
+								Label(String(localized: "view-album"), systemImage: "square.stack")
+							}
+							.tint(Color.primary)
+						}
+
+						if let artistId = Self.artistId(of: track.detail.info.artist) {
+							Button {
+								Navigator.shared.send(to: .artist(id: artistId))
+							} label: {
+								Label(String(localized: "view-artist"), systemImage: "person")
+							}
+							.tint(Color.primary)
+						}
+					}
+				}
+			}
 		}
 		.navigationBarTitleDisplayMode(.inline)
+	}
+
+	private static func artistId(of artist: ArtistRef) -> String? {
+		if case .info(let info) = artist { return info.musicbrainzId }
+		return nil
 	}
 
 	private func header(_ track: TrackDetail, palette: CoverPalette) -> some View {

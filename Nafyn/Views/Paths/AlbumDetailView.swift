@@ -38,16 +38,35 @@ struct AlbumDetailView: View {
 			}
 			.toast(self.toast)
 			.toolbar {
-				// pinning needs the album in the library; the Request button covers the rest
-				if album.inLibrary {
-					ToolbarItem(placement: .primaryAction) {
-						PinMenuButton(target: .album(album.id))
-							.labelStyle(.iconOnly)
+				// DESIGN.md "Track/Album Detail view": an overflow menu with the actions of the album's row, minus the
+				// ones that would navigate back to this very screen. Pinning needs the album in the library; the
+				// Request button covers the rest.
+				if album.inLibrary || Self.artistId(of: album.artist) != nil {
+					ToolbarOverflowMenu {
+						if let artistId = Self.artistId(of: album.artist) {
+							Button {
+								Navigator.shared.send(to: .artist(id: artistId))
+							} label: {
+								Label(String(localized: "view-artist"), systemImage: "person")
+							}
+							.tint(Color.primary)
+						}
+
+						if album.inLibrary {
+							Divider()
+
+							PinMenuButton(target: .album(album.id))
+						}
 					}
 				}
 			}
 		}
 		.navigationBarTitleDisplayMode(.inline)
+	}
+
+	private static func artistId(of artist: ArtistRef) -> String? {
+		if case .info(let info) = artist { return info.musicbrainzId }
+		return nil
 	}
 
 	private func header(_ album: AlbumDetail, palette: CoverPalette) -> some View {

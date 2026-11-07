@@ -23,9 +23,9 @@ struct DownloadsSettingsSection: View {
 						self.showingDeleteAllConfirmation = true
 					} label: {
 						Label(String(localized: "downloads-delete-all"), systemImage: "trash")
-							.foregroundStyle(DTColor.buttonDanger)
+							.foregroundStyle(DTColor.dangerText)
 					}
-					.tint(DTColor.buttonDanger)
+					.tint(DTColor.dangerText)
 				}
 			}
 
@@ -62,7 +62,7 @@ struct DownloadsSettingsSection: View {
 							} label: {
 								Label(String(localized: "delete"), systemImage: "trash")
 							}
-							.tint(DTColor.buttonDanger)
+							.tint(DTColor.dangerText)
 						}
 					}
 				}

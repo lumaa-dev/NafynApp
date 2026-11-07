@@ -45,6 +45,9 @@ final class LiveActivityCoordinator {
 				self.observe(activity)
 			}
 			for await activity in Activity<NafynRequestActivityAttributes>.activityUpdates {
+				// the server keeps one request activity per user; this is the on-device guard for a stray one
+				// it could not end (its update token never reached the server)
+				await self.endOtherRequestActivities(keeping: activity)
 				self.observe(activity)
 			}
 		}
@@ -56,6 +59,13 @@ final class LiveActivityCoordinator {
 			for await activity in Activity<NafynReleaseCountdownAttributes>.activityUpdates {
 				self.observe(activity)
 			}
+		}
+	}
+
+	/// Only one request Live Activity may sit on the Lock Screen: a new one replaces whatever is still there.
+	private func endOtherRequestActivities(keeping activity: Activity<NafynRequestActivityAttributes>) async {
+		for other in Activity<NafynRequestActivityAttributes>.activities where other.id != activity.id {
+			await other.end(nil, dismissalPolicy: .immediate)
 		}
 	}
 

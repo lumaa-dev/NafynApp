@@ -3,8 +3,8 @@
 import SwiftUI
 import Safyn
 
-/// The menu items every owned album shares: add all of it to a playlist, pin, download or remove its
-/// downloads, delete. Used by the album card's context menu and the album screen's toolbar menu, so the two
+/// The menu items every owned album shares, in the categories of DESIGN.md (divider-separated): add all of it to a
+/// playlist, pin, open it; download; remove its downloads, delete. Used by the album card's context menu and the album screen's toolbar menu, so the two
 /// always offer the same actions; each place adds its own extras (Play / Shuffle, …) around it.
 ///
 /// Only the album's ID is needed. The owner confirms and performs the two destructive actions.
@@ -26,6 +26,8 @@ struct AlbumMenuItems: View {
 	var onDelete: (() -> Void)?
 
 	var body: some View {
+		// Categories, in the order Nafyn's DESIGN.md sets, each ending in a divider: "View" and playlists,
+		// modifications, destructive actions. (Playback - Play / Shuffle - is added by the caller, above.)
 		Button {
 			self.addToPlaylist()
 		} label: {
@@ -51,6 +53,8 @@ struct AlbumMenuItems: View {
 		}
 		.tint(Color.primary)
 
+		Divider()
+
 		Button {
 			self.download()
 		} label: {
@@ -59,13 +63,19 @@ struct AlbumMenuItems: View {
 		.tint(Color.primary)
 		.disabled(NetworkMonitor.shared.isOffline)
 
-		if let onDeleteDownloads = self.onDeleteDownloads, !DownloadManager.shared.downloadedTrackIds(albumId: self.albumId).isEmpty {
+		let hasDownloads = self.onDeleteDownloads != nil && !DownloadManager.shared.downloadedTrackIds(albumId: self.albumId).isEmpty
+
+		if hasDownloads || self.onDelete != nil {
+			Divider()
+		}
+
+		if let onDeleteDownloads = self.onDeleteDownloads, hasDownloads {
 			Button(role: .destructive) {
 				onDeleteDownloads()
 			} label: {
 				Label(String(localized: "delete-downloads"), systemImage: "arrow.down.circle.fill")
 			}
-			.tint(DTColor.buttonDanger)
+			.tint(DTColor.dangerText)
 		}
 
 		if let onDelete = self.onDelete {
@@ -74,7 +84,7 @@ struct AlbumMenuItems: View {
 			} label: {
 				Label(String(localized: "delete"), systemImage: "trash")
 			}
-			.tint(DTColor.buttonDanger)
+			.tint(DTColor.dangerText)
 			.disabled(NetworkMonitor.shared.isOffline)
 		}
 	}

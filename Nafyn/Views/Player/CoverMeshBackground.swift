@@ -13,6 +13,25 @@ struct CoverMeshBackground: View {
 
 	private static let gridSize = 4
 
+	/// DESIGN.md "Contrast" (WCAG AAA): white labels need 7:1, i.e. a background luminance of at most ~0.1. The scrim
+	/// is as dark as the brightest color of the palette requires (never lighter than before), so a bright cover
+	/// is darkened until its labels read - the gradient itself keeps its hue and motion.
+	private var scrimOpacity: Double {
+		let brightest = self.palette.map { Self.luminance(of: $0) }.max() ?? 0
+		guard brightest > 0.1 else { return 0.52 }
+		return min(0.9, max(0.52, 1 - pow(0.1 / brightest, 1 / 2.2)))
+	}
+
+	private static func luminance(of color: Color) -> Double {
+		var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
+		UIColor(color).getRed(&r, green: &g, blue: &b, alpha: &a)
+		func linear(_ c: CGFloat) -> Double {
+			let v = Double(c)
+			return v <= 0.03928 ? v / 12.92 : pow((v + 0.055) / 1.055, 2.4)
+		}
+		return 0.2126 * linear(r) + 0.7152 * linear(g) + 0.0722 * linear(b)
+	}
+
 	var body: some View {
 		TimelineView(.animation) { context in
 			let time = context.date.timeIntervalSinceReferenceDate
@@ -30,10 +49,11 @@ struct CoverMeshBackground: View {
 			// Guarantees label legibility over any cover palette — the mesh must never compromise
 			// readability — without flattening the gradient's motion into invisibility.
 			LinearGradient(
-				colors: [Color.black.opacity(0.32), Color.black.opacity(0.52)],
+				colors: [Color.black.opacity(self.scrimOpacity * 0.85), Color.black.opacity(self.scrimOpacity)],
 				startPoint: .top,
 				endPoint: .bottom
 			)
+			.animation(.easeInOut(duration: 0.6), value: self.scrimOpacity)
 		}
 		.task(id: self.coverURL) {
 			let newPalette = await CoverPaletteExtractor.palette(for: self.coverURL)

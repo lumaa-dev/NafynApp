@@ -59,9 +59,9 @@ struct InsightsSettingsSection: View {
 				self.showingDeleteConfirmation = true
 			} label: {
 				Label(String(localized: "insights-delete-history"), systemImage: "trash")
-					.foregroundStyle(DTColor.buttonDanger)
+					.foregroundStyle(DTColor.dangerText)
 			}
-			.tint(DTColor.buttonDanger)
+			.tint(DTColor.dangerText)
 			.disabled(self.isDeleting || NetworkMonitor.shared.isOffline)
 		}
 		header: {

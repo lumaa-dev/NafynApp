@@ -115,7 +115,7 @@ struct RequestRow: View {
 				} label: {
 					Label(String(localized: "delete"), systemImage: "trash")
 				}
-				.tint(DTColor.buttonDanger)
+				.tint(DTColor.dangerText)
 				.disabled(NetworkMonitor.shared.isOffline)
 			}
 		}
@@ -144,7 +144,7 @@ struct RequestRow: View {
 			} label: {
 				Image(systemName: "xmark")
 			}
-			.tint(DTColor.buttonDanger)
+			.tint(DTColor.dangerText)
 			.accessibilityLabel(String(localized: "deny-request"))
 		}
 		.buttonStyle(.bordered)

@@ -189,7 +189,7 @@ struct MyTracksView: View {
 			} label: {
 				Label(String(localized: "delete-downloads"), systemImage: "arrow.down.circle.fill")
 			}
-			.tint(DTColor.buttonDanger)
+			.tint(DTColor.dangerText)
 		}
 
 		Button(role: .destructive) {
@@ -197,7 +197,7 @@ struct MyTracksView: View {
 		} label: {
 			Label(String(localized: "delete"), systemImage: "trash")
 		}
-		.tint(DTColor.buttonDanger)
+		.tint(DTColor.dangerText)
 		.disabled(NetworkMonitor.shared.isOffline)
 	}
 
@@ -236,11 +236,10 @@ struct MyTracksView: View {
 	private func row(_ track: MediaRow) -> some View {
 		let isSelecting = self.selection.isActive
 
-		HStack(spacing: 8) {
-			if isSelecting {
-				SelectionMark(isSelected: self.selection.contains(track.id))
-			}
+		let isSelected = isSelecting && self.selection.contains(track.id)
 
+		// DESIGN.md "Library": a selected track row has no check box - a highlight and an outline say it
+		HStack(spacing: 8) {
 			TrackRow(coverURL: track.coverArt.flatMap { URL(string: $0) }, title: track.title, subtitle: track.artistName, duration: track.duration, fileSize: track.fileSize, onTap: {
 				if isSelecting {
 					self.selection.toggle(track.id)
@@ -254,6 +253,16 @@ struct MyTracksView: View {
 				}
 			}
 		}
+		.background {
+			RoundedRectangle(cornerRadius: 10, style: .continuous)
+				.fill(Color.white.opacity(isSelected ? 0.15 : 0))
+		}
+		.overlay {
+			RoundedRectangle(cornerRadius: 10, style: .continuous)
+				.strokeBorder(Color.white, lineWidth: isSelected ? 2 : 0)
+		}
+		.animation(DTMotion.buttonHover, value: isSelected)
+		.accessibilityAddTraits(isSelected ? .isSelected : [])
 		// while selecting, a row only ticks: no swipe, no menu
 		.swipeActions(edge: .trailing) {
 			if !isSelecting {
@@ -262,7 +271,7 @@ struct MyTracksView: View {
 				} label: {
 					Label(String(localized: "delete"), systemImage: "trash")
 				}
-				.tint(DTColor.buttonDanger)
+				.tint(DTColor.dangerText)
 				.disabled(NetworkMonitor.shared.isOffline)
 			}
 		}

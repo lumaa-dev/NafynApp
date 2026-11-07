@@ -34,19 +34,19 @@ struct NafynRequestLiveActivity: Widget {
 					}
 				}
 			} compactLeading: {
-				self.status(context, small: true)
-			} compactTrailing: {
-				self.progress(context) {
-					RequestProgressRing(fraction: self.fraction(context), lineWidth: 2.5) {
-						Text("\(context.state.trackIndex ?? 0)")
-							.font(.system(.caption2, design: .rounded, weight: .semibold))
-							.monospacedDigit()
-							.minimumScaleFactor(0.5)
-							.lineLimit(1)
-							.contentTransition(.numericText(value: Double(context.state.trackIndex ?? 0)))
-					}
+				// reduced width (landscape, iPhone Duo, two activities on iPhone 18 Pro): the leading side alone
+				// carries the activity, as the ring that fits a 28 pt circle, and the trailing side stays empty
+				LimitedWidthSwitch {
+					self.compactRing(context, size: 26)
+				} full: {
+					self.status(context, small: true)
 				}
-				.frame(width: 22, height: 22)
+			} compactTrailing: {
+				LimitedWidthSwitch {
+					EmptyView()
+				} full: {
+					self.compactRing(context, size: 24)
+				}
 			} minimal: {
 				self.progress(context) {
 					RequestProgressRing(fraction: self.fraction(context), lineWidth: 3) {
@@ -60,6 +60,17 @@ struct NafynRequestLiveActivity: Widget {
 			}
 			.widgetURL(RequestStageStyle.url(for: context.attributes))
 		}
+	}
+
+	/// Progress ring of the compact presentations, with the number of the track being processed in its middle.
+	@ViewBuilder
+	private func compactRing(_ context: ActivityViewContext<NafynRequestActivityAttributes>, size: CGFloat) -> some View {
+		self.progress(context) {
+			RequestProgressRing(fraction: self.fraction(context), lineWidth: 2.5) {
+				RequestTrackCount(value: context.state.trackIndex ?? 0)
+			}
+		}
+		.frame(width: size, height: size)
 	}
 
 	@ViewBuilder
@@ -127,6 +138,8 @@ struct NafynRequestLiveActivity: Widget {
 			Text("\(context.state.trackIndex ?? 0)")
 				.foregroundColor(Color.primary)
 				.monospacedDigit()
+				.minimumScaleFactor(0.5)
+				.lineLimit(1)
 				.contentTransition(.numericText(value: Double(context.state.trackCount ?? 0)))
 		}
 		.gaugeStyle(.accessoryCircularCapacity)
@@ -149,6 +162,45 @@ struct NafynRequestLiveActivity: Widget {
 			case .completed: Color.green
 			case .failed: Color.red
 			default: Color.primary
+		}
+	}
+}
+
+/// Shows `limited` when the system renders the Dynamic Island with reduced width and `full` otherwise. The
+/// environment value is only readable from inside a `View`, not from the closures of `DynamicIsland`.
+struct LimitedWidthSwitch<Limited: View, Full: View>: View {
+	@Environment(\.isDynamicIslandLimitedInWidth) private var isLimited
+	@ViewBuilder var limited: Limited
+	@ViewBuilder var full: Full
+
+	var body: some View {
+		if self.isLimited {
+			self.limited
+		} else {
+			self.full
+		}
+	}
+}
+
+/// Track number inside the compact ring. The ring leaves room for one digit at a readable size, so the type
+/// shrinks with the digit count: 10 and up (an album past its ninth track) used to be cut off.
+private struct RequestTrackCount: View {
+	let value: Int
+
+	var body: some View {
+		Text("\(self.value)")
+			.font(.system(size: self.fontSize, weight: .semibold, design: .rounded))
+			.monospacedDigit()
+			.minimumScaleFactor(0.5)
+			.lineLimit(1)
+			.contentTransition(.numericText(value: Double(self.value)))
+	}
+
+	private var fontSize: CGFloat {
+		switch String(max(self.value, 0)).count {
+			case 1: 12
+			case 2: 9
+			default: 7
 		}
 	}
 }

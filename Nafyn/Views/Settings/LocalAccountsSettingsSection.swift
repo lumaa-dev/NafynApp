@@ -55,7 +55,7 @@ struct LocalAccountsSettingsSection: View {
 					} label: {
 						Label(String(localized: "delete"), systemImage: "trash")
 					}
-					.tint(DTColor.buttonDanger)
+					.tint(DTColor.dangerText)
 				}
 			}
 
@@ -142,7 +142,7 @@ private struct AddLocalAccountSheet: View {
 				if let errorMessage {
 					Section {
 						Text(errorMessage)
-							.foregroundStyle(DTColor.buttonDanger)
+							.foregroundStyle(DTColor.dangerText)
 					}
 					.sheetRows()
 				}

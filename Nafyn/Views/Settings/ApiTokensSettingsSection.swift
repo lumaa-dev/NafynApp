@@ -21,7 +21,7 @@ struct ApiTokensSettingsSection: View {
 						} label: {
 							Label(String(localized: "delete"), systemImage: "trash")
 						}
-						.tint(DTColor.buttonDanger)
+						.tint(DTColor.dangerText)
 						.disabled(NetworkMonitor.shared.isOffline)
 					}
 			}

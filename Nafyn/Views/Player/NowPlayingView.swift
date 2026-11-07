@@ -62,11 +62,14 @@ struct NowPlayingView: View {
 					Spacer()
 					Text("nothing-playing")
 						.font(DTFont.system(18))
-						.foregroundStyle(DTColor.textPrimary.opacity(0.5))
+						.foregroundStyle(Color.white.opacity(0.85))
 					Spacer()
 				}
 			}
 		}
+		// DESIGN.md "Contrast": the mesh is always dark (its scrim is sized to keep white labels at 7:1), so the labels are
+		// white whatever the device's appearance - `Color.primary` in the System theme's light mode was black on it
+		.environment(\.colorScheme, .dark)
 		.background {
 			if let track = PlaybackSource.track {
 				CoverMeshBackground(coverURL: track.setCoverSize(500))
@@ -250,11 +253,11 @@ struct NowPlayingView: View {
 		VStack(alignment: .leading, spacing: 4) {
 			Text(track.title)
 				.font(DTFont.serif(26))
-				.foregroundStyle(DTColor.textPrimary)
+				.foregroundStyle(Color.white)
 				.lineLimit(1)
 			Text(track.artistName)
 				.font(DTFont.serif(17))
-				.foregroundStyle(DTColor.textPrimary.opacity(0.6))
+				.foregroundStyle(Color.white.opacity(0.85))
 				.lineLimit(1)
 		}
 	}
@@ -269,7 +272,7 @@ struct NowPlayingView: View {
 				Image(.nafynUnity)
 			}
 			.font(DTFont.system(13, weight: .medium))
-			.foregroundStyle(DTColor.textPrimary.opacity(0.6))
+			.foregroundStyle(Color.white.opacity(0.85))
 			.padding(.top, 2)
 		}
 	}
@@ -325,7 +328,7 @@ struct NowPlayingView: View {
 		Button(action: action) {
 			Image(systemName: icon)
 				.font(DTFont.system(15))
-				.foregroundStyle(isActive ? DTColor.accentStart : DTColor.textPrimary.opacity(0.75))
+				.foregroundStyle(isActive ? DTColor.accentStart : Color.white.opacity(0.85))
 				.frame(width: 36, height: 36)
 				.background(Circle().fill(DTColor.surfaceSelect.opacity(isActive ? 1 : 0.55)))
 		}
@@ -347,7 +350,7 @@ struct NowPlayingView: View {
 						.lineLimit(1)
 				}
 				.buttonStyle(.plain)
-				.foregroundStyle(DTColor.textPrimary)
+				.foregroundStyle(Color.white)
 			} else {
 				HStack(spacing: 32) {
 					Button {
@@ -386,7 +389,7 @@ struct NowPlayingView: View {
 					}
 					.tint(Color.primary)
 				}
-				.foregroundStyle(DTColor.textPrimary.opacity(0.85))
+				.foregroundStyle(Color.white.opacity(0.85))
 			}
 		}
 		.padding(.all, 8)
@@ -418,7 +421,7 @@ struct NowPlayingView: View {
 				Text(Self.formatted(PlaybackSource.duration))
 			}
 			.font(DTFont.system(11))
-			.foregroundStyle(DTColor.textPrimary.opacity(0.5))
+			.foregroundStyle(Color.white.opacity(0.85))
 		}
 	}
 
@@ -431,7 +434,7 @@ struct NowPlayingView: View {
 			Group {
 				if PlaybackSource.isRemote {
 					Image(.nafynUnity)
-						.foregroundStyle(DTColor.textPrimary.opacity(0.6))
+						.foregroundStyle(Color.white.opacity(0.85))
 				} else {
 					RoutePickerButton()
 						.frame(width: 22, height: 22)
@@ -444,7 +447,7 @@ struct NowPlayingView: View {
 			} label: {
 				Image(systemName: "backward.fill")
 					.font(DTFont.text(.title2))
-					.foregroundStyle(DTColor.textPrimary)
+					.foregroundStyle(Color.white)
 			}
 			.frame(maxWidth: .infinity)
 
@@ -453,7 +456,7 @@ struct NowPlayingView: View {
 			} label: {
 				Image(systemName: PlaybackSource.isPlaying ? "pause.fill" : "play.fill")
 					.font(DTFont.system(38))
-					.foregroundStyle(DTColor.textPrimary)
+					.foregroundStyle(Color.white)
 			}
 			.keyboardShortcut(.space, modifiers: [])
 			.frame(maxWidth: .infinity)
@@ -463,7 +466,7 @@ struct NowPlayingView: View {
 			} label: {
 				Image(systemName: "forward.fill")
 					.font(DTFont.text(.title2))
-					.foregroundStyle(DTColor.textPrimary)
+					.foregroundStyle(Color.white)
 			}
 			.frame(maxWidth: .infinity)
 
@@ -492,7 +495,7 @@ struct NowPlayingView: View {
 
 		Image(systemName: mode == .track ? "repeat.1" : "repeat")
 			.font(DTFont.text(.body))
-			.foregroundStyle(mode == .off ? DTColor.textPrimary.opacity(0.6) : DTColor.accentStart)
+			.foregroundStyle(mode == .off ? Color.white.opacity(0.85) : DTColor.accentStart)
 			.frame(width: 44, height: 44)
 			.contentShape(Rectangle())
 			.onTapGesture {
@@ -508,7 +511,7 @@ struct NowPlayingView: View {
 
 		Image(systemName: showingRepeat ? (repeatMode == .track ? "repeat.1" : "repeat") : "shuffle")
 			.font(DTFont.text(.body))
-			.foregroundStyle(showingRepeat || PlayerEngine.shared.shuffleEnabled ? DTColor.accentStart : DTColor.textPrimary.opacity(0.6))
+			.foregroundStyle(showingRepeat || PlayerEngine.shared.shuffleEnabled ? DTColor.accentStart : Color.white.opacity(0.85))
 			.frame(width: 44, height: 44)
 			.contentShape(Rectangle())
 			.onTapGesture {
@@ -537,7 +540,7 @@ private struct RoutePickerButton: UIViewRepresentable {
 	}
 
 	func updateUIView(_ uiView: AVRoutePickerView, context: Context) {
-		uiView.tintColor = UIColor(DTColor.textPrimary)
+		uiView.tintColor = UIColor.white
 		uiView.activeTintColor = UIColor(DTColor.accentStart)
 	}
 }

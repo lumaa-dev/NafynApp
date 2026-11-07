@@ -70,6 +70,8 @@ private struct LibraryTrackDetailContent: View {
 					.tint(Color.primary)
 				}
 
+				Divider()
+
 				TrackMenuItems(track: self.track, showsViewTrack: false) {
 					self.showDeleteConfirm = true
 				}

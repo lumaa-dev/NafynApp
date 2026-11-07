@@ -100,6 +100,16 @@ final class PlayerEngine: NSObject {
 		}
 	}
 	private(set) var shuffleEnabled = false
+
+	/// The songs played before the current one, oldest first, capped to ``Self/historyLimit``. Shown in the Queue
+	/// panel (DESIGN.md "Queue Panel"): it never holds the current song nor a song twice in a row, so repeating a
+	/// track (Repeat One) adds it once, and it is in memory only (gone when the app is closed).
+	private(set) var history: [MediaRow] = []
+	static let historyLimit = 50
+
+	/// The song loaded last, which is the one that enters ``history`` when a different one takes over.
+	@ObservationIgnored private var lastStartedTrack: MediaRow? = nil
+
 	private(set) var volume: Double = 1
 	private(set) var isMuted = false
 
@@ -110,6 +120,47 @@ final class PlayerEngine: NSObject {
 
 	var currentTrack: MediaRow? {
 		self.queue.indices.contains(self.currentIndex) ? self.queue[self.currentIndex] : nil
+	}
+
+	/// Indices into ``queue`` of what plays after the current song, in playing order (index `0` of this array is the
+	/// next song). Never the current song nor an earlier one: those are the history's.
+	var upcomingIndices: [Int] {
+		if self.shuffleEnabled {
+			guard let position = self.shuffledOrder.firstIndex(of: self.currentIndex) else { return [] }
+			return Array(self.shuffledOrder.dropFirst(position + 1))
+		}
+		let start = self.currentIndex + 1
+		return start < self.queue.count ? Array(start ..< self.queue.count) : []
+	}
+
+	/// Plays a song of the ``history`` right now, keeping it out of the way of what was queued: it takes the next
+	/// spot in the queue and is started, so the queue carries on from where it was afterwards.
+	func playFromHistory(_ track: MediaRow) {
+		guard self.queue.indices.contains(self.currentIndex) else {
+			self.play(track)
+			return
+		}
+		self.insertNext([track])
+		self.playQueueIndex(self.currentIndex + 1)
+	}
+
+	private func recordHistory(startingWith track: MediaRow) {
+		defer { self.lastStartedTrack = track }
+		guard let previous = self.lastStartedTrack, previous.id != track.id else { return }
+		self.appendToHistory(previous)
+	}
+
+	private func appendToHistory(_ track: MediaRow) {
+		// "Listening history" confirmed off (Settings → Privacy) means no history here either
+		guard PlayTracker.shared.settings?.historyEnabled ?? true else {
+			self.history = []
+			return
+		}
+		guard self.history.last?.id != track.id else { return }
+		self.history.append(track)
+		if self.history.count > Self.historyLimit {
+			self.history.removeFirst(self.history.count - Self.historyLimit)
+		}
 	}
 
 	private var player: AVPlayer?
@@ -334,6 +385,20 @@ final class PlayerEngine: NSObject {
 		UnityEngine.shared.playerDidChange()
 	}
 
+	/// Reorders what plays after the current song, once, at random (the "Shuffle" of a Nafyn Unity web player);
+	/// the current song, the songs before it and the history stay where they are.
+	func shuffleUpcoming() {
+		let start = self.currentIndex + 1
+		guard self.queue.indices.contains(start) else { return }
+		var upcoming = Array(self.queue[start...])
+		upcoming.shuffle()
+		self.queue.replaceSubrange(start..., with: upcoming)
+		if self.shuffleEnabled {
+			self.reshuffle()
+		}
+		UnityEngine.shared.playerDidChange()
+	}
+
 	/// Fisher-Yates-shuffles every queue index except the currently-playing one, which stays pinned first
 	/// so enabling shuffle never jumps playback.
 	private func reshuffle() {
@@ -452,6 +517,9 @@ final class PlayerEngine: NSObject {
 	func stop() {
 		PlayTracker.shared.finished(completed: false)
 
+		if let last = self.lastStartedTrack { self.appendToHistory(last) }
+		self.lastStartedTrack = nil
+
 		AudioReactivityEngine.shared.detach()
 		self.player?.pause()
 		self.removeTimeObserver()
@@ -483,6 +551,7 @@ final class PlayerEngine: NSObject {
 	private func startCurrentItem() {
 		guard let track = self.currentTrack, let url = self.streamURL(for: track) else { return }
 
+		self.recordHistory(startingWith: track)
 		self.removeTimeObserver()
 
 		let item = AVPlayerItem(url: url)

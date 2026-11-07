@@ -6,7 +6,7 @@ import SwiftUI
 /// dominant color, and the text colors that stay legible on it.
 ///
 /// In dark appearance (the default theme always, the system theme when the device is dark) the cover color
-/// is mixed with black until white text reaches WCAG AA contrast; in light appearance it is mixed with white
+/// is mixed with black until white text reaches WCAG AAA contrast (7:1); in light appearance it is mixed with white
 /// and the text is black. Without cover colors (offline, no cover) it falls back to the design-system
 /// background.
 struct CoverPalette: Equatable {
@@ -30,7 +30,7 @@ struct CoverPalette: Equatable {
 			// so text contrast holds whatever the cover looks like.
 			var amount = isDark ? 0.55 : 0.7
 			var mixed = base.mixed(with: target, amount: amount).clamped(to: limits)
-			while amount < 0.95, mixed.contrast(with: isDark ? .white : .black) < 4.5 {
+			while amount < 0.95, mixed.contrast(with: isDark ? .white : .black) < 7.1 {
 				amount += 0.05
 				mixed = base.mixed(with: target, amount: amount).clamped(to: limits)
 			}
@@ -42,7 +42,8 @@ struct CoverPalette: Equatable {
 		let text: Color = isDark ? .white : .black
 		self.background = background.color
 		self.primary = text
-		self.secondary = text.opacity(0.65)
+		// DESIGN.md "Contrast" (WCAG AAA): a dimmed label cannot keep 7:1, so the secondary one is the full label color
+		self.secondary = text
 	}
 
 	private struct RGB {

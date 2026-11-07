@@ -100,6 +100,11 @@ private struct LibraryItemMenuHost<Content: View>: View {
 				}
 				.tint(Color.primary)
 			}
+
+			// playback is its own category; there is something below it unless the menu is only Play / Shuffle
+			if self.item != nil || self.pin != nil {
+				Divider()
+			}
 		}
 
 		if case .track(let id)? = self.item {

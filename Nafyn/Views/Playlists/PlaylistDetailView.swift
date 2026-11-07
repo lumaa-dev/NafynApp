@@ -137,7 +137,7 @@ private struct PlaylistDetailContent: View {
 					} label: {
 						Label(String(localized: "delete"), systemImage: "trash")
 					}
-					.tint(DTColor.buttonDanger)
+					.tint(DTColor.dangerText)
 					.disabled(NetworkMonitor.shared.isOffline)
 				} else if self.detail.viewer.isMember {
 					Button(role: .destructive) {
@@ -145,7 +145,7 @@ private struct PlaylistDetailContent: View {
 					} label: {
 						Label(String(localized: "leave"), systemImage: "rectangle.portrait.and.arrow.right")
 					}
-					.tint(DTColor.buttonDanger)
+					.tint(DTColor.dangerText)
 					.disabled(NetworkMonitor.shared.isOffline)
 				}
 			}
@@ -269,7 +269,7 @@ private struct PlaylistDetailContent: View {
 					} label: {
 						Label(String(localized: "remove"), systemImage: "trash")
 					}
-					.tint(DTColor.buttonDanger)
+					.tint(DTColor.dangerText)
 					.disabled(NetworkMonitor.shared.isOffline)
 				}
 			}

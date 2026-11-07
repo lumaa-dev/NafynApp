@@ -49,7 +49,7 @@ struct AllLibraryView: View {
 						} label: {
 							Label(String(localized: "remove"), systemImage: "trash")
 						}
-						.tint(DTColor.buttonDanger)
+						.tint(DTColor.dangerText)
 						.disabled(NetworkMonitor.shared.isOffline)
 					} label: {
 						Text(owner.username)

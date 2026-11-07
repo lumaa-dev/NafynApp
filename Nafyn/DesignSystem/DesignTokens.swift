@@ -48,11 +48,18 @@ enum DTColor {
 	static var buttonFilledHover: Color {
 		isSystemTheme ? Color.accentColor.opacity(0.85) : Color.white.opacity(0.82)
 	}
-	static var buttonDanger: Color {
-		isSystemTheme ? Color.red : Color(hex: "E06666", opacity: 0.68)
-	}
-	static var buttonDangerHover: Color {
-		isSystemTheme ? Color.red.opacity(0.85) : Color(hex: "E06666", opacity: 0.82)
+	/// Destructive fill. DESIGN.md "Contrast" (WCAG AAA): the palette red (E06666) cannot carry a label at 7:1, so
+	/// the fill is a deeper red of the same hue and its label is always white (7.2:1; 8:1 pressed).
+	static var buttonDanger: Color { Color(hex: "A02C2E") }
+	static var buttonDangerHover: Color { Color(hex: "8F2527") }
+	/// Destructive text, symbols and borders: a light red on dark surfaces (7.2:1 on 2A2A27), the deep red on the
+	/// System theme's light surfaces (7.2:1 on white).
+	static var dangerText: Color {
+		isSystemTheme
+			? Color(uiColor: UIColor { $0.userInterfaceStyle == .dark
+				? UIColor(red: 1.0, green: 158.0 / 255, blue: 158.0 / 255, alpha: 1)
+				: UIColor(red: 160.0 / 255, green: 44.0 / 255, blue: 46.0 / 255, alpha: 1) })
+			: Color(hex: "FF9E9E")
 	}
 	static var accentStart: Color {
 		isSystemTheme ? Color.accentColor.opacity(0.5) : Color(hex: "2E74FF", opacity: 0.5)
@@ -71,7 +78,7 @@ enum DTColor {
 	static var statusWaiting: Color { isSystemTheme ? Color.yellow : Color(hex: "E0C666") }
 	static var statusActive: Color { isSystemTheme ? Color.orange : Color(hex: "E0A666") }
 	static var statusSuccess: Color { isSystemTheme ? Color.green : Color(hex: "66E086") }
-	static var statusFailure: Color { isSystemTheme ? Color.red : Color(hex: "E06666") }
+	static var statusFailure: Color { dangerText }
 }
 
 /// Per-device font choices, kept in `UserDefaults` (not on the server): the OpenDyslexic switch.

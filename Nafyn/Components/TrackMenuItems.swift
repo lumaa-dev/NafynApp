@@ -3,8 +3,8 @@
 import SwiftUI
 import Safyn
 
-/// The context menu items every owned track shares: add to a playlist, pin, change its album, open it, download or remove the
-/// download, delete from the library. Used by library track rows, cards, charts and the mini player; each
+/// The context menu items every owned track shares, in the categories of DESIGN.md (divider-separated): add to a
+/// playlist, pin, open it; change its album, download; remove the download, delete from the library. Used by library track rows, cards, charts and the mini player; each
 /// place adds its own extras (Play / Shuffle, …) around it.
 ///
 /// Only the track's ID is needed: places that know just that (a recently played card, a chart row) pass
@@ -36,6 +36,8 @@ struct TrackMenuItems: View {
 	}
 
 	var body: some View {
+		// Categories, in the order Nafyn's DESIGN.md sets, each ending in a divider: "View" and playlists,
+		// modifications, destructive actions. (Playback - Play / Shuffle - is added by the caller, above.)
 		Button {
 			Navigator.shared.sheet = Navigator.Paths.addToPlaylist(mediaIds: [self.trackId])
 		} label: {
@@ -44,15 +46,6 @@ struct TrackMenuItems: View {
 		.tint(Color.primary)
 
 		PinMenuButton(target: .track(self.trackId))
-
-		Button {
-			PlayerEngine.shared.isExpanded = false
-			Navigator.shared.sheet = Navigator.Paths.changeAlbum(trackId: self.trackId)
-		} label: {
-			Label(String(localized: "change-album"), systemImage: "square.stack")
-		}
-		.tint(Color.primary)
-		.disabled(NetworkMonitor.shared.isOffline)
 
 		// the MusicBrainz versions of the track's album and artist, not the library's
 		if self.track.map({ !$0.albumId.isEmpty }) ?? true {
@@ -84,14 +77,18 @@ struct TrackMenuItems: View {
 			.tint(Color.primary)
 		}
 
-		if DownloadManager.shared.isDownloaded(trackId: self.trackId) {
-			Button(role: .destructive) {
-				DownloadManager.shared.deleteDownloads(trackIds: [self.trackId])
-			} label: {
-				Label(String(localized: "remove-download"), systemImage: "arrow.down.circle.fill")
-			}
-			.tint(DTColor.buttonDanger)
-		} else {
+		Divider()
+
+		Button {
+			PlayerEngine.shared.isExpanded = false
+			Navigator.shared.sheet = Navigator.Paths.changeAlbum(trackId: self.trackId)
+		} label: {
+			Label(String(localized: "change-album"), systemImage: "square.stack")
+		}
+		.tint(Color.primary)
+		.disabled(NetworkMonitor.shared.isOffline)
+
+		if !DownloadManager.shared.isDownloaded(trackId: self.trackId) {
 			Button {
 				self.download()
 			} label: {
@@ -101,13 +98,26 @@ struct TrackMenuItems: View {
 			.disabled(DownloadManager.shared.isDownloading(trackId: self.trackId) || NetworkMonitor.shared.isOffline)
 		}
 
+		if DownloadManager.shared.isDownloaded(trackId: self.trackId) || self.onDelete != nil {
+			Divider()
+		}
+
+		if DownloadManager.shared.isDownloaded(trackId: self.trackId) {
+			Button(role: .destructive) {
+				DownloadManager.shared.deleteDownloads(trackIds: [self.trackId])
+			} label: {
+				Label(String(localized: "remove-download"), systemImage: "arrow.down.circle.fill")
+			}
+			.tint(DTColor.dangerText)
+		}
+
 		if let onDelete = self.onDelete {
 			Button(role: .destructive) {
 				onDelete()
 			} label: {
 				Label(String(localized: "delete"), systemImage: "trash")
 			}
-			.tint(DTColor.buttonDanger)
+			.tint(DTColor.dangerText)
 			.disabled(NetworkMonitor.shared.isOffline)
 		}
 	}

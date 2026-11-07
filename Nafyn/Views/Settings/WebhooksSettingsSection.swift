@@ -234,7 +234,7 @@ struct WebhooksSettingsSection: View {
 				Button(String(localized: "delete"), role: .destructive) {
 					self.delete(webhook)
 				}
-				.tint(DTColor.buttonDanger)
+				.tint(DTColor.dangerText)
 				.disabled(self.busyIds.contains(webhook.id) || NetworkMonitor.shared.isOffline)
 			}
 			.buttonStyle(.borderless)
@@ -247,7 +247,7 @@ struct WebhooksSettingsSection: View {
 			} label: {
 				Label(String(localized: "delete"), systemImage: "trash")
 			}
-			.tint(DTColor.buttonDanger)
+			.tint(DTColor.dangerText)
 		}
 	}
 

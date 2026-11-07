@@ -613,6 +613,8 @@ final class UnityEngine {
 			case .custom(let action, let payload):
 				if action == "playTrack" {
 					self.executePlayTrack(payload)
+				} else if action == "shuffleQueue" {
+					engine.shuffleUpcoming()
 				}
 		}
 	}

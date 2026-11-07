@@ -116,7 +116,7 @@ private struct AppleDevicesSection: View {
 			} label: {
 				Label(String(localized: "remove"), systemImage: "trash")
 			}
-			.tint(DTColor.buttonDanger)
+			.tint(DTColor.dangerText)
 		}
 	}
 

@@ -41,14 +41,20 @@ struct NafynReleaseCountdownLiveActivity: Widget {
 			} compactLeading: {
 				Image(systemName: isOut ? "checkmark.circle.fill" : "clock")
 			} compactTrailing: {
-				if isOut {
-					Text("out-now")
-						.font(.caption2)
-				} else {
-					Text(timerInterval: Self.range(for: context.state), countsDown: true)
-						.monospacedDigit()
-						.frame(width: 52)
-						.font(.caption2)
+				// reduced width: the text would be cut off, so the leading icon alone represents the activity
+				// and the trailing side stays empty (the system hides it)
+				LimitedWidthSwitch {
+					EmptyView()
+				} full: {
+					if isOut {
+						Text("out-now")
+							.font(.caption2)
+					} else {
+						Text(timerInterval: Self.range(for: context.state), countsDown: true)
+							.monospacedDigit()
+							.frame(width: 52)
+							.font(.caption2)
+					}
 				}
 			} minimal: {
 				Image(systemName: isOut ? "checkmark.circle.fill" : "clock")

@@ -180,7 +180,7 @@ struct MyAlbumsView: View {
 			} label: {
 				Label(String(localized: "delete-downloads"), systemImage: "arrow.down.circle.fill")
 			}
-			.tint(DTColor.buttonDanger)
+			.tint(DTColor.dangerText)
 		}
 
 		Button(role: .destructive) {
@@ -188,7 +188,7 @@ struct MyAlbumsView: View {
 		} label: {
 			Label(String(localized: "delete"), systemImage: "trash")
 		}
-		.tint(DTColor.buttonDanger)
+		.tint(DTColor.dangerText)
 		.disabled(NetworkMonitor.shared.isOffline)
 	}
 

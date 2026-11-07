@@ -138,6 +138,8 @@ private struct LibraryAlbumDetailContent: View {
 					.tint(Color.primary)
 				}
 
+				Divider()
+
 				AlbumMenuItems(albumId: self.response.album.row.id, title: self.response.album.row.title, artistId: self.response.album.row.artistMbid, onDeleteDownloads: {
 					self.showDeleteDownloadsConfirm = true
 				}, onDelete: {
