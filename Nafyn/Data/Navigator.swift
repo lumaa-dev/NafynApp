@@ -82,7 +82,8 @@ final class Navigator {
 	}
 
 	enum Paths: Screeny, Hashable, Identifiable {
-		case album(id: String)
+		/// `release`: open the album on that release (a Deluxe or Remaster edition) instead of the standard one.
+		case album(id: String, release: String? = nil)
 		case artist(id: String)
 		case track(id: String)
 		case playlist(id: String)
@@ -128,8 +129,8 @@ final class Navigator {
 
 		private var screen: AnyView {
 			switch self {
-				case .album(let id):
-					AnyView(AlbumDetailView(albumId: id))
+				case .album(let id, let release):
+					AnyView(AlbumDetailView(albumId: id, releaseId: release))
 				case .artist(let id):
 					AnyView(ArtistDetailView(artistId: id))
 				case .track(let id):

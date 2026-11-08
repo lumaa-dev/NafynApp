@@ -28,6 +28,8 @@ private struct LenientTrackInfo: Decodable {
 private struct LenientAlbumDetail: Decodable {
 	let id: String
 	let releaseId: String
+	let isDefaultRelease: Bool?
+	let releases: [AlbumRelease]?
 	let title: String
 	let artist: ArtistRef
 	let type: AlbumKind?
@@ -46,14 +48,14 @@ private struct LenientAlbumDetail: Decodable {
 	let textColor: String?
 
 	var resolved: AlbumDetail {
-		AlbumDetail(id: id, releaseId: releaseId, title: title, artist: artist, type: type, coverArt: coverArt, releaseDate: releaseDate, releaseDatePrecision: releaseDatePrecision, released: released ?? true, subscribed: subscribed ?? false, requested: requested ?? false, inLibrary: inLibrary ?? false, description: description, label: label, discs: discs ?? [], tracks: tracks.compactMap { $0.resolved }, imageColors: imageColors ?? [], textColor: textColor ?? "#FFFFFF")
+		AlbumDetail(id: id, releaseId: releaseId, title: title, artist: artist, type: type, coverArt: coverArt, releaseDate: releaseDate, releaseDatePrecision: releaseDatePrecision, released: released ?? true, subscribed: subscribed ?? false, requested: requested ?? false, inLibrary: inLibrary ?? false, description: description, label: label, discs: discs ?? [], tracks: tracks.compactMap { $0.resolved }, imageColors: imageColors ?? [], textColor: textColor ?? "#FFFFFF", isDefaultRelease: isDefaultRelease ?? true, releases: releases ?? [])
 	}
 }
 
 extension NafynServer {
-	/// `Album.get(aid:)`, tolerant of individual malformed track entries.
-	func fetchAlbumDetail(aid: String) async throws -> AlbumDetail {
-		let data = try await self.sendRaw(Album.get(aid: aid))
+	/// `Album.get(aid:release:)`, tolerant of individual malformed track entries.
+	func fetchAlbumDetail(aid: String, release: String? = nil) async throws -> AlbumDetail {
+		let data = try await self.sendRaw(Album.get(aid: aid, release: release))
 		let decoder = JSONDecoder()
 		decoder.dateDecodingStrategy = .iso8601
 		do {

@@ -9,8 +9,6 @@ struct SearchView: View {
 	@State private var query: String = ""
 	@State private var filter: SearchFilter = .all
 	@State private var result: SearchResult? = nil
-	/// The server's single top-ranked album/track (`MediaInfo.bestResult`), cached so `body` doesn't rescan.
-	@State private var bestResult: MediaInfo? = nil
 	@State private var isSearching = false
 	@State private var searchTask: Task<Void, Never>? = nil
 	/// Which search is the latest; see ``search()``.
@@ -29,60 +27,12 @@ struct SearchView: View {
 					.pickerStyle(.segmented)
 
 					if self.isSearching {
-						VStack(alignment: .leading, spacing: 20) {
-							SkeletonMusicGrid(count: 2)
-
-							VStack(spacing: 12) {
-								SkeletonTrackRows(count: 4)
-							}
+						VStack(spacing: 12) {
+							SkeletonTrackRows(count: 8)
 						}
 					} else if let result {
-						if let best = self.bestResult {
-							self.section(title: "best-result") {
-								self.row(.info(best))
-							}
-							.padding()
-							.background(Material.ultraThin)
-							.clipShape(RoundedRectangle(cornerRadius: 15.0))
-						}
-
-						if result.albums.contains(where: { $0.id != self.bestResult?.id }) {
-							self.section(title: "albums") {
-								FoldGrid(alignment: .leading, spacing: 16) {
-									ForEach(result.albums.filter { $0.id != self.bestResult?.id }, id: \.id) { info in
-										self.card(.info(info))
-									}
-								}
-							}
-						}
-
-						if !result.artists.isEmpty {
-							self.section(title: "artists") {
-								LazyVStack(spacing: 12) {
-									ForEach(result.artists, id: \.musicbrainzId) { artist in
-										self.row(.artist(artist))
-									}
-								}
-							}
-						}
-
-						if result.tracks.contains(where: { $0.id != self.bestResult?.id }) {
-							self.section(title: "tracks") {
-								LazyVStack(spacing: 12) {
-									ForEach(result.tracks.filter { $0.id != self.bestResult?.id }, id: \.id) { info in
-										self.row(.info(info))
-									}
-								}
-							}
-						}
-
-						if result.albums.isEmpty && result.artists.isEmpty && result.tracks.isEmpty {
-							Text("no-results")
-								.font(DTFont.system(18))
-								.foregroundStyle(DTColor.textPrimary.opacity(0.5))
-								.frame(maxWidth: .infinity)
-								.padding(.top, 40)
-						}
+						// ONE list, the most likely result on top (DESIGN.md "Search"); the filter above keeps only one kind
+						SearchResultsList(result: result)
 					}
 				}
 				.padding()
@@ -102,41 +52,6 @@ struct SearchView: View {
 		}
 	}
 
-	@ViewBuilder
-	private func section<Content: View>(title: LocalizedStringKey, @ViewBuilder content: () -> Content) -> some View {
-		VStack(alignment: .leading, spacing: 10) {
-			Text(title)
-				.font(DTFont.text(.title2, weight: .bold))
-
-			content()
-		}
-	}
-
-	@ViewBuilder
-	private func card(_ entry: MusicCardEntry) -> some View {
-		if let destination = entry.destination {
-			NavigationLink(value: destination) {
-				MusicCard(entry)
-					.frame(maxWidth: .infinity, alignment: .leading)
-			}
-			.buttonStyle(.plain)
-		} else {
-			MusicCard(entry)
-		}
-	}
-
-	@ViewBuilder
-	private func row(_ entry: MusicCardEntry) -> some View {
-		if let destination = entry.destination {
-			NavigationLink(value: destination) {
-				MusicCard(entry, type: .row)
-			}
-			.buttonStyle(.plain)
-		} else {
-			MusicCard(entry, type: .row)
-		}
-	}
-
 	private func triggerSearch() {
 		self.searchTask?.cancel()
 		self.searchTask = Task {
@@ -153,7 +68,6 @@ struct SearchView: View {
 
 		guard let server, !self.query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
 			self.result = nil
-			self.bestResult = nil
 			self.isSearching = false
 			return
 		}
@@ -164,12 +78,10 @@ struct SearchView: View {
 			let result: SearchResult = try await server.send(Search.search(q: self.query, filter: self.filter == .all ? nil : self.filter))
 			guard generation == self.searchGeneration, !Task.isCancelled else { return }
 			self.result = result
-			self.bestResult = (result.albums + result.tracks).first { $0.bestResult == true }
 			self.isSearching = false
 		} catch {
 			guard generation == self.searchGeneration, !Task.isCancelled else { return }
 			self.result = nil
-			self.bestResult = nil
 			self.isSearching = false
 		}
 	}

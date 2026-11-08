@@ -10,13 +10,21 @@ struct AlbumDetailView: View {
 
 	@State private var toast = ToastState()
 	@State private var isRequesting = false
+	/// The release being viewed (picked from the grid at the bottom, or the one an artist's Deluxe card opened); `nil`
+	/// is the standard edition.
+	@State private var releaseId: String?
 
 	var albumId: String
+
+	init(albumId: String, releaseId: String? = nil) {
+		self.albumId = albumId
+		self._releaseId = State(initialValue: releaseId)
+	}
 
 	var body: some View {
 		AsyncContentView {
 			guard let server else { throw NafynError.unauthenticated }
-			return try await server.fetchAlbumDetail(aid: self.albumId)
+			return try await server.fetchAlbumDetail(aid: self.albumId, release: self.releaseId)
 		} content: { album, reload in
 			let palette = CoverPalette(imageColors: album.imageColors, colorScheme: self.colorScheme)
 
@@ -29,12 +37,14 @@ struct AlbumDetailView: View {
 				self.actions(album, reload: reload)
 				self.trackList(album, palette: palette, reload: reload)
 				self.footer(album, palette: palette)
+				self.releasePicker(album, palette: palette)
 			} primary: {
 				self.description(album, palette: palette)
 				self.footer(album, palette: palette)
 			} secondary: {
 				self.actions(album, reload: reload)
 				self.trackList(album, palette: palette, reload: reload)
+				self.releasePicker(album, palette: palette)
 			}
 			.toast(self.toast)
 			.toolbar {
@@ -61,6 +71,8 @@ struct AlbumDetailView: View {
 				}
 			}
 		}
+		// choosing another release is a new load of the screen, not a new screen
+		.id(self.releaseId)
 		.navigationBarTitleDisplayMode(.inline)
 	}
 
@@ -98,7 +110,9 @@ struct AlbumDetailView: View {
 	@ViewBuilder
 	private func actions(_ album: AlbumDetail, reload: @escaping () async -> Void) -> some View {
 		if album.released {
-			if !album.inLibrary {
+			// another release than the standard one: a request downloads the standard edition's tracks, so only its own
+			// tracks can be requested (the arrows in the list)
+			if !album.inLibrary && album.isDefaultRelease {
 				Button {
 					self.request(album: album, reload: reload)
 				} label: {
@@ -238,6 +252,35 @@ struct AlbumDetailView: View {
 		}
 		.font(DTFont.system(16))
 		.foregroundStyle(palette.secondary)
+	}
+
+	/// Change which release of the album is being viewed: a category grid (DESIGN.md "Category grids"), one row of
+	/// the album's releases, each described by its disambiguation (else its year and country). The one being viewed is outlined.
+	@ViewBuilder
+	private func releasePicker(_ album: AlbumDetail, palette: CoverPalette) -> some View {
+		if album.releases.count > 1 {
+			ReleaseGrid(title: String(localized: "album-releases")) {
+				ForEach(album.releases) { release in
+					Button {
+						guard !release.selected else { return }
+						self.releaseId = release.id
+					} label: {
+						MusicCard(release.asCardEntry, subtitle: release.summary)
+							.frame(width: ReleaseGridLayout.cardWidth)
+							.padding(4)
+							.overlay {
+								// an outline, not only a color
+								if release.selected {
+									RoundedRectangle(cornerRadius: 14.0)
+										.strokeBorder(palette.primary, lineWidth: 2)
+								}
+							}
+					}
+					.buttonStyle(.plain)
+					.accessibilityAddTraits(release.selected ? .isSelected : [])
+				}
+			}
+		}
 	}
 
 	private func request(album: AlbumDetail, reload: @escaping () async -> Void) {

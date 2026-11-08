@@ -745,6 +745,23 @@
         }
       }
     },
+    "album-releases" : {
+      "comment" : "Grid at the bottom of an album: choose which release to view",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Releases"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Éditions"
+          }
+        }
+      }
+    },
     "albums" : {
       "localizations" : {
         "en" : {
@@ -1090,6 +1107,7 @@
       }
     },
     "best-result" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -6332,6 +6350,142 @@
         }
       }
     },
+    "release-category-album" : {
+      "comment" : "Artist screen category",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Albums"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Albums"
+          }
+        }
+      }
+    },
+    "release-category-compilation" : {
+      "comment" : "Artist screen category",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Compilations"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Compilations"
+          }
+        }
+      }
+    },
+    "release-category-ep" : {
+      "comment" : "Artist screen category",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "EPs"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "EP"
+          }
+        }
+      }
+    },
+    "release-category-live" : {
+      "comment" : "Artist screen category",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Live"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En concert"
+          }
+        }
+      }
+    },
+    "release-category-other" : {
+      "comment" : "Artist screen category",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Other"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Autres"
+          }
+        }
+      }
+    },
+    "release-category-remix" : {
+      "comment" : "Artist screen category",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remixes"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remixes"
+          }
+        }
+      }
+    },
+    "release-category-single" : {
+      "comment" : "Artist screen category",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Singles"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Singles"
+          }
+        }
+      }
+    },
+    "release-category-soundtrack" : {
+      "comment" : "Artist screen category",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Soundtracks"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bandes originales"
+          }
+        }
+      }
+    },
     "release-date-unknown" : {
       "localizations" : {
         "en" : {
@@ -6783,6 +6937,74 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Rechercher des albums"
+          }
+        }
+      }
+    },
+    "search-kind-album" : {
+      "comment" : "What a search result is (SearchResultsList)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Album"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Album"
+          }
+        }
+      }
+    },
+    "search-kind-artist" : {
+      "comment" : "What a search result is (SearchResultsList)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Artist"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Artiste"
+          }
+        }
+      }
+    },
+    "search-kind-ep" : {
+      "comment" : "What a search result is (SearchResultsList)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "EP"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "EP"
+          }
+        }
+      }
+    },
+    "search-kind-track" : {
+      "comment" : "What a search result is (SearchResultsList)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Track"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Titre"
           }
         }
       }

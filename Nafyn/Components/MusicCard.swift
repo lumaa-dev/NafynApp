@@ -11,14 +11,23 @@ struct MusicCard: View {
 	var entry: MusicCardEntry
 	var type: Self.ViewType
 
+	/// Replaces the line under the title (the artist, normally): a search row says what kind of result it is, an
+	/// album's release says what sets it apart.
+	var subtitle: String?
+
 	/// Runs after the card's own "Delete" (albums and tracks in the library) succeeded, so the screen showing
 	/// the card can drop it.
 	var onRemoved: (() -> Void)?
 
-	init(_ entry: MusicCardEntry, type: Self.ViewType = .highlight, onRemoved: (() -> Void)? = nil) {
+	init(_ entry: MusicCardEntry, type: Self.ViewType = .highlight, subtitle: String? = nil, onRemoved: (() -> Void)? = nil) {
 		self.entry = entry
 		self.type = type
+		self.subtitle = subtitle
 		self.onRemoved = onRemoved
+	}
+
+	private var shownSubtitle: String? {
+		self.subtitle ?? self.entry.subtitle
 	}
 
 	var body: some View {
@@ -80,7 +89,7 @@ struct MusicCard: View {
 				.foregroundStyle(DTColor.textPrimary)
 				.lineLimit(1)
 
-			if let subtitle = self.entry.subtitle {
+			if let subtitle = self.shownSubtitle {
 				Text(subtitle)
 					.font(DTFont.serif(16))
 					.foregroundStyle(DTColor.textPrimary.opacity(0.6))
@@ -107,7 +116,7 @@ struct MusicCard: View {
 					.lineLimit(2)
 					.multilineTextAlignment(.leading)
 
-				if let subtitle = self.entry.subtitle {
+				if let subtitle = self.shownSubtitle {
 					Text(subtitle)
 						.font(DTFont.serif(16))
 						.foregroundStyle(DTColor.textPrimary.opacity(0.6))

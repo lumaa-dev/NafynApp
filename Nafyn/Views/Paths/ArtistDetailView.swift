@@ -63,9 +63,25 @@ struct ArtistDetailView: View {
 		}
 	}
 
+	/// The discography by kind (DESIGN.md "Artist"): a category grid each - Albums, EPs, Singles... - one row of
+	/// cards that scrolls sideways, newest first. From a server older than the categories, the plain grid.
 	@ViewBuilder
 	private func discography(_ artist: ArtistDetail) -> some View {
-		if !artist.albums.isEmpty {
+		if !artist.categories.isEmpty {
+			VStack(alignment: .leading, spacing: 24) {
+				ForEach(artist.categories) { category in
+					ReleaseGrid(title: category.id.title) {
+						ForEach(category.releases) { release in
+							NavigationLink(value: release.destination) {
+								MusicCard(.info(release.media))
+									.frame(width: ReleaseGridLayout.cardWidth)
+							}
+							.buttonStyle(.plain)
+						}
+					}
+				}
+			}
+		} else if !artist.albums.isEmpty {
 			VStack(alignment: .leading, spacing: 16) {
 				Text("discography")
 					.font(DTFont.serifItalic(25))
