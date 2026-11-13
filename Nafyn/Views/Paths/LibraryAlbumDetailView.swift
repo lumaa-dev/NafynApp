@@ -140,7 +140,7 @@ private struct LibraryAlbumDetailContent: View {
 
 				Divider()
 
-				AlbumMenuItems(albumId: self.response.album.row.id, title: self.response.album.row.title, artistId: self.response.album.row.artistMbid, onDeleteDownloads: {
+				AlbumMenuItems(albumId: self.response.album.row.id, title: self.response.album.row.title, artistId: self.response.album.row.artistMbid, artistName: self.response.album.row.artistName, onDeleteDownloads: {
 					self.showDeleteDownloadsConfirm = true
 				}, onDelete: {
 					self.showDeleteAlbumConfirm = true
@@ -150,7 +150,7 @@ private struct LibraryAlbumDetailContent: View {
 	}
 
 	private func header(palette: CoverPalette) -> some View {
-		CoverHeader(url: self.response.album.row.coverArt?.coverArtURL(size: 1000), palette: palette) {
+		CoverHeader(url: self.response.album.row.coverURL(size: 1000), palette: palette) {
 			Text(self.response.album.row.title)
 				.font(DTFont.serif(31))
 				.foregroundStyle(palette.primary)

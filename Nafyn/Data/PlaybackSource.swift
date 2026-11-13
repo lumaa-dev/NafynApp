@@ -66,6 +66,8 @@ enum PlaybackSource {
 	/// Starts `track` (in `queue`, when given). While another device is the Unity master the track plays
 	/// there, not on this device; otherwise it plays locally.
 	static func play(_ track: MediaRow, queue: [MediaRow]? = nil, recordContext: RecordContext? = nil) {
+		// a preview (`PreviewPlayer`) ends when real playback starts
+		Task { @MainActor in PreviewPlayer.shared.stop() }
 		if UnityEngine.shared.isControllingRemotely {
 			UnityEngine.shared.playOnMaster(track, queue: queue, recordContext: recordContext)
 		} else {
@@ -74,14 +76,18 @@ enum PlaybackSource {
 	}
 
 	static func togglePlay() {
+		Task { @MainActor in Haptics.tap() }
+		if !self.isPlaying { Task { @MainActor in PreviewPlayer.shared.stop() } }
 		self.isRemote ? UnityEngine.shared.sendCommand(.togglePlay) : PlayerEngine.shared.togglePlay()
 	}
 
 	static func next() {
+		Task { @MainActor in Haptics.tap() }
 		self.isRemote ? UnityEngine.shared.sendCommand(.next) : PlayerEngine.shared.next()
 	}
 
 	static func prev() {
+		Task { @MainActor in Haptics.tap() }
 		self.isRemote ? UnityEngine.shared.sendCommand(.prev) : PlayerEngine.shared.prev()
 	}
 

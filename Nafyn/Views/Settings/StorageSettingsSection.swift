@@ -132,9 +132,19 @@ private struct UserShareChart: View {
 		let value: Double
 	}
 
+	/// Highest first: the donut's sectors, the angle selection and the list below all read this order.
 	let shares: [Share]
 	let colorNames: [String]
 	let format: (Double) -> String
+
+	init(shares: [Share], colorNames: [String], format: @escaping (Double) -> String) {
+		self.shares = shares.sorted { lhs, rhs in
+			if lhs.value != rhs.value { return lhs.value > rhs.value }
+			return lhs.name.localizedStandardCompare(rhs.name) == .orderedAscending
+		}
+		self.colorNames = colorNames
+		self.format = format
+	}
 
 	@State private var selectedAngle: Double?
 

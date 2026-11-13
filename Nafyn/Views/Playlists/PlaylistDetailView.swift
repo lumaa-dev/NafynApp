@@ -23,8 +23,7 @@ struct PlaylistDetailView: View {
 private struct PlaylistDetailContent: View {
 	@Environment(\.server) private var server: NafynServer?
 	@Environment(\.dismiss) private var dismiss
-	@Environment(\.horizontalSizeClass) private var horizontalSizeClass
-	@Environment(\.verticalSizeClass) private var verticalSizeClass
+	@Environment(\.colorScheme) private var colorScheme
 
 	let playlistId: String
 	@State private var detail: PlaylistDetail
@@ -38,6 +37,9 @@ private struct PlaylistDetailContent: View {
 	@State private var showLeaveConfirm = false
 	@State private var showCoverPicker = false
 	@State private var coverPickerItem: PhotosPickerItem? = nil
+	@State private var showReorder = false
+	/// The playlist image's dominant colours (hex), for the cover-themed screen; `nil` until read (or without image).
+	@State private var imageColors: [String]? = nil
 
 	init(playlistId: String, initialDetail: PlaylistDetail) {
 		self.playlistId = playlistId
@@ -66,7 +68,24 @@ private struct PlaylistDetailContent: View {
 	}
 
 	var body: some View {
-		self.content
+		let palette = CoverPalette(imageColors: self.imageColors, colorScheme: self.colorScheme)
+
+		// The same layout as an album or a track (DESIGN.md "Track/Album Detail view"): the image edge to edge with
+		// the title on it, then the actions and the tracks; two panes when the window has room.
+		AdaptiveCoverDetail(palette: palette) {
+			self.header(palette: palette)
+		} compact: {
+			self.actions
+			self.trackList(palette: palette)
+		} primary: {
+			self.details(palette: palette)
+		} secondary: {
+			self.actions
+			self.trackList(palette: palette)
+		}
+		.task(id: self.detail.playlist.image) {
+			self.imageColors = await Self.hexColors(of: self.coverURL)
+		}
 		.task {
 			guard self.paginator == nil, let server else { return }
 			self.paginator = Paginator<PlaylistEntry>(
@@ -76,9 +95,7 @@ private struct PlaylistDetailContent: View {
 				}
 			)
 		}
-		.background(DTColor.background.ignoresSafeArea())
 		.toast(self.toast)
-		.navigationTitle(self.detail.playlist.title)
 		.toolbar {
 			if let shareURL = self.shareURL {
 				ToolbarItem(placement: .primaryAction) {
@@ -116,6 +133,25 @@ private struct PlaylistDetailContent: View {
 						self.showAddTracks = true
 					} label: {
 						Label(String(localized: "add-tracks"), systemImage: "plus")
+					}
+					.tint(Color.primary)
+					.disabled(NetworkMonitor.shared.isOffline)
+				}
+
+				if self.canReorder {
+					Button {
+						self.showReorder = true
+					} label: {
+						Label(String(localized: "reorder"), systemImage: "arrow.up.arrow.down")
+					}
+					.tint(Color.primary)
+				}
+
+				if self.detail.viewer.isOwner {
+					Button {
+						self.showCoverPicker = true
+					} label: {
+						Label(String(localized: "change-image"), systemImage: "photo")
 					}
 					.tint(Color.primary)
 					.disabled(NetworkMonitor.shared.isOffline)
@@ -178,6 +214,13 @@ private struct PlaylistDetailContent: View {
 				Task { await self.paginator?.reset() }
 			}
 		}
+		.sheet(isPresented: self.$showReorder) {
+			if let paginator = self.paginator {
+				PlaylistReorderSheet(entries: paginator.items) { from, to in
+					self.moveTracks(from: from, to: to)
+				}
+			}
+		}
 		.photosPicker(isPresented: self.$showCoverPicker, selection: self.$coverPickerItem, matching: .images)
 		.onChange(of: self.coverPickerItem) { _, newItem in
 			guard let newItem else { return }
@@ -188,157 +231,139 @@ private struct PlaylistDetailContent: View {
 		}
 	}
 
-	/// Compact: one list with the header as its first row. Regular width (Duo inner display, iPad): the
-	/// header in one pane and the tracks in a list of their own beside it.
-	@ViewBuilder
-	private var content: some View {
-		if DTLayout.hasRoomForPanes(horizontal: self.horizontalSizeClass, vertical: self.verticalSizeClass) {
-			SplitPanes(fallbackPrimaryWidth: DTLayout.detailCoverWidth(horizontal: .regular, vertical: .regular) + 40) {
-				PaneScroll { self.header }
-			} secondary: {
-				self.styled(List { self.rows })
-			}
-		} else {
-			self.styled(
-				List {
-					Section {
-						self.header
-					}
-					.listRowInsets(EdgeInsets())
-					.listRowBackground(Color.clear)
-					.listRowSeparator(.hidden)
-
-					self.rows
-				}
-			)
-			.contentColumn()
-			.padding(.horizontal)
+	/// The playlist image's dominant colours as hex, for ``CoverPalette``.
+	private static func hexColors(of url: URL?) async -> [String]? {
+		guard url != nil else { return nil }
+		let colors = await CoverPaletteExtractor.palette(for: url)
+		return colors.compactMap { color in
+			var red: CGFloat = 0, green: CGFloat = 0, blue: CGFloat = 0, alpha: CGFloat = 0
+			guard UIColor(color).getRed(&red, green: &green, blue: &blue, alpha: &alpha) else { return nil }
+			return String(format: "#%02X%02X%02X", Int(red * 255), Int(green * 255), Int(blue * 255))
 		}
 	}
 
-	private func styled<Content: View>(_ list: Content) -> some View {
-		list
-			.listStyle(.plain)
-			.scrollContentBackground(.hidden)
-			.scrollEdgeEffectStyle(.soft, for: .all)
+	private func header(palette: CoverPalette) -> some View {
+		CoverHeader(url: self.coverURL, palette: palette) {
+			Text(self.detail.playlist.title)
+				.font(DTFont.serif(31))
+				.foregroundStyle(palette.primary)
+
+			Text(self.detail.owner.displayName ?? self.detail.owner.username)
+				.font(DTFont.serifItalic(20))
+				.foregroundStyle(palette.primary)
+		}
+	}
+
+	/// The description, and how many tracks.
+	@ViewBuilder
+	private func details(palette: CoverPalette) -> some View {
+		if let description = self.detail.playlist.description, !description.isEmpty {
+			Text(description)
+				.font(DTFont.system(18))
+				.foregroundStyle(palette.secondary)
+		}
+		Text("\(self.detail.entriesTotal) " + String(localized: "tracks"))
+			.font(DTFont.system(16))
+			.foregroundStyle(palette.secondary)
+	}
+
+	/// Play / Shuffle, and the sort order for those who may change it.
+	@ViewBuilder
+	private var actions: some View {
+		HStack {
+			Button {
+				self.playAll(shuffle: false)
+			} label: {
+				Label(String(localized: "play"), systemImage: "play.fill")
+					.frame(maxWidth: .infinity)
+			}
+			.buttonStyle(.filled())
+
+			Button {
+				self.playAll(shuffle: true)
+			} label: {
+				Label(String(localized: "shuffle"), systemImage: "shuffle")
+					.frame(maxWidth: .infinity)
+			}
+			.buttonStyle(.hollow())
+		}
+
+		if self.detail.viewer.isOwner || self.detail.viewer.isMember {
+			Picker(String(localized: "sort"), selection: Binding(get: { self.detail.playlist.sortMode }, set: { self.updateSortMode($0) })) {
+				Text("manual").tag(PlaylistSortMode.manual)
+				Text("title").tag(PlaylistSortMode.title)
+				Text("artist").tag(PlaylistSortMode.artist)
+				Text("added-by").tag(PlaylistSortMode.addedBy)
+				Text("duration").tag(PlaylistSortMode.duration)
+			}
+			.tint(Color.primary)
+			.disabled(NetworkMonitor.shared.isOffline)
+			.pickerStyle(.menu)
+		}
 	}
 
 	@ViewBuilder
-	private var rows: some View {
+	private func trackList(palette: CoverPalette) -> some View {
 		if let paginator {
-			if self.canReorder {
-				self.trackRows(for: paginator)
-					.onMove(perform: self.moveTracks)
+			LazyVStack(spacing: 0) {
+				ForEach(Array(paginator.items.enumerated()), id: \.element.entryId) { index, entry in
+					self.trackRow(entry, in: paginator)
+						.onAppear { paginator.loadNextPageIfNeeded(currentItem: entry) }
+
+					if index < paginator.items.count - 1 {
+						Divider()
+							.overlay(palette.secondary.opacity(0.3))
+					}
+				}
+
+				if paginator.isLoadingPage {
+					ProgressView()
+						.tint(DTColor.textPrimary)
+						.padding()
+				}
+			}
+		}
+	}
+
+	/// A row with its cover (a playlist mixes albums); held, the actions the list's swipes used to carry.
+	private func trackRow(_ entry: PlaylistEntry, in paginator: Paginator<PlaylistEntry>) -> some View {
+		TrackRow(coverURL: entry.media.listCoverURL, title: entry.media.title, subtitle: entry.media.artistName, duration: entry.media.duration, fileSize: entry.media.fileSize, verticalPadding: 8) {
+			self.play(entry, in: paginator.items)
+		}
+		.contextMenu {
+			if DownloadManager.shared.isDownloaded(trackId: entry.media.id) {
+				Button(role: .destructive) {
+					if let download = DownloadManager.shared.downloads.first(where: { $0.id == entry.media.id }) {
+						DownloadManager.shared.delete(download)
+					}
+				} label: {
+					Label(String(localized: "remove-download"), systemImage: "arrow.down.circle.fill")
+				}
+				.tint(DTColor.dangerText)
 			} else {
-				self.trackRows(for: paginator)
-			}
-		}
-	}
-
-	private func trackRows(for paginator: Paginator<PlaylistEntry>) -> some DynamicViewContent {
-		ForEach(paginator.items) { entry in
-			TrackRow(coverURL: entry.media.coverArt.flatMap { URL(string: $0) }, title: entry.media.title, subtitle: entry.media.artistName, duration: entry.media.duration, fileSize: entry.media.fileSize) {
-				self.play(entry, in: paginator.items)
-			}
-			.listRowBackground(Color.clear)
-			.onAppear { paginator.loadNextPageIfNeeded(currentItem: entry) }
-			.swipeActions(edge: .leading) {
-				if DownloadManager.shared.isDownloaded(trackId: entry.media.id) {
-					Button {
-						if let download = DownloadManager.shared.downloads.first(where: { $0.id == entry.media.id }) {
-							DownloadManager.shared.delete(download)
-						}
-					} label: {
-						Label(String(localized: "remove"), systemImage: "arrow.down.circle.fill")
-					}
-					.tint(DTColor.textPrimary.opacity(0.4))
-				} else {
-					Button {
-						DownloadManager.shared.downloadTrack(entry.media)
-					} label: {
-						Label(String(localized: "download"), systemImage: "arrow.down.circle")
-					}
-					.tint(DTColor.accentStart)
-					.disabled(DownloadManager.shared.isDownloading(trackId: entry.media.id) || NetworkMonitor.shared.isOffline)
-				}
-			}
-			.swipeActions(edge: .trailing) {
-				if self.canRemove(entry) {
-					Button(role: .destructive) {
-						self.removeTrack(entry)
-					} label: {
-						Label(String(localized: "remove"), systemImage: "trash")
-					}
-					.tint(DTColor.dangerText)
-					.disabled(NetworkMonitor.shared.isOffline)
-				}
-			}
-		}
-	}
-
-	@ViewBuilder
-	private var header: some View {
-		VStack(alignment: .leading, spacing: 12) {
-			HStack(alignment: .top, spacing: 16) {
 				Button {
-					self.showCoverPicker = true
+					DownloadManager.shared.downloadTrack(entry.media)
 				} label: {
-					CoverImage(url: self.coverURL)
-						.frame(width: 120, height: 120)
+					Label(String(localized: "download"), systemImage: "arrow.down.circle")
 				}
-				.buttonStyle(.plain)
-				.disabled(!self.detail.viewer.isOwner || NetworkMonitor.shared.isOffline)
-
-				VStack(alignment: .leading, spacing: 4) {
-					Text(self.detail.playlist.title)
-						.font(DTFont.serif(27))
-						.foregroundStyle(DTColor.textPrimary)
-
-					if let description = self.detail.playlist.description, !description.isEmpty {
-						Text(description)
-							.font(DTFont.system(16))
-							.foregroundStyle(DTColor.textPrimary.opacity(0.6))
-					}
-
-					Text(self.detail.owner.displayName ?? self.detail.owner.username)
-						.font(DTFont.system(15))
-						.foregroundStyle(DTColor.textPrimary.opacity(0.5))
-				}
-
-				Spacer()
+				.tint(Color.primary)
+				.disabled(DownloadManager.shared.isDownloading(trackId: entry.media.id) || NetworkMonitor.shared.isOffline)
 			}
 
-			HStack {
-				Button {
-					self.playAll(shuffle: false)
-				} label: {
-					Label(String(localized: "play"), systemImage: "play.fill")
-						.frame(maxWidth: .infinity)
-				}
-				.buttonStyle(.filled())
+			ExternalLinkMenuItems(item: ExternalShareItem(title: entry.media.title, artist: entry.media.artistName))
 
-				Button {
-					self.playAll(shuffle: true)
-				} label: {
-					Label(String(localized: "shuffle"), systemImage: "shuffle")
-						.frame(maxWidth: .infinity)
-				}
-				.buttonStyle(.hollow())
-			}
+			if self.canRemove(entry) {
+				Divider()
 
-			if self.detail.viewer.isOwner || self.detail.viewer.isMember {
-				Picker(String(localized: "sort"), selection: Binding(get: { self.detail.playlist.sortMode }, set: { self.updateSortMode($0) })) {
-					Text("manual").tag(PlaylistSortMode.manual)
-					Text("title").tag(PlaylistSortMode.title)
-					Text("artist").tag(PlaylistSortMode.artist)
-					Text("added-by").tag(PlaylistSortMode.addedBy)
-					Text("duration").tag(PlaylistSortMode.duration)
+				Button(role: .destructive) {
+					self.removeTrack(entry)
+				} label: {
+					Label(String(localized: "Remove from Playlist"), systemImage: "minus.circle")
 				}
+				.tint(DTColor.dangerText)
 				.disabled(NetworkMonitor.shared.isOffline)
-				.pickerStyle(.menu)
 			}
 		}
-		.padding(.vertical, 8)
 	}
 
 	private func canRemove(_ entry: PlaylistEntry) -> Bool {
@@ -433,5 +458,46 @@ private struct PlaylistDetailContent: View {
 				self.toast.failure(error)
 			}
 		}
+	}
+}
+
+/// Reordering a manual playlist by dragging (the screen itself is no `List`, so it has no edit mode).
+private struct PlaylistReorderSheet: View {
+	@Environment(\.dismiss) private var dismiss
+
+	@State var entries: [PlaylistEntry]
+	let onMove: (IndexSet, Int) -> Void
+
+	var body: some View {
+		NavigationStack {
+			List {
+				ForEach(self.entries, id: \.entryId) { entry in
+					TrackRow(coverURL: entry.media.listCoverURL, title: entry.media.title, subtitle: entry.media.artistName, duration: entry.media.duration)
+						.listRowBackground(Color.clear)
+				}
+				.onMove { from, to in
+					self.entries.move(fromOffsets: from, toOffset: to)
+					self.onMove(from, to)
+				}
+			}
+			.listStyle(.plain)
+			.scrollContentBackground(.hidden)
+			.environment(\.editMode, .constant(.active))
+			.background(DTColor.background.ignoresSafeArea())
+			.navigationTitle(String(localized: "reorder"))
+			.navigationBarTitleDisplayMode(.inline)
+			.toolbar {
+				ToolbarItem(placement: .confirmationAction) {
+					Button {
+						self.dismiss()
+					} label: {
+						Label(String(localized: "done"), systemImage: "checkmark")
+							.labelStyle(.iconOnly)
+					}
+					.tint(Color.primary)
+				}
+			}
+		}
+		.sheetBackground()
 	}
 }

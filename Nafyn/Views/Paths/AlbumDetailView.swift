@@ -10,6 +10,8 @@ struct AlbumDetailView: View {
 
 	@State private var toast = ToastState()
 	@State private var isRequesting = false
+	/// "Share as Image" (DESIGN.md "Sharing": iOS only, one item at a time).
+	@State private var sharedImage: ShareCardContent?
 	/// The release being viewed (picked from the grid at the bottom, or the one an artist's Deluxe card opened); `nil`
 	/// is the standard edition.
 	@State private var releaseId: String?
@@ -51,22 +53,29 @@ struct AlbumDetailView: View {
 				// DESIGN.md "Track/Album Detail view": an overflow menu with the actions of the album's row, minus the
 				// ones that would navigate back to this very screen. Pinning needs the album in the library; the
 				// Request button covers the rest.
-				if album.inLibrary || Self.artistId(of: album.artist) != nil {
-					ToolbarOverflowMenu {
-						if let artistId = Self.artistId(of: album.artist) {
-							Button {
-								Navigator.shared.send(to: .artist(id: artistId))
-							} label: {
-								Label(String(localized: "view-artist"), systemImage: "person")
-							}
-							.tint(Color.primary)
+				ToolbarOverflowMenu {
+					if let artistId = Self.artistId(of: album.artist) {
+						Button {
+							Navigator.shared.send(to: .artist(id: artistId))
+						} label: {
+							Label(String(localized: "view-artist"), systemImage: "person")
 						}
+						.tint(Color.primary)
+					}
 
-						if album.inLibrary {
-							Divider()
+					ExternalLinkMenuItems(item: ExternalShareItem(title: album.title, artist: album.artist.name))
 
-							PinMenuButton(target: .album(album.id))
+						Button {
+							self.sharedImage = ShareCardContent(title: album.title, subtitle: album.artist.name, coverURL: album.coverArt?.coverArtURL(size: 1000))
+						} label: {
+							Label(String(localized: "share-as-image"), systemImage: "photo")
 						}
+						.tint(Color.primary)
+
+					if album.inLibrary {
+						Divider()
+
+						PinMenuButton(target: .album(album.id))
 					}
 				}
 			}
@@ -74,6 +83,10 @@ struct AlbumDetailView: View {
 		// choosing another release is a new load of the screen, not a new screen
 		.id(self.releaseId)
 		.navigationBarTitleDisplayMode(.inline)
+		.onDisappear { PreviewPlayer.shared.stop() }
+		.sheet(item: self.$sharedImage) { content in
+			ShareImageSheet(content: content)
+		}
 	}
 
 	private static func artistId(of artist: ArtistRef) -> String? {
@@ -201,39 +214,78 @@ struct AlbumDetailView: View {
 						Task { await reload() }
 					}
 				}
-			} else if !track.requested && !track.inLibrary {
-				Button {
-					self.request(track: track, reload: reload)
-				} label: {
-					Image(systemName: "arrow.down.circle")
-						.foregroundStyle(palette.primary)
+			} else if !track.inLibrary {
+				HStack(spacing: 14) {
+					self.previewButton(track, palette: palette)
+
+					if !track.requested {
+						Button {
+							self.request(track: track, reload: reload)
+						} label: {
+							Image(systemName: "arrow.down.circle")
+								.foregroundStyle(palette.primary)
+						}
+						.buttonStyle(.plain)
+						.accessibilityLabel(String(localized: "request"))
+						.disabled(NetworkMonitor.shared.isOffline)
+					}
 				}
-				.buttonStyle(.plain)
-				.disabled(NetworkMonitor.shared.isOffline)
 			}
 		}
+		let share = ExternalShareItem(title: track.title, artist: album.artist.name)
 
 		if let mediaId = track.mediaId {
 			// a track the user owns gets the menu every owned track has
 			row.libraryItemMenu(
 				item: .track(id: mediaId),
 				play: { [server = self.server] in try await LibraryItem.track(id: mediaId).playbackQueue(server: server) },
+				share: share,
 				onRemoved: { Task { await reload() } }
 			)
-		} else if track.released, !track.requested, !track.inLibrary {
-			// the row's own download arrow, for when the row is held instead of tapped
+		} else if track.released, !track.inLibrary {
+			// the row's own buttons, for when the row is held instead of tapped
 			row.contextMenu {
+				if !track.requested {
+					Button {
+						self.request(track: track, reload: reload)
+					} label: {
+						Label(String(localized: "request"), systemImage: "arrow.down.circle")
+					}
+					.tint(Color.primary)
+					.disabled(NetworkMonitor.shared.isOffline)
+				}
+
 				Button {
-					self.request(track: track, reload: reload)
+					PreviewPlayer.shared.toggle(tid: track.id, server: self.server)
 				} label: {
-					Label(String(localized: "request"), systemImage: "arrow.down.circle")
+					Label(String(localized: PreviewPlayer.shared.isActive(track.id) ? "stop-preview" : "play-preview"), systemImage: PreviewPlayer.shared.isActive(track.id) ? "stop.circle" : "play.circle")
 				}
 				.tint(Color.primary)
-				.disabled(NetworkMonitor.shared.isOffline)
+				.disabled(PreviewPlayer.shared.unavailableIds.contains(track.id) || NetworkMonitor.shared.isOffline)
+
+				Divider()
+
+				ExternalLinkMenuItems(item: share)
 			}
 		} else {
 			row
 		}
+	}
+
+	/// The 30 s iTunes preview of a track not in the library; says so when iTunes has none.
+	private func previewButton(_ track: TrackInfo, palette: CoverPalette) -> some View {
+		let preview = PreviewPlayer.shared
+		let unavailable = preview.unavailableIds.contains(track.id)
+		let label = unavailable ? String(localized: "no-preview") : String(localized: preview.isActive(track.id) ? "stop-preview" : "play-preview")
+		return Button {
+			preview.toggle(tid: track.id, server: self.server)
+		} label: {
+			Image(systemName: unavailable ? "speaker.slash" : preview.isActive(track.id) ? "stop.circle" : "play.circle")
+				.foregroundStyle(palette.primary)
+		}
+		.buttonStyle(.plain)
+		.accessibilityLabel(label)
+		.disabled(unavailable || NetworkMonitor.shared.isOffline)
 	}
 
 	@ViewBuilder

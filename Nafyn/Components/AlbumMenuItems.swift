@@ -19,6 +19,9 @@ struct AlbumMenuItems: View {
 	/// The album's artist (MusicBrainz ID) when the place knows it; otherwise it is fetched on "View Artist".
 	var artistId: String?
 
+	/// The album's artist name, with `title`, for "Open on YouTube" / "Share" (left out when either is unknown).
+	var artistName: String?
+
 	/// Called when "Delete downloads" is chosen. `nil` leaves the item out.
 	var onDeleteDownloads: (() -> Void)?
 
@@ -53,7 +56,19 @@ struct AlbumMenuItems: View {
 		}
 		.tint(Color.primary)
 
+		if let title = self.title {
+			ExternalLinkMenuItems(item: ExternalShareItem(title: title, artist: self.artistName))
+		}
+
 		Divider()
+
+		Button {
+			self.editMetadata()
+		} label: {
+			Label(String(localized: "edit-metadata"), systemImage: "pencil")
+		}
+		.tint(Color.primary)
+		.disabled(NetworkMonitor.shared.isOffline)
 
 		Button {
 			self.download()
@@ -97,6 +112,22 @@ struct AlbumMenuItems: View {
 				guard let server else { throw NafynError.unauthenticated }
 				let response: LibraryAlbumResponse = try await server.send(Library.album(id: albumId))
 				Navigator.shared.sheet = Navigator.Paths.addToPlaylist(mediaIds: response.tracks.map(\.id))
+			} catch {
+				ToastState.app.failure(error)
+			}
+		}
+	}
+
+	/// An album's edit is its tracks' edit (the shared fields only).
+	private func editMetadata() {
+		let albumId = self.albumId
+		let server = self.server
+		Task { @MainActor in
+			do {
+				guard let server else { throw NafynError.unauthenticated }
+				let response: LibraryAlbumResponse = try await server.send(Library.album(id: albumId))
+				PlayerEngine.shared.isExpanded = false
+				Navigator.shared.sheet = Navigator.Paths.editMetadata(trackIds: response.tracks.map(\.id))
 			} catch {
 				ToastState.app.failure(error)
 			}

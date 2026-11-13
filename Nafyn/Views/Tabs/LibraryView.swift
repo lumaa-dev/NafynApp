@@ -59,7 +59,8 @@ struct LibraryView: View {
 				await PinStore.shared.refresh(server: self.server)
 			}
 			.task {
-				guard let server else { return }
+				// once: the task runs again every time the library re-appears (coming back from My Tracks...)
+				guard self.me == nil, let server else { return }
 				self.me = try? await server.send(User.me) as NafynUser
 			}
 			.task {

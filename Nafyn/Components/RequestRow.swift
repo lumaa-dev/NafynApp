@@ -23,6 +23,12 @@ struct RequestRow: View {
 	/// the server refuses both cases anyway.
 	var onDelete: (() -> Void)? = nil
 
+	/// The logged-in user made this request, or has `manageRequests`: they may cancel it while it hasn't finished.
+	var canCancel: Bool = false
+
+	/// Asks the owner to cancel this request (the owner confirms and performs the server call).
+	var onCancel: (() -> Void)? = nil
+
 	private var effectiveStatus: RequestStatus {
 		self.observer.progress?.stage ?? self.request.status
 	}
@@ -31,9 +37,14 @@ struct RequestRow: View {
 		switch self.effectiveStatus {
 			case .searching, .downloading, .processing:
 				true
-			case .waiting, .completed, .failed, .denied:
+			case .waiting, .completed, .failed, .denied, .cancelled:
 				false
 		}
+	}
+
+	/// Waiting for a manager or in the pipeline: it can still be cancelled.
+	private var isCancellable: Bool {
+		self.isLive || self.effectiveStatus == .waiting
 	}
 
 	private var requesterName: String {
@@ -109,6 +120,15 @@ struct RequestRow: View {
 		}
 		.accessibilityAddTraits(.isButton)
 		.swipeActions(edge: .trailing, allowsFullSwipe: false) {
+			if self.canCancel, self.isCancellable, let onCancel {
+				Button {
+					onCancel()
+				} label: {
+					Label(String(localized: "cancel"), systemImage: "stop.circle")
+				}
+				.tint(DTColor.statusWaiting)
+				.disabled(NetworkMonitor.shared.isOffline)
+			}
 			if self.canManage, !self.isLive, let onDelete {
 				Button(role: .destructive) {
 					onDelete()
@@ -121,7 +141,7 @@ struct RequestRow: View {
 		}
 		.task(id: self.request.id) {
 			// denied is as terminal as completed/failed: nothing will ever stream for it
-			guard let server, self.request.status != .denied, self.request.status != .completed, self.request.status != .failed else { return }
+			guard let server, self.request.status != .denied, self.request.status != .completed, self.request.status != .failed, self.request.status != .cancelled else { return }
 			self.observer.connect(server: server, requestId: self.request.id)
 		}
 		.onDisappear {
@@ -174,6 +194,8 @@ struct RequestRow: View {
 		return switch self.effectiveStatus {
 			case .denied:
 				(DTColor.statusFailure, false, String(localized: "status-denied"))
+			case .cancelled:
+				(DTColor.statusFailure, false, String(localized: "status-cancelled"))
 			case .waiting:
 				(DTColor.statusWaiting, false, String(localized: "status-waiting"))
 			case .searching:

@@ -1,13 +1,22 @@
 {
-  "originHash" : "99061f87d3b89a1a6c2aa8ea3f6db5d619525c9032698b5f23b9438cbbadfd4f",
+  "originHash" : "2f61b3e5b137114e19149dddf957494f774ce940050cea92b4b7e8ed1bd5dad4",
   "pins" : [
+    {
+      "identity" : "discogskit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/The-Amber-Team/DiscogsKit",
+      "state" : {
+        "branch" : "main",
+        "revision" : "a2998ef5b3396f0d37e948503e86bf49f0e7255d"
+      }
+    },
     {
       "identity" : "safyn",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/lumaa-dev/Safyn",
       "state" : {
         "branch" : "main",
-        "revision" : "d9b806c903d9a085de018e45a7222d89dc90eced"
+        "revision" : "983be6b6d7bbf5e54589da01de3b1793ca9bf373"
       }
     },
     {

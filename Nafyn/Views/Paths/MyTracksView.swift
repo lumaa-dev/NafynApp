@@ -15,6 +15,9 @@ struct MyTracksView: View {
 	@State private var searchText = ""
 	@State private var sort: LibrarySort = .added
 
+	/// The search and order `paginator` was loaded for, so re-appearing doesn't load the same list again.
+	@State private var loadedKey: ListKey? = nil
+
 	/// What the list is asked for; a change starts it over from the server.
 	private struct ListKey: Equatable {
 		var search: String
@@ -91,9 +94,12 @@ struct MyTracksView: View {
 			}
 		}
 		// `id` runs this again on every change of the search or the order and cancels the previous run, so the
-		// sleep is the debounce; the first run (no list yet) goes straight through
+		// sleep is the debounce; the first run (no list yet) goes straight through. SwiftUI also restarts it
+		// each time the view re-appears (coming back from a screen pushed on top of it): the list already
+		// loaded for this search and order is kept then, scroll position and all, instead of starting over.
 		.task(id: self.listKey) {
 			guard let server else { return }
+			if self.paginator != nil, self.loadedKey == self.listKey { return }
 			if self.paginator != nil {
 				try? await Task.sleep(for: .milliseconds(350))
 				guard !Task.isCancelled else { return }
@@ -103,7 +109,12 @@ struct MyTracksView: View {
 				try await server.fetchLibraryPage(path: "/api/v1/library/tracks", page: page, limit: limit, query: key.search, sort: key.sort)
 			}
 			self.paginator = paginator
+			self.loadedKey = nil
 			await paginator.reset()
+			// a run cancelled mid-load (left before the first page came) loads again when the view is back
+			if !Task.isCancelled {
+				self.loadedKey = key
+			}
 		}
 		.searchable(text: self.$searchText, prompt: String(localized: "search-tracks"))
 		.toolbar {
@@ -240,7 +251,7 @@ struct MyTracksView: View {
 
 		// DESIGN.md "Library": a selected track row has no check box - a highlight and an outline say it
 		HStack(spacing: 8) {
-			TrackRow(coverURL: track.coverArt.flatMap { URL(string: $0) }, title: track.title, subtitle: track.artistName, duration: track.duration, fileSize: track.fileSize, onTap: {
+			TrackRow(coverURL: track.listCoverURL, title: track.title, subtitle: track.artistName, duration: track.duration, fileSize: track.fileSize, onTap: {
 				if isSelecting {
 					self.selection.toggle(track.id)
 				} else {
@@ -289,6 +300,7 @@ struct MyTracksView: View {
 		.libraryItemMenu(
 			item: .track(id: track.id),
 			play: { ([track], RecordContext(type: .track, refId: track.id)) },
+			share: ExternalShareItem(title: track.title, artist: track.artistName),
 			isEnabled: !isSelecting,
 			onRemoved: { self.paginator?.remove(where: { $0.id == track.id }) }
 		)

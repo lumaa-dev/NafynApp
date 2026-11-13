@@ -19,10 +19,12 @@ final class ToastState {
 
 	func success(_ text: String) {
 		self.current = ToastMessage(text: text, symbol: "checkmark.seal")
+		Task { @MainActor in Haptics.success() }
 	}
 
 	func failure(_ error: Error) {
 		self.current = ToastMessage(text: error.localizedDescription, symbol: "xmark.seal")
+		Task { @MainActor in Haptics.error() }
 	}
 }
 

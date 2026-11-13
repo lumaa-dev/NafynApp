@@ -10,6 +10,8 @@ struct TrackDetailView: View {
 
 	@State private var toast = ToastState()
 	@State private var isRequesting = false
+	/// "Share as Image" (DESIGN.md "Sharing": iOS only, one item at a time).
+	@State private var sharedImage: ShareCardContent?
 
 	var trackId: String
 
@@ -37,8 +39,7 @@ struct TrackDetailView: View {
 			.toolbar {
 				// DESIGN.md "Track/Album Detail view": an overflow menu with the actions of the track's row, minus the
 				// ones that would navigate back to this very screen
-				if track.detail.albumMbid != nil || Self.artistId(of: track.detail.info.artist) != nil {
-					ToolbarOverflowMenu {
+				ToolbarOverflowMenu {
 						if let albumMbid = track.detail.albumMbid {
 							Button {
 								Navigator.shared.send(to: .album(id: albumMbid))
@@ -56,11 +57,23 @@ struct TrackDetailView: View {
 							}
 							.tint(Color.primary)
 						}
-					}
+
+						ExternalLinkMenuItems(item: ExternalShareItem(title: track.detail.info.title, artist: track.detail.info.artist.name))
+
+						Button {
+							self.sharedImage = ShareCardContent(title: track.detail.info.title, subtitle: track.detail.info.artist.name, coverURL: track.detail.info.coverArt?.coverArtURL(size: 1000))
+						} label: {
+							Label(String(localized: "share-as-image"), systemImage: "photo")
+						}
+						.tint(Color.primary)
 				}
 			}
 		}
 		.navigationBarTitleDisplayMode(.inline)
+		.onDisappear { PreviewPlayer.shared.stop() }
+		.sheet(item: self.$sharedImage) { content in
+			ShareImageSheet(content: content)
+		}
 	}
 
 	private static func artistId(of artist: ArtistRef) -> String? {
@@ -108,14 +121,37 @@ struct TrackDetailView: View {
 				Task { await reload() }
 			}
 		} else if track.info.inLibrary != true {
-			Button {
-				self.request(track: track, reload: reload)
-			} label: {
-				Text("request")
-					.frame(maxWidth: .infinity)
+			let preview = PreviewPlayer.shared
+			let unavailable = preview.unavailableIds.contains(track.info.id)
+
+			HStack(spacing: 10) {
+				Button {
+					self.request(track: track, reload: reload)
+				} label: {
+					Text("request")
+						.frame(maxWidth: .infinity)
+				}
+				.buttonStyle(.filled())
+				.disabled(self.isRequesting || track.requested == true || NetworkMonitor.shared.isOffline)
+
+				// not in the library: its 30 s iTunes preview
+				Button {
+					preview.toggle(tid: track.info.id, server: self.server)
+				} label: {
+					Text(preview.isActive(track.info.id) ? "stop-preview" : "play-preview")
+						.frame(maxWidth: .infinity)
+				}
+				.buttonStyle(.hollow())
+				.disabled(unavailable || NetworkMonitor.shared.isOffline)
 			}
-			.buttonStyle(.filled())
-			.disabled(self.isRequesting || track.requested == true || NetworkMonitor.shared.isOffline)
+			.fixedSize(horizontal: false, vertical: true)
+
+			// DESIGN.md "Error messages": where the preview should have started
+			if unavailable {
+				Text("no-preview")
+					.font(DTFont.system(15))
+					.foregroundStyle(palette.secondary)
+			}
 		}
 	}
 

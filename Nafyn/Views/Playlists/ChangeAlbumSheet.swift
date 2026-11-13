@@ -8,22 +8,30 @@ import Safyn
 /// (``ChangeAlbumLibraryStep``), which is then looked up on MusicBrainz by its title and artist
 /// (``ChangeAlbumSearchStep``: searching the artist alone is unreliable when they have many releases). Picking
 /// the result runs `Library.changeAlbum`: the server takes the album's title, cover, date and the track's place
-/// on it, and moves the file. Mirrors the web app's `ChangeAlbumModal.vue`.
+/// on it, and moves the file. Mirrors the web app's `ChangeAlbumModal.vue`. The first step can be skipped ("Search
+/// online"): the album the track belongs on is often not in the library at all.
 struct ChangeAlbumSheet: View {
 	@Environment(\.server) private var server: NafynServer?
 
 	let trackId: String
 
+	/// The search step, from a library album or straight away (`nil`: the query starts from the track's artist).
+	fileprivate struct SearchStep: Hashable {
+		let libraryAlbum: AlbumRow?
+	}
+
 	@State private var track: MediaRow? = nil
-	@State private var path: [AlbumRow] = []
+	@State private var path: [SearchStep] = []
 
 	var body: some View {
 		NavigationStack(path: self.$path) {
 			ChangeAlbumLibraryStep(track: self.track) { album in
-				self.path.append(album)
+				self.path.append(SearchStep(libraryAlbum: album))
+			} onSkip: {
+				self.path.append(SearchStep(libraryAlbum: nil))
 			}
-			.navigationDestination(for: AlbumRow.self) { album in
-				ChangeAlbumSearchStep(trackId: self.trackId, track: self.track, libraryAlbum: album)
+			.navigationDestination(for: SearchStep.self) { step in
+				ChangeAlbumSearchStep(trackId: self.trackId, track: self.track, libraryAlbum: step.libraryAlbum)
 			}
 		}
 		.sheetBackground()
@@ -43,6 +51,8 @@ private struct ChangeAlbumLibraryStep: View {
 
 	let track: MediaRow?
 	let onPick: (AlbumRow) -> Void
+	/// Straight to the online search, without picking a library album first.
+	let onSkip: () -> Void
 
 	@State private var paginator: Paginator<AlbumRow>? = nil
 	@State private var searchText = ""
@@ -59,6 +69,16 @@ private struct ChangeAlbumLibraryStep: View {
 					.foregroundStyle(DTColor.textPrimary.opacity(0.7))
 					.listRowBackground(Color.clear)
 			}
+
+			Button {
+				self.onSkip()
+			} label: {
+				Label(String(localized: "change-album-search-online"), systemImage: "magnifyingglass")
+					.font(DTFont.system(17))
+					.foregroundStyle(DTColor.textPrimary)
+			}
+			.tint(Color.primary)
+			.listRowBackground(Color.clear)
 
 			if let paginator {
 				ForEach(paginator.items) { album in
@@ -173,7 +193,7 @@ private struct ChangeAlbumSearchStep: View {
 
 	let trackId: String
 	let track: MediaRow?
-	let libraryAlbum: AlbumRow
+	let libraryAlbum: AlbumRow?
 
 	@State private var query: String
 	@State private var albums: [MediaInfo] = []
@@ -187,11 +207,12 @@ private struct ChangeAlbumSearchStep: View {
 	@State private var hasStartedSearching = false
 	@State private var lastSearched = ""
 
-	init(trackId: String, track: MediaRow?, libraryAlbum: AlbumRow) {
+	init(trackId: String, track: MediaRow?, libraryAlbum: AlbumRow?) {
 		self.trackId = trackId
 		self.track = track
 		self.libraryAlbum = libraryAlbum
-		self._query = State(initialValue: "\(libraryAlbum.title) \(libraryAlbum.artistName)")
+		// skipped the library: start from the track's artist, the person types the album
+		self._query = State(initialValue: libraryAlbum.map { "\($0.title) \($0.artistName)" } ?? track.map { "\($0.artistName) " } ?? "")
 	}
 
 	var body: some View {

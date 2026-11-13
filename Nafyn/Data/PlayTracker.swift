@@ -30,6 +30,20 @@ final class PlayTracker {
 		self.settings?.historyEnabled ?? false
 	}
 
+	/// Plays are scrobbled to Last.fm (server side, from these same events), so they are reported even with the
+	/// listening history off - the server then scrobbles them and stores nothing.
+	private(set) var scrobbling = false
+
+	/// Whether finished plays are queued and sent: the history or Last.fm wants them.
+	var capturesPlays: Bool {
+		self.historyEnabled || self.scrobbling
+	}
+
+	/// Settings → Last.fm changed the connection.
+	func setScrobbling(_ scrobbling: Bool) {
+		self.scrobbling = scrobbling
+	}
+
 	/// Plays shorter than this are dropped rather than sent — a skip isn't a listen.
 	private static let minimumPlayedMs: Int = 5_000
 
@@ -103,6 +117,7 @@ final class PlayTracker {
 		let settings: InsightsSettings? = try? await server.send(Insights.settings)
 		if let settings {
 			self.settings = settings
+			self.scrobbling = settings.scrobbling ?? false
 			await self.syncTimeZoneIfNeeded(settings)
 		}
 		return settings
@@ -118,7 +133,7 @@ final class PlayTracker {
 		)
 		self.settings = updated
 
-		if !enabled {
+		if !enabled, !self.scrobbling {
 			// Nothing already queued is worth keeping: the server would discard it, and holding it would
 			// silently ship the user's opted-out listening the next time they switch the setting back on.
 			self.session = nil
@@ -160,7 +175,12 @@ final class PlayTracker {
 	/// Opens a session for a freshly started track, closing any session still open for the previous one.
 	func began(track: MediaRow, source: PlayEventSource, playlistId: String?) {
 		self.finished(completed: false)
-		guard self.historyEnabled else { return }
+		if self.scrobbling, let server {
+			// Last.fm's "now playing"; the scrobble itself comes from this play's event
+			let mediaId = track.id
+			Task { _ = try? await server.sendRaw(User.lastfmNowPlaying(mediaId: mediaId)) }
+		}
+		guard self.capturesPlays else { return }
 
 		self.session = Session(
 			eventId: UUID().uuidString,
@@ -194,7 +214,7 @@ final class PlayTracker {
 		self.session = nil
 
 		let playedMs = session.playedMs()
-		guard self.historyEnabled, playedMs >= Self.minimumPlayedMs else { return }
+		guard self.capturesPlays, playedMs >= Self.minimumPlayedMs else { return }
 
 		let event = StoredPlayEvent(
 			eventId: session.eventId,
@@ -245,7 +265,17 @@ final class PlayTracker {
 			self.pending.removeAll { sentIds.contains($0.eventId) }
 			Self.savePending(self.pending)
 
-			if !response.historyEnabled {
+			self.scrobbling = response.scrobbling ?? false
+			if !response.historyEnabled, self.settings?.historyEnabled == true {
+				self.settings = InsightsSettings(
+					historyEnabled: false,
+					enabledAt: self.settings?.enabledAt,
+					disabledAt: self.settings?.disabledAt,
+					tzOffsetMinutes: self.settings?.tzOffsetMinutes ?? Self.localOffsetMinutes,
+					scrobbling: response.scrobbling
+				)
+			}
+			if !response.wantsEvents {
 				// The setting was switched off elsewhere; stop queueing until it's read again.
 				self.settings = InsightsSettings(
 					historyEnabled: false,

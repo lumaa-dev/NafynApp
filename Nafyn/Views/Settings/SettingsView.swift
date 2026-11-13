@@ -131,6 +131,12 @@ private struct SettingsForm: View {
 					.foregroundStyle(Color.primary)
 				}
 				.tint(Color.primary)
+
+				NavigationLink(value: Navigator.Paths.settingsLastfm) {
+					Label(String("Last.fm"), systemImage: "dot.radiowaves.left.and.right")
+						.foregroundStyle(Color.primary)
+				}
+				.tint(Color.primary)
 			}
 
 			Section {
@@ -158,6 +164,8 @@ private struct SettingsForm: View {
 			}
 
 			AppleMusicImportSection()
+
+			DiscogsImportSection()
 
 			ApiTokensSettingsSection()
 		}

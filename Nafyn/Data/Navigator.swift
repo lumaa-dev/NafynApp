@@ -107,6 +107,7 @@ final class Navigator {
 		case settingsUnity
 		case settingsNotifications
 		case settingsWebhooks
+		case settingsLastfm
 		case users
 		case musicYear(year: Int?)
 		case monthlyInsights(month: String?)
@@ -115,12 +116,15 @@ final class Navigator {
 		case yearComparison
 		case addToPlaylist(mediaIds: [String])
 		case changeAlbum(trackId: String)
+		case editMetadata(trackIds: [String])
+		/// A web page in a sheet (DESIGN.md "Links": never Safari directly).
+		case web(url: URL)
 
 		/// The destination screen. A path opened from a ``MusicCard`` zooms out of that card's cover; the
 		/// ones shown as a sheet never zoom.
 		var view: AnyView {
 			switch self {
-				case .addToPlaylist, .changeAlbum:
+				case .addToPlaylist, .changeAlbum, .web, .editMetadata:
 					self.screen
 				default:
 					AnyView(CardZoomDestination(path: self) { self.screen })
@@ -195,6 +199,10 @@ final class Navigator {
 					AnyView(SettingsSectionScreen(title: String(localized: "webhooks")) {
 						InstanceWebhooksSettingsSection()
 					})
+				case .settingsLastfm:
+					AnyView(SettingsSectionScreen(title: String("Last.fm")) {
+						LastfmSettingsSection()
+					})
 				case .users:
 					AnyView(UsersAdminView())
 				case .musicYear(let year):
@@ -211,6 +219,10 @@ final class Navigator {
 					AnyView(AddToPlaylistSheet(mediaIds: mediaIds))
 				case .changeAlbum(let trackId):
 					AnyView(ChangeAlbumSheet(trackId: trackId))
+				case .web(let url):
+					AnyView(WebSheet(url: url))
+				case .editMetadata(let trackIds):
+					AnyView(MediaEditSheet(trackIds: trackIds))
 			}
 		}
 

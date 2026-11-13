@@ -21,18 +21,23 @@ struct TrackMenuItems: View {
 	/// Called when "Delete" is chosen; the owner confirms and removes. `nil` leaves the item out.
 	var onDelete: (() -> Void)?
 
+	/// Title + artist for "Open on YouTube" / "Share", when only the ID is known (taken from `track` otherwise).
+	var share: ExternalShareItem?
+
 	init(track: MediaRow, showsViewTrack: Bool = true, onDelete: (() -> Void)? = nil) {
 		self.trackId = track.id
 		self.track = track
 		self.showsViewTrack = showsViewTrack
 		self.onDelete = onDelete
+		self.share = ExternalShareItem(title: track.title, artist: track.artistName)
 	}
 
-	init(trackId: String, showsViewTrack: Bool = true, onDelete: (() -> Void)? = nil) {
+	init(trackId: String, share: ExternalShareItem? = nil, showsViewTrack: Bool = true, onDelete: (() -> Void)? = nil) {
 		self.trackId = trackId
 		self.track = nil
 		self.showsViewTrack = showsViewTrack
 		self.onDelete = onDelete
+		self.share = share
 	}
 
 	var body: some View {
@@ -77,7 +82,20 @@ struct TrackMenuItems: View {
 			.tint(Color.primary)
 		}
 
+		if let share = self.share {
+			ExternalLinkMenuItems(item: share)
+		}
+
 		Divider()
+
+		Button {
+			PlayerEngine.shared.isExpanded = false
+			Navigator.shared.sheet = Navigator.Paths.editMetadata(trackIds: [self.trackId])
+		} label: {
+			Label(String(localized: "edit-metadata"), systemImage: "pencil")
+		}
+		.tint(Color.primary)
+		.disabled(NetworkMonitor.shared.isOffline)
 
 		Button {
 			PlayerEngine.shared.isExpanded = false

@@ -49,6 +49,23 @@ final class CoverArtLoader: @unchecked Sendable {
 		return self.server != nil
 	}
 
+	/// The absolute URL of a cover a user uploaded for track `mediaId` (`Library.cover`), token in the query since
+	/// `AsyncImage` can't send the Authorization header. `nil` while no server is bound.
+	func uploadedCoverURL(mediaId: String) -> URL? {
+		self.lock.lock()
+		let server = self.server
+		self.lock.unlock()
+		guard let server else { return nil }
+
+		let endpoint = Library.cover(id: mediaId, token: server.authToken)
+		guard var components = URLComponents(url: server.instance.baseURL, resolvingAgainstBaseURL: false) else { return nil }
+		components.path += endpoint.path
+		if !endpoint.queries.isEmpty {
+			components.queryItems = endpoint.queries
+		}
+		return components.url
+	}
+
 	// MARK: - Cache
 
 	/// An already-decoded image, if this cover was loaded before. Synchronous and cheap.

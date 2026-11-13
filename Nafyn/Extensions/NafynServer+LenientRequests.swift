@@ -51,7 +51,15 @@ extension NafynServer {
 		decoder.dateDecodingStrategy = .iso8601
 		do {
 			let envelope = try decoder.decode(RawPaginatedEnvelope<LenientNafynRequest>.self, from: data)
-			let requests = envelope.items.map { $0.resolved }.filter { filters.isEmpty || filters.contains(.denied) || $0.status != .denied }
+			let requests = envelope.items.map { $0.resolved }.filter { request in
+				// denied and cancelled have no server filter: they are always listed, so dropped here unless picked
+				if filters.isEmpty { return true }
+				switch request.status {
+					case .denied: return filters.contains(.denied)
+					case .cancelled: return filters.contains(.cancelled)
+					default: return true
+				}
+			}
 			return PaginatedResponse(items: requests, page: envelope.page, limit: envelope.limit, total: envelope.total, hasMore: envelope.hasMore)
 		} catch {
 			throw NafynError.decoding(String(describing: error))

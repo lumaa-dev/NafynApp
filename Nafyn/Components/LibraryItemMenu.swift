@@ -51,6 +51,7 @@ private struct LibraryItemMenuHost<Content: View>: View {
 	let item: LibraryItem?
 	let playQueue: PlaybackQueueLoader?
 	let pin: PinTarget?
+	let share: ExternalShareItem?
 	let onRemoved: (() -> Void)?
 	let isEnabled: Bool
 
@@ -108,11 +109,11 @@ private struct LibraryItemMenuHost<Content: View>: View {
 		}
 
 		if case .track(let id)? = self.item {
-			TrackMenuItems(trackId: id, onDelete: {
+			TrackMenuItems(trackId: id, share: self.share, onDelete: {
 				self.isConfirmingDelete = true
 			})
 		} else if case .album(let id)? = self.item {
-			AlbumMenuItems(albumId: id, onDeleteDownloads: {
+			AlbumMenuItems(albumId: id, title: self.share?.title, artistName: self.share?.artist, onDeleteDownloads: {
 				self.isConfirmingDeleteDownloads = true
 			}, onDelete: {
 				self.isConfirmingDelete = true
@@ -155,9 +156,10 @@ extension View {
 	/// (when `play` is given), then the track items or Delete for `item`, with the delete confirmation.
 	/// `onRemoved` runs after a successful delete so the owner can drop the entry from its list. `pin` is for what
 	/// isn't an owned track or album (a playlist): those two get their pin item from `item`.
-	/// `isEnabled: false` shows no menu at all (a list that is selecting).
-	func libraryItemMenu(item: LibraryItem?, play: PlaybackQueueLoader?, pin: PinTarget? = nil, isEnabled: Bool = true, onRemoved: (() -> Void)? = nil) -> some View {
-		LibraryItemMenuHost(content: self, item: item, playQueue: play, pin: pin, onRemoved: onRemoved, isEnabled: isEnabled)
+	/// `isEnabled: false` shows no menu at all (a list that is selecting). `share` (title + artist) adds "Open on
+	/// YouTube" / "Share" to a track or album's menu.
+	func libraryItemMenu(item: LibraryItem?, play: PlaybackQueueLoader?, pin: PinTarget? = nil, share: ExternalShareItem? = nil, isEnabled: Bool = true, onRemoved: (() -> Void)? = nil) -> some View {
+		LibraryItemMenuHost(content: self, item: item, playQueue: play, pin: pin, share: share, onRemoved: onRemoved, isEnabled: isEnabled)
 	}
 }
 

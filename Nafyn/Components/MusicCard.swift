@@ -50,6 +50,7 @@ struct MusicCard: View {
 		.libraryItemMenu(
 			item: self.entry.libraryItem,
 			play: self.entry.isPlayable ? { [entry = self.entry, server = self.server] in try await entry.playbackQueue(server: server) } : nil,
+			share: self.entry.libraryItem == nil ? nil : ExternalShareItem(title: self.entry.title, artist: self.entry.subtitle),
 			onRemoved: self.onRemoved
 		)
 	}
@@ -220,11 +221,11 @@ enum MusicCardEntry: Hashable {
 				if entry.type == .playlist {
 					return Self.playlistImageURL(pid: entry.refId, server: server)
 				}
-				return Self.artURL(entry.coverArt, size: size)
+				return Self.uploadedURL(entry.coverMediaId) ?? Self.artURL(entry.coverArt, size: size)
 			case .album(let album):
-				return Self.artURL(album.coverArt, size: size)
+				return album.coverURL(size: size)
 			case .media(let media):
-				return Self.artURL(media.coverArt, size: size)
+				return media.hasUploadedCover ? Self.uploadedURL(media.id) ?? Self.artURL(media.coverArt, size: size) : Self.artURL(media.coverArt, size: size)
 			case .playlist(let playlist):
 				guard playlist.image != nil else { return nil }
 				return Self.playlistImageURL(pid: playlist.id, server: server)
@@ -236,8 +237,13 @@ enum MusicCardEntry: Hashable {
 				if pin.kind == .playlist {
 					return Self.playlistImageURL(pid: pin.refId, server: server)
 				}
-				return Self.artURL(pin.coverArt, size: size)
+				return Self.uploadedURL(pin.coverMediaId) ?? Self.artURL(pin.coverArt, size: size)
 		}
+	}
+
+	/// A cover a user uploaded for that track wins over the archive's (the web app's `coverSrc`).
+	private static func uploadedURL(_ mediaId: String?) -> URL? {
+		mediaId.flatMap { CoverArtLoader.shared.uploadedCoverURL(mediaId: $0) }
 	}
 
 	/// What this card pins, if it stands for something pinnable (an owned track or album, a playlist).

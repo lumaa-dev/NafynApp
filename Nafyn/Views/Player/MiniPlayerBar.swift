@@ -66,7 +66,7 @@ struct MiniPlayerBar: View {
 				PlayerEngine.shared.isExpanded = true
 			}
 			// the same menu as a track row in the library, minus Play and Shuffle (it is playing already)
-			.libraryItemMenu(item: .track(id: track.id), play: nil) {
+			.libraryItemMenu(item: .track(id: track.id), play: nil, share: ExternalShareItem(title: track.title, artist: track.artistName)) {
 				// mirroring another device: it still has the track queued, so move it along
 				if PlaybackSource.isRemote, PlaybackSource.track?.id == track.id {
 					PlaybackSource.next()
@@ -99,7 +99,7 @@ struct MiniPlayerBar: View {
 
 	@ViewBuilder
 	private func cover(_ track: MediaRow) -> some View {
-		let image = CoverImage(url: track.coverArt.flatMap { URL(string: $0) })
+		let image = CoverImage(url: track.listCoverURL)
 			.frame(width: 44, height: 44)
 
 		// the player grows out of the cover itself, clipped to the cover's own rounded shape from the first frame

@@ -1,6 +1,159 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "add-to-%lld-playlists" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add to %lld playlist(s)"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajouter à %lld playlist(s)"
+          }
+        }
+      }
+    },
+    "admin" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Admin"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Administrateur"
+          }
+        }
+      }
+    },
+    "cancel-request" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancel Request"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Annuler la demande"
+          }
+        }
+      }
+    },
+    "change-album-search-online" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search Online Instead"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rechercher en ligne"
+          }
+        }
+      }
+    },
+    "change-image" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Change Image"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Changer l’image"
+          }
+        }
+      }
+    },
+    "import-discogs" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Import from Discogs"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Importer depuis Discogs"
+          }
+        }
+      }
+    },
+    "lyrics-share-count %lld %lld" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld / %2$lld characters"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld / %2$lld caractères"
+          }
+        }
+      }
+    },
+    "next" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Next"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suivant"
+          }
+        }
+      }
+    },
+    "no-preview" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No preview available"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucun extrait disponible"
+          }
+        }
+      }
+    },
     "·" : {
       "localizations" : {
         "en" : {
@@ -762,6 +915,23 @@
         }
       }
     },
+    "album-type-none" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "None"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucun"
+          }
+        }
+      }
+    },
     "albums" : {
       "localizations" : {
         "en" : {
@@ -1106,6 +1276,40 @@
         }
       }
     },
+    "autoaccept-albums" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Autoaccept albums"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Accepter automatiquement les albums"
+          }
+        }
+      }
+    },
+    "autoaccept-tracks" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Autoaccept tracks"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Accepter automatiquement les titres"
+          }
+        }
+      }
+    },
     "best-result" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -1171,6 +1375,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Annuler"
+          }
+        }
+      }
+    },
+    "cancel-request-confirm" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancel this request?"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Annuler cette demande ?"
+          }
+        }
+      }
+    },
+    "cancel-request-message" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tracks it already downloaded will be removed from the library."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les titres déjà téléchargés seront retirés de la bibliothèque."
           }
         }
       }
@@ -1694,6 +1932,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Chemin de la pochette"
+          }
+        }
+      }
+    },
+    "cover-art" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cover Art"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pochette"
           }
         }
       }
@@ -2737,6 +2992,23 @@
         }
       }
     },
+    "edit-metadata" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edit Metadata"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modifier les métadonnées"
+          }
+        }
+      }
+    },
     "edit-playlist" : {
       "localizations" : {
         "en" : {
@@ -2749,6 +3021,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Modifier la playlist"
+          }
+        }
+      }
+    },
+    "edit-tracks %lld" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edit %lld Tracks"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modifier %lld titres"
           }
         }
       }
@@ -3870,6 +4159,176 @@
         }
       }
     },
+    "import-discogs-already-requested %lld" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld already requested"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld déjà demandé(s)"
+          }
+        }
+      }
+    },
+    "import-discogs-empty" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This Discogs collection is empty."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cette collection Discogs est vide."
+          }
+        }
+      }
+    },
+    "import-discogs-footer" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Request every album of your public Discogs collection. Albums already in your library or already requested are skipped."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Demander tous les albums de votre collection Discogs publique. Les albums déjà dans votre bibliothèque ou déjà demandés sont ignorés."
+          }
+        }
+      }
+    },
+    "import-discogs-hint" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The collection must be public on Discogs."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La collection doit être publique sur Discogs."
+          }
+        }
+      }
+    },
+    "import-discogs-not-found %lld" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld not found"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld introuvable(s)"
+          }
+        }
+      }
+    },
+    "import-discogs-progress %lld %lld" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld of %2$lld albums processed"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld albums traités sur %2$lld"
+          }
+        }
+      }
+    },
+    "import-discogs-reading" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reading your Discogs collection…"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lecture de votre collection Discogs…"
+          }
+        }
+      }
+    },
+    "import-discogs-requested %lld" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld album(s) requested"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld album(s) demandé(s)"
+          }
+        }
+      }
+    },
+    "import-discogs-start" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Import Collection"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Importer la collection"
+          }
+        }
+      }
+    },
+    "import-discogs-unreadable" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn’t read this Discogs collection. Check the username, and that the collection is public."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossible de lire cette collection Discogs. Vérifiez le nom d’utilisateur et que la collection est publique."
+          }
+        }
+      }
+    },
     "import-not-imported" : {
       "comment" : "Apple Music import report: tracks that were skipped or failed (AppleMusicImportSheet)",
       "localizations" : {
@@ -4492,6 +4951,159 @@
         }
       }
     },
+    "keep-request" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keep"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Garder"
+          }
+        }
+      }
+    },
+    "lastfm-account" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Account"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Compte"
+          }
+        }
+      }
+    },
+    "lastfm-connect" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connect Last.fm"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connecter Last.fm"
+          }
+        }
+      }
+    },
+    "lastfm-connect-failed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn’t connect your Last.fm account"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossible de connecter votre compte Last.fm"
+          }
+        }
+      }
+    },
+    "lastfm-connected" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Last.fm account connected"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Compte Last.fm connecté"
+          }
+        }
+      }
+    },
+    "lastfm-disconnect" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disconnect Last.fm"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Déconnecter Last.fm"
+          }
+        }
+      }
+    },
+    "lastfm-footer" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nafyn scrobbles everything you play, on every device and app, to your Last.fm account."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nafyn scrobble tout ce que vous écoutez, sur tous vos appareils et applis, vers votre compte Last.fm."
+          }
+        }
+      }
+    },
+    "lastfm-scrobbling" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scrobble"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scrobbler"
+          }
+        }
+      }
+    },
+    "lastfm-unavailable" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Last.fm scrobbling isn’t set up on this server."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le scrobbling Last.fm n’est pas configuré sur ce serveur."
+          }
+        }
+      }
+    },
     "lastfm-username" : {
       "localizations" : {
         "en" : {
@@ -4664,6 +5276,74 @@
         }
       }
     },
+    "manage-accounts" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Manage accounts"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gérer les comptes"
+          }
+        }
+      }
+    },
+    "manage-music" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Manage music"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gérer la musique"
+          }
+        }
+      }
+    },
+    "manage-notifications" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Manage notifications"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gérer les notifications"
+          }
+        }
+      }
+    },
+    "manage-requests" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Manage requests"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gérer les demandes"
+          }
+        }
+      }
+    },
     "manage-users" : {
       "localizations" : {
         "en" : {
@@ -4676,6 +5356,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Gérer les utilisateurs"
+          }
+        }
+      }
+    },
+    "manage-webhooks" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Manage webhooks"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gérer les webhooks"
           }
         }
       }
@@ -5495,6 +6192,23 @@
         }
       }
     },
+    "open-on-youtube" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open on YouTube"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ouvrir sur YouTube"
+          }
+        }
+      }
+    },
     "open-registration" : {
       "comment" : "server admin toggle: allow anyone to self-register without an invite token (AccountsSettingsSection)",
       "localizations" : {
@@ -5892,6 +6606,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Lire un titre"
+          }
+        }
+      }
+    },
+    "play-preview" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preview"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Extrait"
           }
         }
       }
@@ -6486,6 +7217,23 @@
         }
       }
     },
+    "release-date" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Release Date"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Date de sortie"
+          }
+        }
+      }
+    },
     "release-date-unknown" : {
       "localizations" : {
         "en" : {
@@ -6590,6 +7338,23 @@
         }
       }
     },
+    "remove-uploaded-cover" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove Uploaded Cover"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Retirer la pochette importée"
+          }
+        }
+      }
+    },
     "Removed from %@." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -6625,6 +7390,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Retire des titres de l'une de vos playlists. Ils restent dans votre bibliothèque."
+          }
+        }
+      }
+    },
+    "reorder" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reorder"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Réorganiser"
           }
         }
       }
@@ -6758,6 +7540,40 @@
         }
       }
     },
+    "request-albums" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Request albums"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Demander des albums"
+          }
+        }
+      }
+    },
+    "request-cancelled" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Request cancelled"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Demande annulée"
+          }
+        }
+      }
+    },
     "request-sent" : {
       "localizations" : {
         "en" : {
@@ -6770,6 +7586,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Demande envoyée"
+          }
+        }
+      }
+    },
+    "request-tracks" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Request tracks"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Demander des titres"
           }
         }
       }
@@ -7171,6 +8004,57 @@
         }
       }
     },
+    "share-as-image" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Share as Image"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Partager en image"
+          }
+        }
+      }
+    },
+    "share-image" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Share Image"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Partager l’image"
+          }
+        }
+      }
+    },
+    "share-lyrics" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Share Lyrics"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Partager les paroles"
+          }
+        }
+      }
+    },
     "show-duration" : {
       "comment" : "Settings toggle: show track duration in track lists",
       "localizations" : {
@@ -7436,6 +8320,23 @@
         }
       }
     },
+    "status-cancelled" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancelled"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Annulée"
+          }
+        }
+      }
+    },
     "status-completed" : {
       "comment" : "download request status badge (RequestRow)",
       "localizations" : {
@@ -7566,6 +8467,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "En attente"
+          }
+        }
+      }
+    },
+    "stop-preview" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stop Preview"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arrêter l’extrait"
           }
         }
       }
@@ -7824,6 +8742,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tri des titres"
+          }
+        }
+      }
+    },
+    "track-number" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Track Number"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Numéro de piste"
           }
         }
       }
@@ -8155,6 +9090,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "UPC"
+          }
+        }
+      }
+    },
+    "upload-cover" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Upload Cover"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Importer une pochette"
           }
         }
       }

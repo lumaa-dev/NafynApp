@@ -13,6 +13,9 @@ struct MyAlbumsView: View {
 	@State private var searchText = ""
 	@State private var sort: LibrarySort = .added
 
+	/// The search and order `paginator` was loaded for, so re-appearing doesn't load the same list again.
+	@State private var loadedKey: ListKey? = nil
+
 	/// What the list is asked for; a change starts it over from the server.
 	private struct ListKey: Equatable {
 		var search: String
@@ -53,9 +56,12 @@ struct MyAlbumsView: View {
 		.contentColumn(maxWidth: DTLayout.gridWidth)
 		.background(DTColor.background.ignoresSafeArea())
 		// `id` runs this again on every change of the search or the order and cancels the previous run, so the
-		// sleep is the debounce; the first run (no list yet) goes straight through
+		// sleep is the debounce; the first run (no list yet) goes straight through. SwiftUI also restarts it
+		// each time the view re-appears (coming back from a screen pushed on top of it): the list already
+		// loaded for this search and order is kept then, scroll position and all, instead of starting over.
 		.task(id: self.listKey) {
 			guard let server else { return }
+			if self.paginator != nil, self.loadedKey == self.listKey { return }
 			if self.paginator != nil {
 				try? await Task.sleep(for: .milliseconds(350))
 				guard !Task.isCancelled else { return }
@@ -65,7 +71,12 @@ struct MyAlbumsView: View {
 				try await server.fetchLibraryPage(path: "/api/v1/library/albums", page: page, limit: limit, query: key.search, sort: key.sort)
 			}
 			self.paginator = paginator
+			self.loadedKey = nil
 			await paginator.reset()
+			// a run cancelled mid-load (left before the first page came) loads again when the view is back
+			if !Task.isCancelled {
+				self.loadedKey = key
+			}
 		}
 		.searchable(text: self.$searchText, prompt: String(localized: "search-albums"))
 		.toolbar {

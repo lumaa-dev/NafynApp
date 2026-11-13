@@ -620,6 +620,12 @@ final class PlayerEngine: NSObject {
 		if self.repeatMode == .track {
 			self.seek(to: 0)
 			self.player?.play()
+			// Every time round is a listen of its own (repeat listening is counted in full, see the server's
+			// insights rules): the session closed above is not reopened by anything else, since the item never
+			// changes, so without this only the first play of a looped track ever reached the statistics.
+			if let track = self.currentTrack {
+				PlayTracker.shared.began(track: track, source: self.playSource, playlistId: self.playPlaylistId)
+			}
 		} else {
 			self.next()
 		}

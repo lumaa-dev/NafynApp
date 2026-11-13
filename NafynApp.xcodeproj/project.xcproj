@@ -30,6 +30,12 @@
       "version": {
         "branch": "main",
       },
+    }, {
+      "kind": "remote",
+      "repository": "https://github.com/The-Amber-Team/DiscogsKit",
+      "version": {
+        "branch": "main",
+      },
     },
   ],
   "files": [
@@ -138,6 +144,10 @@
       ],
       "package-product-members": [
         {
+          "package": "DiscogsKit",
+          "product-name": "DiscogsKit",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
           "package": "Safyn",
           "product-name": "Safyn",
           "build-phase": { "build-phase": "frameworks" },

@@ -10,6 +10,7 @@ struct RequestsView: View {
 	@State private var toast = ToastState()
 	@State private var me: NafynUser? = nil
 	@State private var pendingDelete: NafynRequest? = nil
+	@State private var pendingCancel: NafynRequest? = nil
 
 	/// Statuses to show; empty means "All". Several can be active at once.
 	@State private var filters: Set<RequestFilter> = []
@@ -42,6 +43,8 @@ struct RequestsView: View {
 							self.setStatus(of: request, to: status)
 						}, onDelete: {
 							self.pendingDelete = request
+						}, canCancel: self.canManage || self.isMine(request), onCancel: {
+							self.pendingCancel = request
 						})
 					}
 					// `PaginatedList` reads its paginator once: a new filter needs a new list
@@ -67,11 +70,25 @@ struct RequestsView: View {
 					self.delete(request)
 				}
 			}
+			.alert(
+				String(localized: "cancel-request-confirm"),
+				isPresented: Binding(get: { self.pendingCancel != nil }, set: { if !$0 { self.pendingCancel = nil } }),
+				presenting: self.pendingCancel
+			) { request in
+				Button(String(localized: "keep-request"), role: .cancel) {}
+				Button(String(localized: "cancel-request"), role: .destructive) {
+					self.cancel(request)
+				}
+			} message: { _ in
+				Text("cancel-request-message")
+			}
 			.task {
 				guard let server else { return }
 				if self.paginator == nil {
 					self.paginator = self.makePaginator(server: server)
 				}
+				// once: the task runs again every time the screen re-appears
+				guard self.me == nil else { return }
 				self.me = try? await server.send(User.me) as NafynUser
 			}
 		}
@@ -116,6 +133,33 @@ struct RequestsView: View {
 		self.listGeneration += 1
 	}
 
+	private func isMine(_ request: NafynRequest) -> Bool {
+		guard let me else { return false }
+		switch request.requestedBy {
+			case .user(let user): return user.id == me.id
+			case .id(let id): return id == me.id
+		}
+	}
+
+	/// The server stops a waiting request at once and one in the pipeline at its next step; the row's live socket
+	/// then reports `cancelled`, so the list row is only patched for the immediate case.
+	private func cancel(_ request: NafynRequest) {
+		guard let server else { return }
+		Task {
+			do {
+				let response: CancelRequestResponse = try await server.send(Request.cancel(id: request.id))
+				if response.status == .cancelled {
+					self.paginator?.update(id: request.id) { item in
+						item = NafynRequest(id: item.id, musicbrainzId: item.musicbrainzId, info: item.info, type: item.type, status: .cancelled, requestedBy: item.requestedBy, createdAt: item.createdAt, updatedAt: .now)
+					}
+				}
+				self.toast.success(String(localized: "request-cancelled"))
+			} catch {
+				self.toast.failure(error)
+			}
+		}
+	}
+
 	private func delete(_ request: NafynRequest) {
 		guard let server else { return }
 		Task {
@@ -153,6 +197,7 @@ enum RequestFilter: String, CaseIterable, Identifiable, Hashable {
 	case succeeded
 	case failed
 	case denied
+	case cancelled
 
 	var id: String { self.rawValue }
 
@@ -163,6 +208,7 @@ enum RequestFilter: String, CaseIterable, Identifiable, Hashable {
 			case .succeeded: String(localized: "status-completed")
 			case .failed: String(localized: "status-failed")
 			case .denied: String(localized: "status-denied")
+			case .cancelled: String(localized: "status-cancelled")
 		}
 	}
 
@@ -173,6 +219,7 @@ enum RequestFilter: String, CaseIterable, Identifiable, Hashable {
 			case .succeeded: "checkmark.circle"
 			case .failed: "exclamationmark.triangle"
 			case .denied: "xmark.circle"
+			case .cancelled: "stop.circle"
 		}
 	}
 }

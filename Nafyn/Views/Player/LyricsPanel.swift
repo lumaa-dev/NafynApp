@@ -41,6 +41,17 @@ struct LyricsPanel: View {
 	@State private var showsTranslation = false
 	@AppStorage(LyricsPanel.useSystemFontKey) private var useSystemFont = false
 
+	/// DESIGN.md "Lyrics Panel": tap-and-hold a paragraph opens "Share Lyrics" on it.
+	@State private var sharing: SharedParagraph?
+	/// A hold just opened the share sheet: the line's own tap (seek) that ends it is ignored.
+	@State private var heldParagraph = false
+
+	private struct SharedParagraph: Identifiable {
+		let lyrics: Lyrics
+		let paragraphId: String
+		var id: String { self.paragraphId }
+	}
+
 	var body: some View {
 		AsyncContentView(
 			load: { () async throws -> Lyrics? in
@@ -74,10 +85,22 @@ struct LyricsPanel: View {
 			ScrollView {
 				VStack(alignment: .leading, spacing: 18) {
 					ForEach(lyrics.paragraphs, id: \.id) { paragraph in
-						ForEach(paragraph.lines, id: \.id) { line in
-							self.lineView(line)
-								.id(line.id)
+						VStack(alignment: .leading, spacing: 18) {
+							ForEach(paragraph.lines, id: \.id) { line in
+								self.lineView(line)
+									.id(line.id)
+							}
 						}
+						.simultaneousGesture(LongPressGesture(minimumDuration: 0.5).onEnded { _ in
+							self.heldParagraph = true
+							Haptics.hold()
+							self.sharing = SharedParagraph(lyrics: lyrics, paragraphId: paragraph.id)
+							// a hold that didn't end on a line leaves no tap to swallow
+							Task {
+								try? await Task.sleep(for: .seconds(1))
+								self.heldParagraph = false
+							}
+						})
 					}
 				}
 				.padding()
@@ -105,6 +128,13 @@ struct LyricsPanel: View {
 			}
 			.task(id: self.trackId) {
 				self.sourceLanguage = Self.detectLanguage(of: lyrics)
+			}
+			.sheet(item: self.$sharing) { shared in
+				LyricsShareSheet(
+					lyrics: shared.lyrics,
+					track: PlaybackSource.track?.id == self.trackId ? PlaybackSource.track : nil,
+					initialParagraphId: shared.paragraphId
+				)
 			}
 		}
 	}
@@ -201,21 +231,37 @@ struct LyricsPanel: View {
 		}
 	}
 
+	/// How many lines already translated go with each batch as context.
+	private static let translationContextLines = 12
+
 	/// Translates in batches that fit the model's context window, one line out per line in. A batch that
 	/// fails is skipped (its lines just stay untranslated) rather than losing the whole song.
+	///
+	/// Every batch is a new session (one session for the whole song would overflow the on-device context window),
+	/// so each one is handed the lines just before it, with their translation, as context: a batch translated
+	/// alone lost the song's subject, its pronouns and the words already chosen for its recurring lines.
 	private static func translate(_ lines: [Lyrics.Line], from source: Locale.Language, to target: Locale.Language) async -> [String: String] {
 		let describe: (Locale.Language) -> String = { Locale.current.localizedString(forLanguageCode: $0.minimalIdentifier) ?? $0.minimalIdentifier }
 		let instructions = """
 		You translate song lyrics from \(describe(source)) to \(describe(target)). \
 		Translate faithfully, including profanity and slang, without censoring, softening or commenting. \
 		The input has one numbered line per lyric line, like "3: text". Answer with the same numbers and one \
-		translated line for each, in the same "3: text" form, and nothing else.
+		translated line for each, in the same "3: text" form, and nothing else. \
+		The input may start with the lines that come just before, already translated, after "Previous lines:" \
+		as "original => translation": they are context only. Keep the meaning, the voice and the word choices \
+		consistent with them (a line that repeats is translated the same way), and never answer them again.
 		"""
 
 		var result: [String: String] = [:]
+		// (original, translation) of every line translated so far, in order
+		var translated: [(String, String)] = []
 
 		for batch in lines.chunked(into: 20) {
-			let prompt = batch.enumerated().map { "\($0.offset + 1): \($0.element.text)" }.joined(separator: "\n")
+			let numbered = batch.enumerated().map { "\($0.offset + 1): \($0.element.text)" }.joined(separator: "\n")
+			let context = translated.suffix(Self.translationContextLines).map { "\($0.0) => \($0.1)" }
+			let prompt = context.isEmpty
+				? numbered
+				: "Previous lines:\n\(context.joined(separator: "\n"))\n\nTranslate:\n\(numbered)"
 			let session = LanguageModelSession(model: Self.permissiveModel, instructions: instructions)
 
 			guard let response = try? await session.respond(to: prompt) else { continue }
@@ -229,6 +275,12 @@ struct LyricsPanel: View {
 				let text = answer[answer.index(after: colon)...].trimmingCharacters(in: .whitespaces)
 				if !text.isEmpty {
 					result[batch[number - 1].id] = text
+				}
+			}
+
+			for line in batch {
+				if let text = result[line.id] {
+					translated.append((line.text, text))
 				}
 			}
 		}
@@ -268,6 +320,11 @@ struct LyricsPanel: View {
 		let sizeMultiplier: CGFloat = isBackground ? 0.75 : 1.0
 
 		Button {
+			// the end of a hold that opened "Share Lyrics" is not a tap to seek
+			if self.heldParagraph {
+				self.heldParagraph = false
+				return
+			}
 			PlaybackSource.seek(to: line.startTime)
 		} label: {
 			VStack(alignment: isAlt ? .trailing : .leading, spacing: 6) {

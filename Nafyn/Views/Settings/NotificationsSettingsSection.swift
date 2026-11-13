@@ -210,15 +210,17 @@ private struct FollowedReleasesSection: View {
 				}
 			}
 			.tint(Color.primary)
-
-			if subscription.notifiedAt == nil {
-				Button(String(localized: "unfollow")) {
-					self.unfollow(subscription)
-				}
-				.buttonStyle(.borderless)
-				.font(DTFont.text(.subheadline))
-				.disabled(NetworkMonitor.shared.isOffline)
+		}
+		// a swipe, not a button in the row (a released one stays listed for 30 days, as "Out now", and can be
+		// removed before then)
+		.swipeActions(edge: .trailing, allowsFullSwipe: true) {
+			Button(role: .destructive) {
+				self.unfollow(subscription)
+			} label: {
+				Label(String(localized: subscription.notifiedAt == nil ? "unfollow" : "remove"), systemImage: subscription.notifiedAt == nil ? "bell.slash" : "trash")
 			}
+			.tint(DTColor.dangerText)
+			.disabled(NetworkMonitor.shared.isOffline)
 		}
 	}
 
