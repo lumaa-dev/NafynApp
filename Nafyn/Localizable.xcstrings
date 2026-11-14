@@ -1,159 +1,6 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "add-to-%lld-playlists" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Add to %lld playlist(s)"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ajouter à %lld playlist(s)"
-          }
-        }
-      }
-    },
-    "admin" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Admin"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Administrateur"
-          }
-        }
-      }
-    },
-    "cancel-request" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cancel Request"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Annuler la demande"
-          }
-        }
-      }
-    },
-    "change-album-search-online" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Search Online Instead"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Rechercher en ligne"
-          }
-        }
-      }
-    },
-    "change-image" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Change Image"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Changer l’image"
-          }
-        }
-      }
-    },
-    "import-discogs" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Import from Discogs"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Importer depuis Discogs"
-          }
-        }
-      }
-    },
-    "lyrics-share-count %lld %lld" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$lld / %2$lld characters"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$lld / %2$lld caractères"
-          }
-        }
-      }
-    },
-    "next" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Next"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Suivant"
-          }
-        }
-      }
-    },
-    "no-preview" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No preview available"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aucun extrait disponible"
-          }
-        }
-      }
-    },
     "·" : {
       "localizations" : {
         "en" : {
@@ -653,6 +500,23 @@
         }
       }
     },
+    "add-to-%lld-playlists" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add to %lld playlist(s)"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajouter à %lld playlist(s)"
+          }
+        }
+      }
+    },
     "add-to-playlist" : {
       "localizations" : {
         "en" : {
@@ -796,6 +660,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ajoute des titres et des albums de votre bibliothèque à l'une de vos playlists."
+          }
+        }
+      }
+    },
+    "admin" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Admin"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Administrateur"
           }
         }
       }
@@ -1379,6 +1260,23 @@
         }
       }
     },
+    "cancel-request" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancel Request"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Annuler la demande"
+          }
+        }
+      }
+    },
     "cancel-request-confirm" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1473,6 +1371,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Choisissez l’album de votre bibliothèque auquel appartient « %1$@ » de %2$@. Vous le confirmez ensuite dans le catalogue."
+          }
+        }
+      }
+    },
+    "change-album-search-online" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search Online Instead"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rechercher en ligne"
+          }
+        }
+      }
+    },
+    "change-image" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Change Image"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Changer l’image"
           }
         }
       }
@@ -4159,6 +4091,23 @@
         }
       }
     },
+    "import-discogs" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Import from Discogs"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Importer depuis Discogs"
+          }
+        }
+      }
+    },
     "import-discogs-already-requested %lld" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -5260,6 +5209,23 @@
         }
       }
     },
+    "lyrics-share-count %lld %lld" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld / %2$lld characters"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld / %2$lld caractères"
+          }
+        }
+      }
+    },
     "lyrics-system-font" : {
       "localizations" : {
         "en" : {
@@ -5793,6 +5759,23 @@
         }
       }
     },
+    "next" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Next"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suivant"
+          }
+        }
+      }
+    },
     "Next Track" : {
       "localizations" : {
         "en" : {
@@ -5838,6 +5821,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Aucune playlist"
+          }
+        }
+      }
+    },
+    "no-preview" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No preview available"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucun extrait disponible"
           }
         }
       }
@@ -6188,6 +6188,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ouvrir le titre"
+          }
+        }
+      }
+    },
+    "open-on" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open on"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ouvrir sur"
           }
         }
       }
@@ -8038,6 +8055,23 @@
         }
       }
     },
+    "share-link" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Share Link"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Partager le lien"
+          }
+        }
+      }
+    },
     "share-lyrics" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -8857,6 +8891,7 @@
       }
     },
     "unfollow" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {

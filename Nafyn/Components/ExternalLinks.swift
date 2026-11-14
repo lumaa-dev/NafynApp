@@ -2,6 +2,7 @@
 
 import SwiftUI
 import WebKit
+import Safyn
 
 /// What a track or album is called, to find it on other services. Nafyn knows no Spotify/Deezer/... IDs, so every link
 /// is a search for "artist title" there (the same links as the web app's `app/utils/externalLinks.ts`).
@@ -47,39 +48,63 @@ enum ExternalService: String, CaseIterable, Identifiable {
 	}
 }
 
-/// "Open on YouTube" and "Share" > one search link per service, for a track or album's menu ("View" category).
-/// DESIGN.md "Links": a link opens in a sheet with a web view, not in Safari; "Sharing": one item at a time, through
-/// `ShareLink`.
+/// "Open on" > one search link per service, for a track or album's menu ("View" category): a web view in a sheet
+/// (DESIGN.md "Links": never Safari directly). Not sharing: DESIGN.md "Sharing" puts a private item (a library
+/// track or album) out of reach of "Share", and shares an item's own link - see ``CatalogShareMenu``.
 struct ExternalLinkMenuItems: View {
 	let item: ExternalShareItem
 
 	var body: some View {
 		let query = self.item.query
 		if !query.isEmpty {
-			if let youtube = ExternalService.youtube.searchURL(for: query) {
-				Button {
-					PlayerEngine.shared.isExpanded = false
-					Navigator.shared.sheet = Navigator.Paths.web(url: youtube)
-				} label: {
-					Label(String(localized: "open-on-youtube"), systemImage: "play.rectangle")
-				}
-				.tint(Color.primary)
-			}
-
 			Menu {
 				ForEach(ExternalService.allCases) { service in
 					if let url = service.searchURL(for: query) {
-						ShareLink(item: url, subject: Text(self.item.title)) {
-							Label(service.name, systemImage: "link")
+						Button {
+							PlayerEngine.shared.isExpanded = false
+							Navigator.shared.sheet = Navigator.Paths.web(url: url)
+						} label: {
+							Label(service.name, systemImage: "arrow.up.forward.app")
 						}
 						.tint(Color.primary)
 					}
 				}
 			} label: {
-				Label(String(localized: "share"), systemImage: "square.and.arrow.up")
+				Label(String(localized: "open-on"), systemImage: "arrow.up.forward.app")
 			}
 			.tint(Color.primary)
 		}
+	}
+}
+
+/// "Share" for a catalog track or album (not private: nobody's library): its link on this Nafyn server or its image
+/// (iOS only, 9:16), both through `ShareLink` (DESIGN.md "Sharing"). `path` is the item's page (`/t/<id>`, `/a/<id>`).
+struct CatalogShareMenu: View {
+	@Environment(\.server) private var server: NafynServer?
+
+	let path: String
+	let title: String
+	let onShareImage: () -> Void
+
+	var body: some View {
+		Menu {
+			if let url = self.server?.instance.baseURL.appending(path: self.path) {
+				ShareLink(item: url, subject: Text(self.title)) {
+					Label(String(localized: "share-link"), systemImage: "link")
+				}
+				.tint(Color.primary)
+			}
+
+			Button {
+				self.onShareImage()
+			} label: {
+				Label(String(localized: "share-as-image"), systemImage: "photo")
+			}
+			.tint(Color.primary)
+		} label: {
+			Label(String(localized: "share"), systemImage: "square.and.arrow.up")
+		}
+		.tint(Color.primary)
 	}
 }
 

@@ -200,7 +200,7 @@ struct MyTracksView: View {
 			} label: {
 				Label(String(localized: "delete-downloads"), systemImage: "arrow.down.circle.fill")
 			}
-			.tint(DTColor.dangerText)
+			.tint(Color.red)
 		}
 
 		Button(role: .destructive) {
@@ -208,7 +208,7 @@ struct MyTracksView: View {
 		} label: {
 			Label(String(localized: "delete"), systemImage: "trash")
 		}
-		.tint(DTColor.dangerText)
+		.tint(Color.red)
 		.disabled(NetworkMonitor.shared.isOffline)
 	}
 

@@ -173,7 +173,7 @@ private struct PlaylistDetailContent: View {
 					} label: {
 						Label(String(localized: "delete"), systemImage: "trash")
 					}
-					.tint(DTColor.dangerText)
+					.tint(Color.red)
 					.disabled(NetworkMonitor.shared.isOffline)
 				} else if self.detail.viewer.isMember {
 					Button(role: .destructive) {
@@ -181,7 +181,7 @@ private struct PlaylistDetailContent: View {
 					} label: {
 						Label(String(localized: "leave"), systemImage: "rectangle.portrait.and.arrow.right")
 					}
-					.tint(DTColor.dangerText)
+					.tint(Color.red)
 					.disabled(NetworkMonitor.shared.isOffline)
 				}
 			}
@@ -339,7 +339,7 @@ private struct PlaylistDetailContent: View {
 				} label: {
 					Label(String(localized: "remove-download"), systemImage: "arrow.down.circle.fill")
 				}
-				.tint(DTColor.dangerText)
+				.tint(Color.red)
 			} else {
 				Button {
 					DownloadManager.shared.downloadTrack(entry.media)
@@ -360,7 +360,7 @@ private struct PlaylistDetailContent: View {
 				} label: {
 					Label(String(localized: "Remove from Playlist"), systemImage: "minus.circle")
 				}
-				.tint(DTColor.dangerText)
+				.tint(Color.red)
 				.disabled(NetworkMonitor.shared.isOffline)
 			}
 		}

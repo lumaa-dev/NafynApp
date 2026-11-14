@@ -65,12 +65,9 @@ struct AlbumDetailView: View {
 
 					ExternalLinkMenuItems(item: ExternalShareItem(title: album.title, artist: album.artist.name))
 
-						Button {
-							self.sharedImage = ShareCardContent(title: album.title, subtitle: album.artist.name, coverURL: album.coverArt?.coverArtURL(size: 1000))
-						} label: {
-							Label(String(localized: "share-as-image"), systemImage: "photo")
-						}
-						.tint(Color.primary)
+					CatalogShareMenu(path: "a/\(album.id)", title: album.title) {
+						self.sharedImage = ShareCardContent(title: album.title, subtitle: album.artist.name, coverURL: album.coverArt?.coverArtURL(size: 1000))
+					}
 
 					if album.inLibrary {
 						Divider()

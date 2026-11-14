@@ -60,12 +60,9 @@ struct TrackDetailView: View {
 
 						ExternalLinkMenuItems(item: ExternalShareItem(title: track.detail.info.title, artist: track.detail.info.artist.name))
 
-						Button {
+						CatalogShareMenu(path: "t/\(track.detail.info.id)", title: track.detail.info.title) {
 							self.sharedImage = ShareCardContent(title: track.detail.info.title, subtitle: track.detail.info.artist.name, coverURL: track.detail.info.coverArt?.coverArtURL(size: 1000))
-						} label: {
-							Label(String(localized: "share-as-image"), systemImage: "photo")
 						}
-						.tint(Color.primary)
 				}
 			}
 		}

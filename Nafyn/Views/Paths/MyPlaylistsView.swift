@@ -147,7 +147,7 @@ struct MyPlaylistsView: View {
 		} label: {
 			Label(String(localized: "delete"), systemImage: "trash")
 		}
-		.tint(DTColor.dangerText)
+		.tint(Color.red)
 		.disabled(NetworkMonitor.shared.isOffline || self.deletablePlaylists.isEmpty)
 	}
 
