@@ -47,8 +47,8 @@ final class PlayTracker {
 	/// Plays shorter than this are dropped rather than sent — a skip isn't a listen.
 	private static let minimumPlayedMs: Int = 5_000
 
-	/// Events are flushed once this many are queued, and on every app background / track change.
-	private static let flushThreshold: Int = 10
+	/// The server takes 50 events per request (`MAX_BATCH_SIZE`); a longer offline queue is sent in several.
+	private static let maximumBatchSize: Int = 50
 
 	private static let pendingDefaultsKey = "insights.pendingEvents"
 
@@ -75,6 +75,9 @@ final class PlayTracker {
 	private var pending: [StoredPlayEvent]
 	private var isFlushing = false
 
+	/// A play was queued while a flush was already in flight; it goes out as soon as that flush ends.
+	private var flushAgain = false
+
 	private init() {
 		self.pending = Self.loadPending()
 
@@ -89,6 +92,19 @@ final class PlayTracker {
 				// Close the open session first: a backgrounded app may never come back, and an event
 				// that was only ever held in memory would be lost with it.
 				self.checkpointSession()
+				Task { await self.flush() }
+			}
+		}
+
+		// Plays finished in the background (a looped track on a locked phone) wait in the queue: send them as
+		// soon as the person is back instead of at the next threshold.
+		NotificationCenter.default.addObserver(
+			forName: UIApplication.willEnterForegroundNotification,
+			object: nil,
+			queue: .main
+		) { [weak self] _ in
+			MainActor.assumeIsolated {
+				guard let self else { return }
 				Task { await self.flush() }
 			}
 		}
@@ -228,9 +244,10 @@ final class PlayTracker {
 		self.pending.append(event)
 		Self.savePending(self.pending)
 
-		if self.pending.count >= Self.flushThreshold {
-			Task { await self.flush() }
-		}
+		// Every finished play goes out right away: a looped track (Repeat One) finishes one every few minutes, and
+		// holding them back until `flushThreshold` left the server (stats and the Last.fm scrobbles) behind for as
+		// long as the app stayed in the background. The batch is still sent in one request when several are waiting.
+		Task { await self.flush() }
 	}
 
 	/// Closes the open session so its listened time is queued before the app is suspended.
@@ -246,13 +263,24 @@ final class PlayTracker {
 
 	/// Sends every queued event, clearing them once the server has accepted the batch.
 	func flush() async {
-		guard let server, !self.isFlushing else { return }
+		guard let server else { return }
+		guard !self.isFlushing else {
+			self.flushAgain = true
+			return
+		}
 
-		let batch = self.pending
+		let batch = Array(self.pending.prefix(Self.maximumBatchSize))
 		guard !batch.isEmpty else { return }
 
 		self.isFlushing = true
-		defer { self.isFlushing = false }
+		defer {
+			self.isFlushing = false
+			// A play finished while this request was in flight, and it would otherwise wait for the next trigger.
+			if self.flushAgain, !self.pending.isEmpty {
+				self.flushAgain = false
+				Task { await self.flush() }
+			}
+		}
 
 		do {
 			let response: IngestPlayEventsResponse = try await server.send(
@@ -264,6 +292,7 @@ final class PlayTracker {
 			let sentIds = Set(batch.map(\.eventId))
 			self.pending.removeAll { sentIds.contains($0.eventId) }
 			Self.savePending(self.pending)
+			if !self.pending.isEmpty { self.flushAgain = true }
 
 			self.scrobbling = response.scrobbling ?? false
 			if !response.historyEnabled, self.settings?.historyEnabled == true {
