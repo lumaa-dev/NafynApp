@@ -558,7 +558,13 @@ final class PlayerEngine: NSObject {
 		if let player {
 			player.replaceCurrentItem(with: item)
 		} else {
-			self.player = AVPlayer(playerItem: item)
+			let player = AVPlayer(playerItem: item)
+			// Audio-only AirPlay: with external playback on, the stream (whose container can carry the
+			// embedded cover as a video track) is handed to the Apple TV / smart TV as a video session
+			// and the TV shows an empty video feed. Off, the audio goes out through the AirPlay audio
+			// route, and the TV shows the Now Playing metadata like for any music app.
+			player.allowsExternalPlayback = false
+			self.player = player
 		}
 		AudioReactivityEngine.shared.attach(to: item)
 
