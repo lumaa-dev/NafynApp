@@ -5792,6 +5792,23 @@
         }
       }
     },
+    "lyrics-submitted-by %@" : {
+      "comment" : "Unison lyrics credit after \"Lyrics from Unison ·\"; %@ is the submitter's name, which gets linked (LyricsPanel)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "submitted by %@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "proposé par %@"
+          }
+        }
+      }
+    },
     "no-lyrics" : {
       "localizations" : {
         "en" : {

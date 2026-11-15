@@ -102,6 +102,10 @@ struct LyricsPanel: View {
 							}
 						})
 					}
+
+					if let credit = lyrics.credit {
+						self.creditView(credit)
+					}
 				}
 				.padding()
 			}
@@ -137,6 +141,46 @@ struct LyricsPanel: View {
 				)
 			}
 		}
+	}
+
+	// MARK: - Credit
+
+	/// A provider's licence credit (Unison: "Lyrics from Unison · submitted by <name>"), each part linked.
+	/// DESIGN.md "Links": underlined, italic serif, and a tap opens the page in a web sheet, not Safari.
+	@ViewBuilder
+	private func creditView(_ credit: Lyrics.Credit) -> some View {
+		Text(Self.creditText(credit))
+			.font(DTFont.serif(16))
+			.foregroundStyle(DTColor.textPrimary.opacity(0.85))
+			.tint(DTColor.textPrimary)
+			.padding(.top, 12)
+			.environment(\.openURL, OpenURLAction { url in
+				Navigator.shared.sheet = Navigator.Paths.web(url: url)
+				return .handled
+			})
+	}
+
+	private static func creditText(_ credit: Lyrics.Credit) -> AttributedString {
+		func link(_ text: String, _ url: URL) -> AttributedString {
+			var part = AttributedString(text)
+			part.link = url
+			part.underlineStyle = .single
+			part.font = DTFont.serif(16).italic()
+			return part
+		}
+
+		var result = link(credit.text, credit.url)
+		if let submitter = credit.submitter {
+			result += AttributedString(" · ")
+			var by = AttributedString(String(localized: "lyrics-submitted-by \(submitter.name)"))
+			if let range = by.range(of: submitter.name) {
+				by[range].link = submitter.url
+				by[range].underlineStyle = .single
+				by[range].font = DTFont.serif(16).italic()
+			}
+			result += by
+		}
+		return result
 	}
 
 	// MARK: - Translation
