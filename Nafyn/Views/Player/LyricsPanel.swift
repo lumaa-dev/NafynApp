@@ -437,6 +437,25 @@ private struct SegmentTextView: View {
 	let isBackground: Bool
 	let useSystemFont: Bool
 
+	/// Share of the segment spent rising to full glow, and the share after which it starts falling back.
+	private static let glowRiseEnd: Float = 0.35
+	private static let glowHoldEnd: Float = 0.65
+
+	/// Glow intensity (0...1) at `t` (0...1, the segment's progress): ease-out up to 1, a short hold on 1,
+	/// then an ease-out back down to 0.
+	static func glowCurve(_ t: Float) -> Float {
+		let t = max(0, min(1, t))
+		if t < Self.glowRiseEnd {
+			let x = t / Self.glowRiseEnd
+			return 1 - pow(1 - x, 3)
+		} else if t <= Self.glowHoldEnd {
+			return 1
+		} else {
+			let x = (t - Self.glowHoldEnd) / (1 - Self.glowHoldEnd)
+			return pow(1 - x, 3)
+		}
+	}
+
 	var body: some View {
 		let currentTime = PlaybackSource.currentTime
 		let isActive = currentTime >= self.segment.startTime && currentTime < self.segment.endTime
@@ -451,15 +470,18 @@ private struct SegmentTextView: View {
 				let elapsed = max(0, currentTime - self.segment.startTime)
 				let rawT = duration > 0 ? Float(elapsed / duration) : 0
 				let clampedT = isActive ? max(0, min(1, rawT)) : 0
-				let glowProgress: Float = isActive ? Float(sin(Double.pi * Double(clampedT))) : 0
+				let glowProgress: Float = isActive ? Self.glowCurve(clampedT) : 0
 
+				// The glow is computed from the playback time every frame, so only the sweep (keyed on
+				// `isActive`) is animated: animating `clampedT` too would restart a segment-long animation
+				// on every tick and make the glow lag behind.
 				TextFlow(
 					txt,
 					progress: .constant((isActive || isPlayed) ? 1.0 : 0.0),
 					glowProgress: .constant(glowProgress),
 					glowStrength: 1.2
 				)
-				.animation(.linear(duration: isActive ? duration : 0), value: clampedT)
+				.animation(.linear(duration: isActive ? duration : 0), value: isActive)
 			} else {
 				TextFlow(txt, progress: .constant((isActive || isPlayed) ? 1.0 : 0.0))
 					.animation(.linear(duration: isActive ? duration : 0), value: isActive)
