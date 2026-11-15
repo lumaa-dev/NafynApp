@@ -124,6 +124,8 @@ struct NowPlayingView: View {
 			self.scrubber
 			self.transportControls
 				.padding(.top, 18)
+			self.airPlayRow
+				.padding(.top, 14)
 		}
 		.padding(.horizontal)
 		.padding(.top, self.activePanel == nil ? 20 : 12)
@@ -166,6 +168,8 @@ struct NowPlayingView: View {
 
 				self.scrubber
 				self.transportControls
+					.padding(.top, 8)
+				self.airPlayRow
 					.padding(.top, 8)
 			}
 			.frame(maxWidth: 460)
@@ -227,6 +231,8 @@ struct NowPlayingView: View {
 			self.scrubber
 			self.transportControls
 				.padding(.top, 18)
+			self.airPlayRow
+				.padding(.top, 14)
 		}
 		.frame(maxWidth: 460)
 		.frame(maxWidth: .infinity)
@@ -430,13 +436,13 @@ struct NowPlayingView: View {
 	@ViewBuilder
 	private var transportControls: some View {
 		HStack {
-			// AirPlay routes this device's own audio, so it means nothing while mirroring another device
+			// AirPlay lives in its own row below (`airPlayRow`); while mirroring another device the slot shows Unity
 			Group {
 				if PlaybackSource.isRemote {
 					Image(.nafynUnity)
 						.foregroundStyle(Color.white.opacity(0.85))
 				} else {
-					RoutePickerButton()
+					Color.clear
 						.frame(width: 22, height: 22)
 				}
 			}
@@ -474,6 +480,37 @@ struct NowPlayingView: View {
 				.frame(maxWidth: .infinity)
 		}
 		.buttonStyle(.plain)
+	}
+
+	/// The current output's symbol and name in a glass pill, with an invisible system route picker laid over
+	/// it so a tap anywhere on the pill opens the AirPlay/Bluetooth picker. AirPlay routes this device's own
+	/// audio, so the row is gone while mirroring another device through Unity.
+	@ViewBuilder
+	private var airPlayRow: some View {
+		if !PlaybackSource.isRemote {
+			let route = AudioRouteMonitor.shared
+
+			HStack {
+				Label {
+					Text(route.deviceName ?? String("AirPlay"))
+				} icon: {
+					route.deviceSymbol
+				}
+				.font(DTFont.text(.title3))
+				.foregroundStyle(Color.white)
+				.lineLimit(1)
+				.multilineTextAlignment(.leading)
+				.frame(minHeight: 39, maxHeight: 40, alignment: .leading)
+				.padding(.horizontal)
+				.overlay {
+					RoutePickerButton()
+						.zIndex(50)
+				}
+				.glassEffect(Glass.clear.tint(Color.black.opacity(0.4)).interactive())
+
+				Spacer()
+			}
+		}
 	}
 
 	/// A single glyph doing shuffle's job on tap and repeat's on long-press, mirroring Apple Music's own
@@ -529,18 +566,17 @@ struct NowPlayingView: View {
 	}
 }
 
-/// Native AirPlay/Bluetooth route picker — a real, functioning route switcher (not a decorative glyph),
-/// wrapping the system's own `AVRoutePickerView` since SwiftUI has no first-party equivalent.
+/// Native AirPlay/Bluetooth route picker, wrapping the system's own `AVRoutePickerView` since SwiftUI has no
+/// first-party equivalent. Its glyph is invisible: it only catches taps over the AirPlay pill's label.
 private struct RoutePickerButton: UIViewRepresentable {
 	func makeUIView(context: Context) -> AVRoutePickerView {
 		let view = AVRoutePickerView()
 		view.backgroundColor = .clear
 		view.prioritizesVideoDevices = false
+		view.tintColor = UIColor.clear
+		view.activeTintColor = UIColor.clear
 		return view
 	}
 
-	func updateUIView(_ uiView: AVRoutePickerView, context: Context) {
-		uiView.tintColor = UIColor.white
-		uiView.activeTintColor = UIColor(DTColor.accentStart)
-	}
+	func updateUIView(_ uiView: AVRoutePickerView, context: Context) {}
 }
