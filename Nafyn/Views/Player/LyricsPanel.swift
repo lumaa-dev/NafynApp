@@ -441,6 +441,9 @@ private struct SegmentTextView: View {
 	private static let glowRiseEnd: Float = 0.35
 	private static let glowHoldEnd: Float = 0.65
 
+	/// Matches the periodic time observer interval in `PlayerEngine`.
+	private static let tickDuration: TimeInterval = 0.1
+
 	/// Glow intensity (0...1) at `t` (0...1, the segment's progress): ease-out up to 1, a short hold on 1,
 	/// then an ease-out back down to 0.
 	static func glowCurve(_ t: Float) -> Float {
@@ -465,26 +468,30 @@ private struct SegmentTextView: View {
 
 		let isPlayed = currentTime >= self.segment.endTime
 
+		// The sweep is derived from the playback time on every tick, never from a segment-long animation
+		// started when the segment turned active: that animation knew nothing about where the playback
+		// really was, so a view (re)built mid-segment (the panel reopened, the app back from the
+		// background, a seek) restarted the sweep from zero and stayed behind the audio until the next
+		// segment. A tick-long animation only smooths the 0.1s steps of `PlayerEngine.currentTime`.
+		let elapsed = max(0, currentTime - self.segment.startTime)
+		let rawT = duration > 0 ? Float(elapsed / duration) : 0
+		let clampedT = isActive ? max(0, min(1, rawT)) : 0
+		let sweep: Float = isPlayed ? 1 : clampedT
+
 		Group {
 			if isLong {
-				let elapsed = max(0, currentTime - self.segment.startTime)
-				let rawT = duration > 0 ? Float(elapsed / duration) : 0
-				let clampedT = isActive ? max(0, min(1, rawT)) : 0
 				let glowProgress: Float = isActive ? Self.glowCurve(clampedT) : 0
 
-				// The glow is computed from the playback time every frame, so only the sweep (keyed on
-				// `isActive`) is animated: animating `clampedT` too would restart a segment-long animation
-				// on every tick and make the glow lag behind.
 				TextFlow(
 					txt,
-					progress: .constant((isActive || isPlayed) ? 1.0 : 0.0),
+					progress: .constant(sweep),
 					glowProgress: .constant(glowProgress),
 					glowStrength: 1.2
 				)
-				.animation(.linear(duration: isActive ? duration : 0), value: isActive)
+				.animation(.linear(duration: Self.tickDuration), value: sweep)
 			} else {
-				TextFlow(txt, progress: .constant((isActive || isPlayed) ? 1.0 : 0.0))
-					.animation(.linear(duration: isActive ? duration : 0), value: isActive)
+				TextFlow(txt, progress: .constant(sweep))
+					.animation(.linear(duration: Self.tickDuration), value: sweep)
 			}
 		}
 		.foregroundStyle(DTColor.textPrimary)
