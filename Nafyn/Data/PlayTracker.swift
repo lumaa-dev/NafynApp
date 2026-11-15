@@ -52,6 +52,9 @@ final class PlayTracker {
 
 	private static let pendingDefaultsKey = "insights.pendingEvents"
 
+	/// The play still open when the app went to the background, kept on disk in case the app is killed there.
+	private static let openSessionDefaultsKey = "insights.openSession"
+
 	/// One in-progress play. `accumulatedMs` grows only while playback is actually running, so pausing
 	/// a track for an hour doesn't turn into an hour of listening.
 	private struct Session {
@@ -71,7 +74,14 @@ final class PlayTracker {
 	}
 
 	private weak var server: NafynServer?
-	private var session: Session?
+	private var session: Session? {
+		didSet {
+			// the play is over (queued, dropped or discarded): its on-disk snapshot must not be recovered later
+			if self.session == nil {
+				Self.saveOpenSession(nil)
+			}
+		}
+	}
 	private var pending: [StoredPlayEvent]
 	private var isFlushing = false
 
@@ -81,6 +91,15 @@ final class PlayTracker {
 	private init() {
 		self.pending = Self.loadPending()
 
+		// The app was killed in the background while a play was open: that play ends here, with what was heard.
+		if let orphan = Self.loadOpenSession() {
+			Self.saveOpenSession(nil)
+			if orphan.durationMs >= Self.minimumPlayedMs {
+				self.pending.append(orphan)
+				Self.savePending(self.pending)
+			}
+		}
+
 		#if canImport(UIKit)
 		NotificationCenter.default.addObserver(
 			forName: UIApplication.didEnterBackgroundNotification,
@@ -89,8 +108,9 @@ final class PlayTracker {
 		) { [weak self] _ in
 			MainActor.assumeIsolated {
 				guard let self else { return }
-				// Close the open session first: a backgrounded app may never come back, and an event
-				// that was only ever held in memory would be lost with it.
+				// The open session is only snapshotted to disk, never closed: audio keeps playing in the
+				// background, and closing it here cut the track's play at the moment of locking the phone
+				// (too short for Last.fm's half-the-track rule) and left the rest of it unrecorded.
 				self.checkpointSession()
 				Task { await self.flush() }
 			}
@@ -229,19 +249,9 @@ final class PlayTracker {
 		guard let session = self.session else { return }
 		self.session = nil
 
-		let playedMs = session.playedMs()
-		guard self.capturesPlays, playedMs >= Self.minimumPlayedMs else { return }
+		guard self.capturesPlays, session.playedMs() >= Self.minimumPlayedMs else { return }
 
-		let event = StoredPlayEvent(
-			eventId: session.eventId,
-			trackId: session.trackId,
-			playlistId: session.playlistId,
-			startedAt: session.startedAt,
-			durationMs: min(playedMs, 86_400_000),
-			completed: completed,
-			source: session.source
-		)
-		self.pending.append(event)
+		self.pending.append(Self.event(for: session, completed: completed))
 		Self.savePending(self.pending)
 
 		// Every finished play goes out right away: a looped track (Repeat One) finishes one every few minutes, and
@@ -250,13 +260,27 @@ final class PlayTracker {
 		Task { await self.flush() }
 	}
 
-	/// Closes the open session so its listened time is queued before the app is suspended.
+	/// Writes the open session to disk without closing it, before the app is suspended.
 	///
-	/// A backgrounded app may be killed without ever running more code, so an event held only in memory
-	/// would be lost — closing it here writes it to the on-disk queue instead. Audio that keeps playing in
-	/// the background opens a fresh session on its next track change.
+	/// A backgrounded app may be killed without ever running more code, so a session held only in memory
+	/// would be lost. It is not queued here though: the server scrobbles and records an event once (its id
+	/// is ignored the second time), so a play must be sent when it is over, with everything that was heard.
+	/// The snapshot is picked up by `init` only if the app dies before that.
 	private func checkpointSession() {
-		self.finished(completed: false)
+		guard let session, self.capturesPlays else { return }
+		Self.saveOpenSession(Self.event(for: session, completed: false))
+	}
+
+	private static func event(for session: Session, completed: Bool) -> StoredPlayEvent {
+		StoredPlayEvent(
+			eventId: session.eventId,
+			trackId: session.trackId,
+			playlistId: session.playlistId,
+			startedAt: session.startedAt,
+			durationMs: min(session.playedMs(), 86_400_000),
+			completed: completed,
+			source: session.source
+		)
 	}
 
 	// MARK: - Flushing
@@ -331,6 +355,19 @@ final class PlayTracker {
 	private static func savePending(_ events: [StoredPlayEvent]) {
 		guard let data = try? JSONEncoder().encode(events) else { return }
 		UserDefaults.standard.set(data, forKey: Self.pendingDefaultsKey)
+	}
+
+	private static func loadOpenSession() -> StoredPlayEvent? {
+		guard let data = UserDefaults.standard.data(forKey: Self.openSessionDefaultsKey) else { return nil }
+		return try? JSONDecoder().decode(StoredPlayEvent.self, from: data)
+	}
+
+	private static func saveOpenSession(_ event: StoredPlayEvent?) {
+		guard let event, let data = try? JSONEncoder().encode(event) else {
+			UserDefaults.standard.removeObject(forKey: Self.openSessionDefaultsKey)
+			return
+		}
+		UserDefaults.standard.set(data, forKey: Self.openSessionDefaultsKey)
 	}
 }
 
