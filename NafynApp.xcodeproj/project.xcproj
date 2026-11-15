@@ -51,6 +51,12 @@
           "exclusions": [
             "Info.plist",
           ],
+        }, {
+          "target": "RemoteMediaSessionExtension",
+          "inclusions": [
+            "Data/DeviceManager.swift",
+            "Data/DeviceModels.swift",
+          ],
         },
       ],
     },

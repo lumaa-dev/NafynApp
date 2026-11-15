@@ -190,7 +190,7 @@ struct OnboardingView: View {
 				}
 
 				guard let serverUrl: URL = URL(string: url) else { throw NafynError.invalidURL }
-				let instance: NafynInstance = try await NafynInstance.connect(appName: "Nafyn on iOS", to: serverUrl)
+				let instance: NafynInstance = try await NafynInstance.connect(appName: "Nafyn on \(DeviceManager.shared.deviceName)", to: serverUrl)
 
 				self.serverUrl = url
 				self.instance = instance

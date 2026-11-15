@@ -159,7 +159,7 @@ actor UnityCommandLink {
 	private func connectedServer() async throws -> NafynServer {
 		if let server { return server }
 		guard let session = SharedSession.load() else { throw NafynError.unauthenticated }
-		let instance = try await NafynInstance.connect(appName: "Nafyn on iOS", to: session.baseURL)
+		let instance = try await NafynInstance.connect(appName: "Nafyn on \(DeviceManager.shared.deviceName)", to: session.baseURL)
 		let server = NafynServer(instance: instance, authToken: session.token)
 		self.server = server
 		return server

@@ -191,7 +191,7 @@ private struct AddLocalAccountSheet: View {
 				}
 
 				let normalizedServerURL = try self.normalizedServerURL()
-				let instance = try await NafynInstance.connect(appName: "Nafyn on iOS", to: normalizedServerURL)
+				let instance = try await NafynInstance.connect(appName: "Nafyn on \(DeviceManager.shared.deviceName)", to: normalizedServerURL)
 				let server = NafynServer(instance: instance)
 				let response: AuthResponse = try await server.send(Auth.login(username: self.username, password: self.password))
 

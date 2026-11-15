@@ -75,7 +75,7 @@ final class AppSession {
 	/// none. A network failure never logs in: the token is still good, the server is just unreachable.
 	static func connect(auth: AuthInfo, context: ModelContext) async throws -> NafynServer? {
 		guard let url = URL(string: auth.server) else { return nil }
-		let instance = try await NafynInstance.connect(appName: "Nafyn on iOS", to: url)
+		let instance = try await NafynInstance.connect(appName: "Nafyn on \(DeviceManager.shared.deviceName)", to: url)
 		let server = NafynServer(instance: instance, authToken: auth.token.isEmpty ? nil : auth.token)
 
 		if server.authToken != nil {
