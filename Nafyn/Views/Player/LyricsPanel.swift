@@ -1,14 +1,13 @@
 // Made by Lumaa
 
 import SwiftUI
-import TextFlowKit
 import NaturalLanguage
 import FoundationModels
 import Safyn
 
-/// Word/syllable-level "karaoke" lyrics, mirroring Apple Music Sing — ported from the Amber team's own
-/// working `TextFlowKit` integration (`LyricsViewer.swift`). The server sends Braccato's `Lyric[]` (Safyn's
-/// `Lyrics`); `LyricsLayout` turns it into the paragraphs → lines → timed segments this panel draws.
+/// Word/syllable-level "karaoke" lyrics, mirroring Apple Music Sing. The server sends Braccato's `Lyric[]`
+/// (Safyn's `Lyrics`); `LyricsLayout` turns it into the paragraphs → lines → timed segments this panel draws,
+/// and `KaraokeText` (`Lyrics/Rendering/`) sweeps each line word by word.
 struct LyricsPanel: View {
 	@Environment(\.server) private var server: NafynServer?
 
@@ -28,7 +27,10 @@ struct LyricsPanel: View {
 
 	var trackId: String
 
+	@Environment(\.accessibilityReduceMotion) private var reduceMotion
+
 	@State private var isUserScrolling = false
+	@State private var clock = LyricsClock()
 	@State private var scrollResumeTask: Task<Void, Never>? = nil
 
 	// MARK: Translation
@@ -81,10 +83,19 @@ struct LyricsPanel: View {
 
 	@ViewBuilder
 	private func lyricsView(_ lyrics: LyricsLayout) -> some View {
+		let activeBreak = self.activeBreak(in: lyrics)
+
 		ScrollViewReader { proxy in
 			ScrollView {
 				VStack(alignment: .leading, spacing: 18) {
 					ForEach(lyrics.paragraphs, id: \.id) { paragraph in
+						// only while it plays: the next lyric takes its place when it ends
+						if let pause = paragraph.breakBefore, pause == activeBreak {
+							self.breakView(pause)
+								.id(pause.id)
+								.transition(self.reduceMotion ? .opacity : .opacity.combined(with: .scale(scale: 0.85, anchor: .leading)))
+						}
+
 						VStack(alignment: .leading, spacing: 18) {
 							ForEach(paragraph.lines, id: \.id) { line in
 								self.lineView(line, synced: lyrics.isSynced)
@@ -108,6 +119,7 @@ struct LyricsPanel: View {
 					}
 				}
 				.padding()
+				.animation(.easeOut(duration: 0.25), value: activeBreak)
 			}
 			.scrollEdgeEffectStyle(.soft, for: .all)
 			.simultaneousGesture(DragGesture(minimumDistance: 0).onChanged { _ in
@@ -343,6 +355,7 @@ struct LyricsPanel: View {
 		}
 	}
 
+	/// The line being sung, or else the instrumental break playing.
 	private func activeLineId(in lyrics: LyricsLayout) -> String? {
 		let currentTime = PlaybackSource.currentTime
 		for paragraph in lyrics.paragraphs {
@@ -352,7 +365,24 @@ struct LyricsPanel: View {
 				}
 			}
 		}
-		return nil
+		return self.activeBreak(in: lyrics)?.id
+	}
+
+	private func activeBreak(in lyrics: LyricsLayout) -> LyricsLayout.Break? {
+		let currentTime = PlaybackSource.currentTime
+		return lyrics.paragraphs.lazy.compactMap(\.breakBefore).first { currentTime >= $0.startTime && currentTime < $0.endTime }
+	}
+
+	/// The countdown of an instrumental break, as tall as a line of lyrics and placed like one.
+	private func breakView(_ pause: LyricsLayout.Break) -> some View {
+		let clock = self.clock
+		return InstrumentalBreakView(
+			startTime: pause.startTime,
+			endTime: pause.endTime,
+			lyricFont: Self.font(32, useSystemFont: self.useSystemFont),
+			isPaused: !PlaybackSource.isPlaying,
+			time: { clock.time(at: $0) }
+		)
 	}
 
 	@ViewBuilder
@@ -381,18 +411,17 @@ struct LyricsPanel: View {
 						.foregroundStyle(isActive ? DTColor.textPrimary : DTColor.textPrimary.opacity(0.4))
 						.multilineTextAlignment(isAlt ? .trailing : .leading)
 				} else {
-					// Group syllables into their words (splitting on `endsWord`) so `FlowLayout` only
-					// wraps whole words onto new lines — syllables within a word sit flush against each
-					// other, matching how they read in `line.text`.
-					FlowLayout(alignment: isAlt ? .trailing : .leading, spacing: 5) {
-						ForEach(Self.wordGroups(from: line.segments), id: \.self) { group in
-							HStack(spacing: 0) {
-								ForEach(group, id: \.id) { segment in
-									SegmentTextView(segment: segment, isBackground: isBackground, useSystemFont: self.useSystemFont)
-								}
-							}
-						}
-					}
+					let words = Self.karaokeWords(line.segments)
+					KaraokeText(
+						KaraokeText.text(words)
+							.font(Self.font(isBackground ? 22 : 32, useSystemFont: self.useSystemFont))
+							.foregroundStyle(DTColor.textPrimary),
+						clock: self.karaokeClock(for: words, at: currentTime),
+						configuration: self.karaokeConfiguration
+					)
+					.multilineTextAlignment(isAlt ? .trailing : .leading)
+					// the line's own animations (scale, dimming) must not interpolate the renderer's clock
+					.transaction { $0.animation = nil }
 				}
 			}
 
@@ -411,92 +440,61 @@ struct LyricsPanel: View {
 		.buttonStyle(.plain)
 	}
 
-	private static func wordGroups(from segments: [LyricsLayout.Segment]) -> [[LyricsLayout.Segment]] {
-		guard !segments.isEmpty else { return [] }
-		var groups: [[LyricsLayout.Segment]] = []
-		var current: [LyricsLayout.Segment] = []
+	// MARK: - Karaoke
 
-		for segment in segments {
-			current.append(segment)
-			if segment.endsWord {
-				groups.append(current)
-				current = []
-			}
-		}
-		if !current.isEmpty {
-			groups.append(current)
-		}
+	/// The renderer's settings, from the panel's own styling: words not sung yet are dimmed like a line that
+	/// isn't active, and held words glow in the text's color.
+	private var karaokeConfiguration: KaraokeConfiguration {
+		var configuration = KaraokeConfiguration()
+		configuration.inactiveOpacity = 0.4
+		configuration.glow.color = DTColor.textPrimary
+		configuration.glow.minimumWordDuration = Self.longThreshold
+		return configuration
+	}
 
-		return groups
+	private static func karaokeWords(_ segments: [LyricsLayout.Segment]) -> [KaraokeWord] {
+		segments.map { segment in
+			KaraokeWord(
+				text: segment.text,
+				timing: WordTiming(start: segment.startTime, duration: segment.endTime - segment.startTime),
+				endsWord: segment.endsWord
+			)
+		}
+	}
+
+	/// Only a line whose words are moving reads the clock every frame; the others are drawn once, all unlit
+	/// before their window and all lit after it.
+	private func karaokeClock(for words: [KaraokeWord], at currentTime: TimeInterval) -> KaraokeText.Clock {
+		guard let window = KaraokeTiming.animationInterval(for: words.compactMap(\.timing), configuration: self.karaokeConfiguration) else {
+			return .fixed(currentTime)
+		}
+		// `currentTime` is up to one tick behind what the live clock shows
+		let margin = LyricsClock.maximumExtrapolation
+		if currentTime < window.lowerBound - margin { return .fixed(window.lowerBound - 1) }
+		if currentTime > window.upperBound + margin { return .fixed(window.upperBound + 1) }
+		let clock = self.clock
+		return .live(isPaused: !PlaybackSource.isPlaying, time: { clock.time(at: $0) })
 	}
 }
 
-/// One word/syllable within a lyric line — sweeps its `TextFlow` reveal to full over its own timed
-/// duration once active, exactly like `usePlayer`'s web-side highlight but rendered as an animated
-/// gradient sweep across the glyph instead of a discrete color flip.
-private struct SegmentTextView: View {
-	let segment: LyricsLayout.Segment
-	let isBackground: Bool
-	let useSystemFont: Bool
+/// `PlaybackSource.currentTime` moves in 0.1s ticks (`PlayerEngine`'s time observer, Nafyn Unity's remote clock).
+/// The line being sung reads it every frame, carried forward from the last tick while playing so its swipe moves
+/// smoothly; capped so a late tick never runs the lyrics ahead of the audio for long. A seek or a pause is just
+/// a new tick, so nothing else needs handling.
+private final class LyricsClock {
+	static let maximumExtrapolation: TimeInterval = 0.25
 
-	/// Share of the segment spent rising to full glow, and the share after which it starts falling back.
-	private static let glowRiseEnd: Float = 0.35
-	private static let glowHoldEnd: Float = 0.65
+	private var reported: TimeInterval = .nan
+	private var reportedAt = Date.distantPast
 
-	/// Matches the periodic time observer interval in `PlayerEngine`.
-	private static let tickDuration: TimeInterval = 0.1
-
-	/// Glow intensity (0...1) at `t` (0...1, the segment's progress): ease-out up to 1, a short hold on 1,
-	/// then an ease-out back down to 0.
-	static func glowCurve(_ t: Float) -> Float {
-		let t = max(0, min(1, t))
-		if t < Self.glowRiseEnd {
-			let x = t / Self.glowRiseEnd
-			return 1 - pow(1 - x, 3)
-		} else if t <= Self.glowHoldEnd {
-			return 1
-		} else {
-			let x = (t - Self.glowHoldEnd) / (1 - Self.glowHoldEnd)
-			return pow(1 - x, 3)
+	func time(at date: Date) -> TimeInterval {
+		let current = PlaybackSource.currentTime
+		if current != self.reported {
+			self.reported = current
+			self.reportedAt = date
 		}
-	}
-
-	var body: some View {
-		let currentTime = PlaybackSource.currentTime
-		let isActive = currentTime >= self.segment.startTime && currentTime < self.segment.endTime
-		let duration = self.segment.endTime - self.segment.startTime
-		let isLong = duration >= LyricsPanel.longThreshold
-		let txt = Text(self.segment.text).font(LyricsPanel.font(self.isBackground ? 22 : 32, useSystemFont: self.useSystemFont))
-
-		let isPlayed = currentTime >= self.segment.endTime
-
-		// The sweep is derived from the playback time on every tick, never from a segment-long animation
-		// started when the segment turned active: that animation knew nothing about where the playback
-		// really was, so a view (re)built mid-segment (the panel reopened, the app back from the
-		// background, a seek) restarted the sweep from zero and stayed behind the audio until the next
-		// segment. A tick-long animation only smooths the 0.1s steps of `PlayerEngine.currentTime`.
-		let elapsed = max(0, currentTime - self.segment.startTime)
-		let rawT = duration > 0 ? Float(elapsed / duration) : 0
-		let clampedT = isActive ? max(0, min(1, rawT)) : 0
-		let sweep: Float = isPlayed ? 1 : clampedT
-
-		Group {
-			if isLong {
-				let glowProgress: Float = isActive ? Self.glowCurve(clampedT) : 0
-
-				TextFlow(
-					txt,
-					progress: .constant(sweep),
-					glowProgress: .constant(glowProgress),
-					glowStrength: 1.2
-				)
-				.animation(.linear(duration: Self.tickDuration), value: sweep)
-			} else {
-				TextFlow(txt, progress: .constant(sweep))
-					.animation(.linear(duration: Self.tickDuration), value: sweep)
-			}
-		}
-		.foregroundStyle(DTColor.textPrimary)
+		guard PlaybackSource.isPlaying else { return current }
+		return current + min(max(0, date.timeIntervalSince(self.reportedAt)), Self.maximumExtrapolation)
 	}
 }
 
@@ -505,7 +503,8 @@ private struct SegmentTextView: View {
 /// is active exactly when `PlaybackSource.currentTime` is inside it, and a tap seeks to the right place).
 ///
 /// - A line's background vocal (its `isBackground` parts) becomes a line of its own under it, without its brackets.
-/// - Instrumental gaps are not lines. Syllable-timed lyrics keep one paragraph per line (a TTML `<p>`); line-timed
+/// - Instrumental gaps are not lines: in synced lyrics, one becomes the `breakBefore` of the paragraph after it, timed
+///   up to that paragraph's first line. Syllable-timed lyrics keep one paragraph per line (a TTML `<p>`); line-timed
 ///   and unsynced ones are grouped into verses, split where a blank or instrumental line was.
 struct LyricsLayout: Hashable {
 	struct Segment: Hashable, Identifiable {
@@ -528,9 +527,18 @@ struct LyricsLayout: Hashable {
 		let segments: [Segment]
 	}
 
+	/// An instrumental gap, from its start to the next lyric.
+	struct Break: Hashable, Identifiable {
+		let id: String
+		let startTime: TimeInterval
+		let endTime: TimeInterval
+	}
+
 	struct Paragraph: Hashable, Identifiable {
 		let id: String
 		let lines: [Line]
+		/// The instrumental gap just before this paragraph (synced lyrics only).
+		var breakBefore: Break? = nil
 	}
 
 	let paragraphs: [Paragraph]
@@ -546,16 +554,29 @@ struct LyricsLayout: Hashable {
 
 		var paragraphs: [Paragraph] = []
 		var verse: [Line] = []
+		/// Instrumental gap waiting for the paragraph after it (consecutive instrumental lines are one gap), and the
+		/// one the current verse starts with.
+		var pendingBreak: (id: String, startTime: TimeInterval)?
+		var verseBreak: Break?
+		func takeBreak(before lines: [Line]) -> Break? {
+			defer { pendingBreak = nil }
+			guard let pending = pendingBreak, let next = lines.map(\.startTime).min(), next > pending.startTime else { return nil }
+			return Break(id: "\(pending.id)-i", startTime: pending.startTime, endTime: next)
+		}
 		func closeVerse() {
 			guard !verse.isEmpty else { return }
-			paragraphs.append(Paragraph(id: verse[0].id, lines: verse))
+			paragraphs.append(Paragraph(id: verse[0].id, lines: verse, breakBefore: verseBreak))
 			verse = []
+			verseBreak = nil
 		}
 
 		for (index, source) in lyrics.lyrics.enumerated() {
 			let text = source.mainText
 			if source.instrumental || (text.isEmpty && source.backgroundText == nil) {
 				closeVerse()
+				if source.instrumental, lyrics.isSynced, pendingBreak == nil {
+					pendingBreak = ("\(index)", source.startTime + offset)
+				}
 				continue
 			}
 
@@ -594,8 +615,9 @@ struct LyricsLayout: Hashable {
 			}
 
 			if onePerLine {
-				paragraphs.append(Paragraph(id: "\(index)", lines: lines))
+				paragraphs.append(Paragraph(id: "\(index)", lines: lines, breakBefore: takeBreak(before: lines)))
 			} else {
+				if verse.isEmpty { verseBreak = takeBreak(before: lines) }
 				verse.append(contentsOf: lines)
 			}
 		}
