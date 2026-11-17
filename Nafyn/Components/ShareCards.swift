@@ -164,7 +164,7 @@ struct ShareImageSheet: View {
 /// DESIGN.md "Lyrics Panel": tap-and-hold a paragraph opens this. Paragraphs are picked one by one, up to 210
 /// characters in all (a paragraph that would go past it can't be added), and the card is shared as an image.
 struct LyricsShareSheet: View {
-	let lyrics: Lyrics
+	let lyrics: LyricsLayout
 	let track: MediaRow?
 	let initialParagraphId: String
 
@@ -172,7 +172,7 @@ struct LyricsShareSheet: View {
 	@State private var selected: [String] = []
 	@State private var preview: ShareCardContent?
 
-	private func text(of paragraph: Lyrics.Paragraph) -> [String] {
+	private func text(of paragraph: LyricsLayout.Paragraph) -> [String] {
 		paragraph.lines.map(\.text).filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty }
 	}
 
@@ -184,7 +184,7 @@ struct LyricsShareSheet: View {
 		self.selectedLines.joined(separator: "\n").count
 	}
 
-	private func fits(_ paragraph: Lyrics.Paragraph) -> Bool {
+	private func fits(_ paragraph: LyricsLayout.Paragraph) -> Bool {
 		let added = self.text(of: paragraph).joined(separator: "\n").count
 		return self.characterCount + added + (self.selected.isEmpty ? 0 : 1) <= ShareCardContent.maxLyricsCharacters
 	}

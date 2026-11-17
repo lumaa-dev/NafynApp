@@ -7,8 +7,8 @@ import FoundationModels
 import Safyn
 
 /// Word/syllable-level "karaoke" lyrics, mirroring Apple Music Sing — ported from the Amber team's own
-/// working `TextFlowKit` integration (`LyricsViewer.swift`), adapted from `AmberLyrics` to Safyn's
-/// `Lyrics` model (structurally identical: paragraphs → lines → timed segments).
+/// working `TextFlowKit` integration (`LyricsViewer.swift`). The server sends Braccato's `Lyric[]` (Safyn's
+/// `Lyrics`); `LyricsLayout` turns it into the paragraphs → lines → timed segments this panel draws.
 struct LyricsPanel: View {
 	@Environment(\.server) private var server: NafynServer?
 
@@ -47,7 +47,7 @@ struct LyricsPanel: View {
 	@State private var heldParagraph = false
 
 	private struct SharedParagraph: Identifiable {
-		let lyrics: Lyrics
+		let lyrics: LyricsLayout
 		let paragraphId: String
 		var id: String { self.paragraphId }
 	}
@@ -66,8 +66,8 @@ struct LyricsPanel: View {
 			skeleton: { AnyView(SkeletonTextLines()) },
 			showsBackground: false
 		) { lyrics, _ in
-			if let lyrics {
-				self.lyricsView(lyrics)
+			if let layout = lyrics.map(LyricsLayout.init), !layout.paragraphs.isEmpty {
+				self.lyricsView(layout)
 			} else {
 				Text("no-lyrics")
 					.font(DTFont.system(18))
@@ -80,14 +80,14 @@ struct LyricsPanel: View {
 	}
 
 	@ViewBuilder
-	private func lyricsView(_ lyrics: Lyrics) -> some View {
+	private func lyricsView(_ lyrics: LyricsLayout) -> some View {
 		ScrollViewReader { proxy in
 			ScrollView {
 				VStack(alignment: .leading, spacing: 18) {
 					ForEach(lyrics.paragraphs, id: \.id) { paragraph in
 						VStack(alignment: .leading, spacing: 18) {
 							ForEach(paragraph.lines, id: \.id) { line in
-								self.lineView(line)
+								self.lineView(line, synced: lyrics.isSynced)
 									.id(line.id)
 							}
 						}
@@ -210,7 +210,7 @@ struct LyricsPanel: View {
 			&& supported.contains { $0.languageCode == Self.appLanguage.languageCode }
 	}
 
-	private static func detectLanguage(of lyrics: Lyrics) -> Locale.Language? {
+	private static func detectLanguage(of lyrics: LyricsLayout) -> Locale.Language? {
 		let sample = Self.lines(of: lyrics).prefix(40).map(\.text).joined(separator: "\n")
 		guard !sample.isEmpty else { return nil }
 
@@ -220,11 +220,11 @@ struct LyricsPanel: View {
 		return Locale.Language(identifier: language.rawValue)
 	}
 
-	private static func lines(of lyrics: Lyrics) -> [Lyrics.Line] {
+	private static func lines(of lyrics: LyricsLayout) -> [LyricsLayout.Line] {
 		lyrics.paragraphs.flatMap(\.lines).filter { !$0.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
 	}
 
-	private func translateButton(_ lyrics: Lyrics) -> some View {
+	private func translateButton(_ lyrics: LyricsLayout) -> some View {
 		Button {
 			self.translateTapped(lyrics)
 		} label: {
@@ -249,7 +249,7 @@ struct LyricsPanel: View {
 	}
 
 	/// The first tap generates the translation (and disables the button meanwhile); after that it is a toggle.
-	private func translateTapped(_ lyrics: Lyrics) {
+	private func translateTapped(_ lyrics: LyricsLayout) {
 		guard !self.isTranslating else { return }
 
 		if !self.translations.isEmpty {
@@ -284,7 +284,7 @@ struct LyricsPanel: View {
 	/// Every batch is a new session (one session for the whole song would overflow the on-device context window),
 	/// so each one is handed the lines just before it, with their translation, as context: a batch translated
 	/// alone lost the song's subject, its pronouns and the words already chosen for its recurring lines.
-	private static func translate(_ lines: [Lyrics.Line], from source: Locale.Language, to target: Locale.Language) async -> [String: String] {
+	private static func translate(_ lines: [LyricsLayout.Line], from source: Locale.Language, to target: Locale.Language) async -> [String: String] {
 		let describe: (Locale.Language) -> String = { Locale.current.localizedString(forLanguageCode: $0.minimalIdentifier) ?? $0.minimalIdentifier }
 		let instructions = """
 		You translate song lyrics from \(describe(source)) to \(describe(target)). \
@@ -343,7 +343,7 @@ struct LyricsPanel: View {
 		}
 	}
 
-	private func activeLineId(in lyrics: Lyrics) -> String? {
+	private func activeLineId(in lyrics: LyricsLayout) -> String? {
 		let currentTime = PlaybackSource.currentTime
 		for paragraph in lyrics.paragraphs {
 			for line in paragraph.lines {
@@ -356,10 +356,10 @@ struct LyricsPanel: View {
 	}
 
 	@ViewBuilder
-	private func lineView(_ line: Lyrics.Line) -> some View {
+	private func lineView(_ line: LyricsLayout.Line, synced: Bool) -> some View {
 		let currentTime = PlaybackSource.currentTime
-		let isBackground = line.type.kind == .background
-		let isAlt = line.type.alt
+		let isBackground = line.isBackground
+		let isAlt = line.isAlt
 		let isActive = currentTime >= line.startTime && currentTime < line.endTime
 		let sizeMultiplier: CGFloat = isBackground ? 0.75 : 1.0
 
@@ -369,6 +369,8 @@ struct LyricsPanel: View {
 				self.heldParagraph = false
 				return
 			}
+			// unsynced lyrics have no time to go to
+			guard synced else { return }
 			PlaybackSource.seek(to: line.startTime)
 		} label: {
 			VStack(alignment: isAlt ? .trailing : .leading, spacing: 6) {
@@ -409,10 +411,10 @@ struct LyricsPanel: View {
 		.buttonStyle(.plain)
 	}
 
-	private static func wordGroups(from segments: [Lyrics.Segment]) -> [[Lyrics.Segment]] {
+	private static func wordGroups(from segments: [LyricsLayout.Segment]) -> [[LyricsLayout.Segment]] {
 		guard !segments.isEmpty else { return [] }
-		var groups: [[Lyrics.Segment]] = []
-		var current: [Lyrics.Segment] = []
+		var groups: [[LyricsLayout.Segment]] = []
+		var current: [LyricsLayout.Segment] = []
 
 		for segment in segments {
 			current.append(segment)
@@ -433,7 +435,7 @@ struct LyricsPanel: View {
 /// duration once active, exactly like `usePlayer`'s web-side highlight but rendered as an animated
 /// gradient sweep across the glyph instead of a discrete color flip.
 private struct SegmentTextView: View {
-	let segment: Lyrics.Segment
+	let segment: LyricsLayout.Segment
 	let isBackground: Bool
 	let useSystemFont: Bool
 
@@ -495,6 +497,140 @@ private struct SegmentTextView: View {
 			}
 		}
 		.foregroundStyle(DTColor.textPrimary)
+	}
+}
+
+/// What `LyricsPanel` and `LyricsShareSheet` draw: Braccato's `Lyric[]` (Safyn's `Lyrics.lyrics`) laid out as
+/// paragraphs of lines made of timed segments, with every time already moved by the track's lyric offset (so a line
+/// is active exactly when `PlaybackSource.currentTime` is inside it, and a tap seeks to the right place).
+///
+/// - A line's background vocal (its `isBackground` parts) becomes a line of its own under it, without its brackets.
+/// - Instrumental gaps are not lines. Syllable-timed lyrics keep one paragraph per line (a TTML `<p>`); line-timed
+///   and unsynced ones are grouped into verses, split where a blank or instrumental line was.
+struct LyricsLayout: Hashable {
+	struct Segment: Hashable, Identifiable {
+		let id: String
+		var text: String
+		let startTime: TimeInterval
+		let endTime: TimeInterval
+		/// Whether this segment ends a word (vs. being a syllable glued to the next one).
+		var endsWord: Bool
+	}
+
+	struct Line: Hashable, Identifiable {
+		let id: String
+		let text: String
+		let startTime: TimeInterval
+		let endTime: TimeInterval
+		let isBackground: Bool
+		/// Sung by the alternate voice (an even `ttm:agent` slot): laid out on the trailing side.
+		let isAlt: Bool
+		let segments: [Segment]
+	}
+
+	struct Paragraph: Hashable, Identifiable {
+		let id: String
+		let lines: [Line]
+	}
+
+	let paragraphs: [Paragraph]
+	let credit: Lyrics.Credit?
+	/// Whether the lines are timed at all (unsynced lyrics are never active and never seek).
+	let isSynced: Bool
+
+	init(_ lyrics: Lyrics) {
+		self.credit = lyrics.credit
+		self.isSynced = lyrics.isSynced
+		let offset = lyrics.isSynced ? lyrics.offset : 0
+		let onePerLine = lyrics.isRichSynced
+
+		var paragraphs: [Paragraph] = []
+		var verse: [Line] = []
+		func closeVerse() {
+			guard !verse.isEmpty else { return }
+			paragraphs.append(Paragraph(id: verse[0].id, lines: verse))
+			verse = []
+		}
+
+		for (index, source) in lyrics.lyrics.enumerated() {
+			let text = source.mainText
+			if source.instrumental || (text.isEmpty && source.backgroundText == nil) {
+				closeVerse()
+				continue
+			}
+
+			var lines: [Line] = []
+			let mainSegments = Self.segments(source.mainParts, id: "\(index)-m", offset: offset)
+			if !text.isEmpty {
+				lines.append(Line(
+					id: "\(index)-m",
+					text: text,
+					startTime: source.startTime + offset,
+					endTime: source.endTime + offset,
+					isBackground: false,
+					isAlt: source.isAltVoice,
+					segments: mainSegments
+				))
+			}
+
+			if let background = source.backgroundText {
+				var segments = Self.segments(source.backgroundParts, id: "\(index)-b", offset: offset)
+				// "(yeah)": the brackets say "background", which the smaller line already does
+				let unwrapped = Self.unwrap(background)
+				if unwrapped != background, !segments.isEmpty {
+					if segments[0].text.hasPrefix("(") { segments[0].text.removeFirst() }
+					if segments[segments.count - 1].text.hasSuffix(")") { segments[segments.count - 1].text.removeLast() }
+					segments.removeAll { $0.text.isEmpty }
+				}
+				lines.append(Line(
+					id: "\(index)-b",
+					text: unwrapped,
+					startTime: (segments.first?.startTime ?? source.startTime + offset),
+					endTime: (segments.last?.endTime ?? source.endTime + offset),
+					isBackground: true,
+					isAlt: source.isAltVoice,
+					segments: segments
+				))
+			}
+
+			if onePerLine {
+				paragraphs.append(Paragraph(id: "\(index)", lines: lines))
+			} else {
+				verse.append(contentsOf: lines)
+			}
+		}
+		closeVerse()
+		self.paragraphs = paragraphs
+	}
+
+	/// Timed parts as segments: a part made of spaces only says the word before it ended, and a part's own leading
+	/// or trailing space says where a word starts or ends.
+	private static func segments(_ parts: [Lyrics.Part], id: String, offset: TimeInterval) -> [Segment] {
+		var out: [Segment] = []
+		for (index, part) in parts.enumerated() {
+			let trimmed = part.words.trimmingCharacters(in: .whitespacesAndNewlines)
+			if trimmed.isEmpty {
+				if !out.isEmpty { out[out.count - 1].endsWord = true }
+				continue
+			}
+			if part.words.first?.isWhitespace == true, !out.isEmpty {
+				out[out.count - 1].endsWord = true
+			}
+			out.append(Segment(
+				id: "\(id)-\(index)",
+				text: trimmed,
+				startTime: part.startTime + offset,
+				endTime: part.endTime + offset,
+				endsWord: part.words.last?.isWhitespace == true
+			))
+		}
+		if !out.isEmpty { out[out.count - 1].endsWord = true }
+		return out
+	}
+
+	private static func unwrap(_ text: String) -> String {
+		guard text.count > 1, text.hasPrefix("("), text.hasSuffix(")") else { return text }
+		return String(text.dropFirst().dropLast())
 	}
 }
 
