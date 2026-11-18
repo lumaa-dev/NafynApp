@@ -170,6 +170,12 @@ struct RootView: View {
 	@ContentBuilder
 	private var tabs: some View {
 		TabView(selection: Binding(get: { Navigator.shared.currentTab }, set: { Navigator.shared.currentTab = $0 })) {
+			Tab(value: Navigator.Tabs.home) {
+				DiscoverView()
+			} label: {
+				Navigator.Tabs.home.view
+			}
+
 			Tab(value: Navigator.Tabs.library) {
 				LibraryView()
 			} label: {

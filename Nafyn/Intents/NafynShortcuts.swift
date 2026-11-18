@@ -39,7 +39,7 @@ struct NafynShortcuts: AppShortcutsProvider {
 				"Put the song \(\.$song) on \(.applicationName)",
 				"Play the track \(\.$song) on \(.applicationName)",
 			],
-			shortTitle: "Play Song",
+			shortTitle: "intent-play-song",
 			systemImageName: "music.note"
 		)
 
@@ -50,7 +50,7 @@ struct NafynShortcuts: AppShortcutsProvider {
 				"Put the album \(\.$album) on \(.applicationName)",
 				"Listen to the album \(\.$album) on \(.applicationName)",
 			],
-			shortTitle: "Play Album",
+			shortTitle: "intent-play-album",
 			systemImageName: "square.stack"
 		)
 
@@ -61,7 +61,7 @@ struct NafynShortcuts: AppShortcutsProvider {
 				"Play the playlist \(\.$playlist) on \(.applicationName)",
 				"Put on my \(\.$playlist) playlist on \(.applicationName)",
 			],
-			shortTitle: "Play Playlist",
+			shortTitle: "intent-play-playlist",
 			systemImageName: "music.note.list"
 		)
 
@@ -73,7 +73,7 @@ struct NafynShortcuts: AppShortcutsProvider {
 				"Play some music on \(.applicationName)",
 				"Put some music on \(.applicationName)",
 			],
-			shortTitle: "Shuffle My Library",
+			shortTitle: "intent-shuffle-library",
 			systemImageName: "shuffle"
 		)
 
@@ -106,7 +106,7 @@ struct NafynShortcuts: AppShortcutsProvider {
 				"Skip on \(.applicationName)",
 				"Skip this song on \(.applicationName)",
 			],
-			shortTitle: "Next Track",
+			shortTitle: "intent-action-next-track",
 			systemImageName: "forward.fill"
 		)
 
@@ -117,7 +117,7 @@ struct NafynShortcuts: AppShortcutsProvider {
 				"Go back on \(.applicationName)",
 				"Play the previous song on \(.applicationName)",
 			],
-			shortTitle: "Previous Track",
+			shortTitle: "intent-action-previous-track",
 			systemImageName: "backward.fill"
 		)
 	}

@@ -58,6 +58,7 @@ final class PreviewPlayer {
 					case .readyToPlay:
 						self.loadingId = nil
 						self.playingId = tid
+						RecommendationFeedback.shared.previewStarted(id: tid)
 					case .failed:
 						self.unavailableIds.insert(tid)
 						self.stop()
@@ -78,6 +79,7 @@ final class PreviewPlayer {
 	}
 
 	func stop() {
+		RecommendationFeedback.shared.previewStopped()
 		self.player?.pause()
 		self.player = nil
 		self.statusObservation = nil

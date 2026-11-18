@@ -161,59 +161,59 @@ struct ShareImageSheet: View {
 	}
 }
 
-/// DESIGN.md "Lyrics Panel": tap-and-hold a paragraph opens this. Paragraphs are picked one by one, up to 210
-/// characters in all (a paragraph that would go past it can't be added), and the card is shared as an image.
+/// DESIGN.md "Lyrics Panel": tap-and-hold a lyric line opens this. Lines are picked one by one, up to 210
+/// characters in all (a line that would go past it can't be added), and the card is shared as an image.
 struct LyricsShareSheet: View {
 	let lyrics: LyricsLayout
 	let track: MediaRow?
-	let initialParagraphId: String
+	let initialLineId: String
 
 	@Environment(\.dismiss) private var dismiss
 	@State private var selected: [String] = []
 	@State private var preview: ShareCardContent?
 
-	private func text(of paragraph: LyricsLayout.Paragraph) -> [String] {
-		paragraph.lines.map(\.text).filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty }
+	/// Every line with something to show, in the song's order.
+	private var lines: [LyricsLayout.Line] {
+		self.lyrics.paragraphs.flatMap(\.lines).filter { !$0.text.trimmingCharacters(in: .whitespaces).isEmpty }
 	}
 
 	private var selectedLines: [String] {
-		self.lyrics.paragraphs.filter { self.selected.contains($0.id) }.flatMap { self.text(of: $0) }
+		self.lines.filter { self.selected.contains($0.id) }.map(\.text)
 	}
 
 	private var characterCount: Int {
 		self.selectedLines.joined(separator: "\n").count
 	}
 
-	private func fits(_ paragraph: LyricsLayout.Paragraph) -> Bool {
-		let added = self.text(of: paragraph).joined(separator: "\n").count
-		return self.characterCount + added + (self.selected.isEmpty ? 0 : 1) <= ShareCardContent.maxLyricsCharacters
+	private func fits(_ line: LyricsLayout.Line) -> Bool {
+		self.characterCount + line.text.count + (self.selected.isEmpty ? 0 : 1) <= ShareCardContent.maxLyricsCharacters
 	}
 
 	var body: some View {
 		NavigationStack {
 			List {
-				ForEach(self.lyrics.paragraphs.filter { !self.text(of: $0).isEmpty }, id: \.id) { paragraph in
-					let isSelected = self.selected.contains(paragraph.id)
+				ForEach(self.lines, id: \.id) { line in
+					let isSelected = self.selected.contains(line.id)
 					Button {
 						Haptics.selection()
 						if isSelected {
-							self.selected.removeAll { $0 == paragraph.id }
+							self.selected.removeAll { $0 == line.id }
 						} else {
-							self.selected.append(paragraph.id)
+							self.selected.append(line.id)
 						}
 					} label: {
 						HStack(alignment: .top, spacing: 12) {
 							Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
 								.font(DTFont.system(22))
 								.foregroundStyle(DTColor.textPrimary.opacity(isSelected ? 1 : 0.4))
-							Text(self.text(of: paragraph).joined(separator: "\n"))
+							Text(line.text)
 								.font(DTFont.serif(20))
 								.foregroundStyle(DTColor.textPrimary)
 								.multilineTextAlignment(.leading)
 						}
 					}
 					.tint(Color.primary)
-					.disabled(!isSelected && !self.fits(paragraph))
+					.disabled(!isSelected && !self.fits(line))
 					.accessibilityAddTraits(isSelected ? .isSelected : [])
 					.listRowBackground(Color.clear)
 				}
@@ -259,9 +259,9 @@ struct LyricsShareSheet: View {
 				ShareImagePreview(content: content)
 			}
 			.onAppear {
-				// the paragraph that was held, when it fits on its own
-				if self.selected.isEmpty, let paragraph = self.lyrics.paragraphs.first(where: { $0.id == self.initialParagraphId }), self.fits(paragraph) {
-					self.selected = [paragraph.id]
+				// the line that was held, when it fits on its own
+				if self.selected.isEmpty, let line = self.lines.first(where: { $0.id == self.initialLineId }), self.fits(line) {
+					self.selected = [line.id]
 				}
 			}
 		}

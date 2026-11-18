@@ -14,7 +14,7 @@ struct WarmupAudioQueueResult: TransientAppEntity {
 	var queueId = UUID()
 
 	var displayRepresentation: DisplayRepresentation {
-		DisplayRepresentation(title: "Prepared queue")
+		DisplayRepresentation(title: "intent-type-prepared-queue")
 	}
 
 	init() {}
@@ -43,8 +43,8 @@ enum QueueInsertionLocation: String {
 	case tail
 
 	static let caseDisplayRepresentations: [Self: DisplayRepresentation] = [
-		.next: "Play Next",
-		.tail: "Play Last",
+		.next: "intent-action-play-next",
+		.tail: "intent-action-play-last",
 	]
 }
 

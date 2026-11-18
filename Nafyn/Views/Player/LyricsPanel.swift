@@ -22,6 +22,9 @@ struct LyricsPanel: View {
 		useSystemFont ? DTFont.system(size, weight: .bold) : DTFont.serif(size).bold()
 	}
 
+	/// Space kept at the top and bottom of the lyrics for the glass controls (44pt button + its padding).
+	private static let controlsMargin: CGFloat = 64
+
 	/// How long the user must go without touching the scroll view before auto-scroll resumes.
 	private static let scrollResumeDelay: TimeInterval = 2.0
 
@@ -43,15 +46,15 @@ struct LyricsPanel: View {
 	@State private var showsTranslation = false
 	@AppStorage(LyricsPanel.useSystemFontKey) private var useSystemFont = false
 
-	/// DESIGN.md "Lyrics Panel": tap-and-hold a paragraph opens "Share Lyrics" on it.
-	@State private var sharing: SharedParagraph?
+	/// DESIGN.md "Lyrics Panel": tap-and-hold a line opens "Share Lyrics" on it.
+	@State private var sharing: SharedLine?
 	/// A hold just opened the share sheet: the line's own tap (seek) that ends it is ignored.
-	@State private var heldParagraph = false
+	@State private var heldLine = false
 
-	private struct SharedParagraph: Identifiable {
+	private struct SharedLine: Identifiable {
 		let lyrics: LyricsLayout
-		let paragraphId: String
-		var id: String { self.paragraphId }
+		let lineId: String
+		var id: String { self.lineId }
 	}
 
 	var body: some View {
@@ -100,27 +103,31 @@ struct LyricsPanel: View {
 							ForEach(paragraph.lines, id: \.id) { line in
 								self.lineView(line, synced: lyrics.isSynced)
 									.id(line.id)
+								.simultaneousGesture(LongPressGesture(minimumDuration: 0.5).onEnded { _ in
+									self.heldLine = true
+									Haptics.hold()
+									self.sharing = SharedLine(lyrics: lyrics, lineId: line.id)
+									// a hold that didn't end as a tap leaves none to swallow
+									Task {
+										try? await Task.sleep(for: .seconds(1))
+										self.heldLine = false
+									}
+								})
 							}
 						}
-						.simultaneousGesture(LongPressGesture(minimumDuration: 0.5).onEnded { _ in
-							self.heldParagraph = true
-							Haptics.hold()
-							self.sharing = SharedParagraph(lyrics: lyrics, paragraphId: paragraph.id)
-							// a hold that didn't end on a line leaves no tap to swallow
-							Task {
-								try? await Task.sleep(for: .seconds(1))
-								self.heldParagraph = false
-							}
-						})
 					}
 
 					if let credit = lyrics.credit {
 						self.creditView(credit)
 					}
 				}
-				.padding()
+				// the scroll view's own width (which the parent insets like the queue's), never the screen's
+				.frame(maxWidth: .infinity, alignment: .leading)
 				.animation(.easeOut(duration: 0.25), value: activeBreak)
 			}
+			// DESIGN.md "Lyrics Panel": room above and below for the Liquid Glass controls
+			.contentMargins(.horizontal, 16, for: .scrollContent)
+			.contentMargins(.vertical, Self.controlsMargin, for: .scrollContent)
 			.scrollEdgeEffectStyle(.soft, for: .all)
 			.simultaneousGesture(DragGesture(minimumDistance: 0).onChanged { _ in
 				self.markUserScrolling {
@@ -138,9 +145,26 @@ struct LyricsPanel: View {
 				}
 			}
 			.overlay(alignment: .topTrailing) {
-				if self.canTranslate {
+				Menu {
 					self.translateButton(lyrics)
+
+					Button {
+						if let first = lyrics.paragraphs.first?.lines.first {
+							self.sharing = SharedLine(lyrics: lyrics, lineId: first.id)
+						}
+					} label: {
+						Label("share-lyrics", systemImage: "text.quote")
+							.foregroundStyle(DTColor.textPrimary)
+					}
+					.tint(DTColor.textPrimary)
+				} label: {
+					Label("more-actions", systemImage: "ellipsis")
+						.foregroundStyle(DTColor.textPrimary)
+						.labelStyle(.iconOnly)
+						.padding(7.5)
 				}
+				.buttonStyle(.glass)
+				.buttonBorderShape(.circle)
 			}
 			.task(id: self.trackId) {
 				self.sourceLanguage = Self.detectLanguage(of: lyrics)
@@ -149,7 +173,7 @@ struct LyricsPanel: View {
 				LyricsShareSheet(
 					lyrics: shared.lyrics,
 					track: PlaybackSource.track?.id == self.trackId ? PlaybackSource.track : nil,
-					initialParagraphId: shared.paragraphId
+					initialLineId: shared.lineId
 				)
 			}
 		}
@@ -247,7 +271,7 @@ struct LyricsPanel: View {
 				} else {
 					Label(String(localized: "translate"), systemImage: "translate")
 						.labelStyle(.iconOnly)
-						.foregroundStyle(self.showsTranslation ? DTColor.accentStart : DTColor.textPrimary.opacity(0.85))
+						.foregroundStyle(DTColor.textPrimary)
 				}
 			}
 			.frame(width: 22, height: 22)
@@ -255,7 +279,7 @@ struct LyricsPanel: View {
 		.buttonStyle(.glass)
 		.buttonBorderShape(.circle)
 		.tint(Color.primary)
-		.disabled(self.isTranslating)
+		.disabled(self.isTranslating || !self.canTranslate)
 		.padding(.trailing, 8)
 		.accessibilityLabel(String(localized: "translate"))
 	}
@@ -395,8 +419,8 @@ struct LyricsPanel: View {
 
 		Button {
 			// the end of a hold that opened "Share Lyrics" is not a tap to seek
-			if self.heldParagraph {
-				self.heldParagraph = false
+			if self.heldLine {
+				self.heldLine = false
 				return
 			}
 			// unsynced lyrics have no time to go to
@@ -433,6 +457,8 @@ struct LyricsPanel: View {
 					.multilineTextAlignment(isAlt ? .trailing : .leading)
 			}
 			}
+			// wraps at the column's width (never wider, whatever the line or its voice) and takes all the height it needs
+			.fixedSize(horizontal: false, vertical: true)
 			.frame(maxWidth: .infinity, alignment: isAlt ? .trailing : .leading)
 			.scaleEffect((isActive ? 1.0 : 0.85) * sizeMultiplier, anchor: isAlt ? .trailing : .leading)
 			.animation(.smooth(duration: 0.3), value: isActive)
@@ -549,7 +575,10 @@ struct LyricsLayout: Hashable {
 	init(_ lyrics: Lyrics) {
 		self.credit = lyrics.credit
 		self.isSynced = lyrics.isSynced
-		let offset = lyrics.isSynced ? lyrics.offset : 0
+		// Braccato (the web panel) lights a line this much before its own time, to cover the lag between hearing
+		// a word and seeing it: 150ms for syllable-timed lyrics, 115ms for line-timed ones. Same here.
+		let leadTime: TimeInterval = lyrics.isRichSynced ? 0.150 : 0.115
+		let offset = lyrics.isSynced ? lyrics.offset - leadTime : 0
 		let onePerLine = lyrics.isRichSynced
 
 		var paragraphs: [Paragraph] = []

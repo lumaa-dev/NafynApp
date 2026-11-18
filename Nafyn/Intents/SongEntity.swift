@@ -25,7 +25,7 @@ struct SongEntity: IndexedEntity {
 	@Property(title: "Composer", indexingKey: \.composer)
 	var composerName: String?
 
-	@Property(title: "Album Title", indexingKey: \.album)
+	@Property(title: "intent-property-album-title", indexingKey: \.album)
 	var albumTitle: String?
 
 	@Property(title: "Artists")
@@ -43,37 +43,37 @@ struct SongEntity: IndexedEntity {
 	@Property(title: "Duration")
 	var duration: Measurement<UnitDuration>
 
-	@Property(title: "Date Added")
+	@Property(title: "intent-property-date-added")
 	var dateAdded: Date
 
-	@Property(title: "Track Number")
+	@Property(title: "intent-property-track-number")
 	var trackNumber: Int?
 
-	@Property(title: "Disc Number")
+	@Property(title: "intent-property-disc-number")
 	var discNumber: Int?
 
-	@Property(title: "Release Date")
+	@Property(title: "intent-property-release-date")
 	var releaseDate: Date?
 
-	@Property(title: "File Size")
+	@Property(title: "intent-property-file-size")
 	var fileSize: Measurement<UnitInformationStorage>?
 
-	@Property(title: "Record Label")
+	@Property(title: "record-label")
 	var label: String?
 
-	@Property(title: "Album Type")
+	@Property(title: "album-type")
 	var albumType: String?
 
-	@Property(title: "MusicBrainz ID")
+	@Property(title: "intent-property-mbid")
 	var musicBrainzId: String
 
-	@Property(title: "Artist MusicBrainz ID")
+	@Property(title: "intent-property-artist-mbid")
 	var artistMusicBrainzId: String?
 
-	@Property(title: "Album MusicBrainz ID")
+	@Property(title: "intent-property-album-mbid")
 	var albumMusicBrainzId: String
 
-	@Property(title: "Cover Art Path")
+	@Property(title: "intent-property-cover-art-path")
 	var coverArt: String?
 
 	var displayRepresentation: DisplayRepresentation {

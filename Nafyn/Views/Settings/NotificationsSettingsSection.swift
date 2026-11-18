@@ -122,11 +122,6 @@ private struct AppleDevicesSection: View {
 
 	// Kept for later, but not shown: the token kinds mean nothing to a user looking at their devices.
 
-	/// A device now carries several token kinds (Safyn `kinds`); list them all.
-	static func kindsLabel(_ kinds: [AppleDeviceKind]) -> String {
-		kinds.map(Self.kindLabel).joined(separator: ", ")
-	}
-
 	static func kindLabel(_ kind: AppleDeviceKind) -> String {
 		switch kind {
 			case .alert: String(localized: "device-kind-alert")

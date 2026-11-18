@@ -8,7 +8,7 @@ import Safyn
 /// what lets one Siri phrase ("Put The Vows on Nafyn") take any name, whatever kind it is, the way
 /// Spotify's "Play …" does, instead of needing "the album …" or "the song …" in the sentence.
 struct LibraryItemEntity: AppEntity {
-	static let typeDisplayRepresentation = TypeDisplayRepresentation(name: "Library Item")
+	static let typeDisplayRepresentation = TypeDisplayRepresentation(name: "intent-type-library-item")
 	static let defaultQuery = LibraryItemQuery()
 
 	enum Kind: String {

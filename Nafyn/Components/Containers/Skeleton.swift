@@ -43,16 +43,6 @@ struct SkeletonBar: View {
 	}
 }
 
-/// A circular skeleton, standing in for an artist's round cover art.
-struct SkeletonCircle: View {
-	var diameter: CGFloat
-
-	var body: some View {
-		SkeletonBlock(cornerRadius: self.diameter / 2)
-			.frame(width: self.diameter, height: self.diameter)
-	}
-}
-
 /// Mirrors ``TrackRow``'s "cover • title • subtitle • duration" layout.
 struct SkeletonTrackRow: View {
 	var showsCover: Bool = true

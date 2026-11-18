@@ -28,25 +28,25 @@ struct AlbumEntity: IndexedEntity {
 	@Property(title: "UPC")
 	var universalProductCode: String?
 
-	@Property(title: "Track Count")
+	@Property(title: "intent-property-track-count")
 	var trackCount: Int
 
 	@Property(title: "Duration")
 	var duration: Measurement<UnitDuration>
 
-	@Property(title: "Date Added")
+	@Property(title: "intent-property-date-added")
 	var dateAdded: Date
 
-	@Property(title: "Release Date")
+	@Property(title: "intent-property-release-date")
 	var releaseDate: Date?
 
-	@Property(title: "MusicBrainz ID")
+	@Property(title: "intent-property-mbid")
 	var musicBrainzId: String
 
-	@Property(title: "Artist MusicBrainz ID")
+	@Property(title: "intent-property-artist-mbid")
 	var artistMusicBrainzId: String?
 
-	@Property(title: "Cover Art Path")
+	@Property(title: "intent-property-cover-art-path")
 	var coverArt: String?
 
 	var displayRepresentation: DisplayRepresentation {

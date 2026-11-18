@@ -61,7 +61,7 @@ struct AddAudioToPlaylistIntent {
 		let queue = try await AudioPlayback.queue(for: self.audioEntity)
 		try await AudioPlayback.add(queue.tracks, toPlaylist: self.playlist.id)
 		let name = await AudioPlayback.playlistTitle(self.playlist.id)
-		return .result(dialog: "Added to \(name).")
+		return .result(dialog: "dialog-added-to-playlist \(name)")
 	}
 }
 

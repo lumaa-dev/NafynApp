@@ -358,7 +358,7 @@ private struct PlaylistDetailContent: View {
 				Button(role: .destructive) {
 					self.removeTrack(entry)
 				} label: {
-					Label(String(localized: "Remove from Playlist"), systemImage: "minus.circle")
+					Label(String(localized: "remove-from-playlist"), systemImage: "minus.circle")
 				}
 				.tint(Color.red)
 				.disabled(NetworkMonitor.shared.isOffline)

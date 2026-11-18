@@ -45,6 +45,13 @@ struct NowPlayingView: View {
 		self.isWide ? (self.activePanel ?? .queue) : self.activePanel
 	}
 
+	@State private var isLowPowerMode = ProcessInfo.processInfo.isLowPowerModeEnabled
+
+	/// Auto-lock is off while the lyrics panel is open, except in Low Power Mode.
+	private var keepsScreenAwake: Bool {
+		self.visiblePanel == .lyrics && !self.isLowPowerMode
+	}
+
 	var body: some View {
 		// No navigation container on purpose: `ArrangementView` must not live inside one, and this screen
 		// has no navigation of its own (it is a full-screen cover; links dismiss it and push on the tab).
@@ -91,6 +98,18 @@ struct NowPlayingView: View {
 		} action: { newValue in
 			self.isFolded = newValue
 		}
+		// lyrics are read, not touched: keep the screen on while they're open, unless the battery is being saved
+		.onChange(of: self.keepsScreenAwake, initial: true) { _, keepsAwake in
+			UIApplication.shared.isIdleTimerDisabled = keepsAwake
+		}
+		.onDisappear {
+			UIApplication.shared.isIdleTimerDisabled = false
+		}
+		.task {
+			for await _ in NotificationCenter.default.notifications(named: .NSProcessInfoPowerStateDidChange) {
+				self.isLowPowerMode = ProcessInfo.processInfo.isLowPowerModeEnabled
+			}
+		}
 		.navigationTransition(.zoom(sourceID: "miniPlayer", in: self.namespace))
 		.sheet(isPresented: self.$isPresentingAddToPlaylist) {
 			if let trackId = PlaybackSource.track?.id {
@@ -124,8 +143,6 @@ struct NowPlayingView: View {
 			self.scrubber
 			self.transportControls
 				.padding(.top, 18)
-			self.airPlayRow
-				.padding(.top, 14)
 		}
 		.padding(.horizontal)
 		.padding(.top, self.activePanel == nil ? 20 : 12)
@@ -168,8 +185,6 @@ struct NowPlayingView: View {
 
 				self.scrubber
 				self.transportControls
-					.padding(.top, 8)
-				self.airPlayRow
 					.padding(.top, 8)
 			}
 			.frame(maxWidth: 460)
@@ -231,8 +246,6 @@ struct NowPlayingView: View {
 			self.scrubber
 			self.transportControls
 				.padding(.top, 18)
-			self.airPlayRow
-				.padding(.top, 14)
 		}
 		.frame(maxWidth: 460)
 		.frame(maxWidth: .infinity)
@@ -304,15 +317,17 @@ struct NowPlayingView: View {
 	/// "title • artist" label that collapses back to it when a panel is open.
 	@ViewBuilder
 	private func actionRow(_ track: MediaRow) -> some View {
-		HStack(spacing: 10) {
-			self.circleToggle(icon: "quote.bubble.fill", isActive: self.visiblePanel == .lyrics) {
-				self.togglePanel(.lyrics)
-			}
+		GlassEffectContainer {
+			HStack(spacing: 10) {
+				self.circleToggle(icon: "quote.bubble.fill", isActive: self.visiblePanel == .lyrics) {
+					self.togglePanel(.lyrics)
+				}
 
-			self.pill(track)
+				self.pill(track)
 
-			self.circleToggle(icon: "list.bullet", isActive: self.visiblePanel == .queue) {
-				self.togglePanel(.queue)
+				self.circleToggle(icon: "list.bullet", isActive: self.visiblePanel == .queue) {
+					self.togglePanel(.queue)
+				}
 			}
 		}
 	}
@@ -334,9 +349,9 @@ struct NowPlayingView: View {
 		Button(action: action) {
 			Image(systemName: icon)
 				.font(DTFont.system(15))
-				.foregroundStyle(isActive ? DTColor.accentStart : Color.white.opacity(0.85))
+				.foregroundStyle(Color.white.opacity(0.85))
 				.frame(width: 36, height: 36)
-				.background(Circle().fill(DTColor.surfaceSelect.opacity(isActive ? 1 : 0.55)))
+				.glassEffect(.regular.interactive().tint(isActive ? Color.blue : Color.clear), in: Circle())
 		}
 		.buttonStyle(.plain)
 	}
@@ -399,7 +414,7 @@ struct NowPlayingView: View {
 			}
 		}
 		.padding(.all, 8)
-		.background(Capsule().fill(DTColor.surfaceSelect.opacity(0.55)))
+		.glassEffect(.regular.interactive(), in: Capsule())
 		.frame(maxWidth: .infinity)
 	}
 
@@ -436,14 +451,12 @@ struct NowPlayingView: View {
 	@ViewBuilder
 	private var transportControls: some View {
 		HStack {
-			// AirPlay lives in its own row below (`airPlayRow`); while mirroring another device the slot shows Unity
 			Group {
 				if PlaybackSource.isRemote {
 					Image(.nafynUnity)
 						.foregroundStyle(Color.white.opacity(0.85))
 				} else {
-					Color.clear
-						.frame(width: 22, height: 22)
+					self.airPlayRow
 				}
 			}
 			.frame(maxWidth: .infinity)
@@ -482,7 +495,7 @@ struct NowPlayingView: View {
 		.buttonStyle(.plain)
 	}
 
-	/// The current output's symbol and name in a glass pill, with an invisible system route picker laid over
+	/// The current output's symbol and name in a glass pill/circle, with an invisible system route picker laid over
 	/// it so a tap anywhere on the pill opens the AirPlay/Bluetooth picker. AirPlay routes this device's own
 	/// audio, so the row is gone while mirroring another device through Unity.
 	@ViewBuilder
@@ -496,17 +509,17 @@ struct NowPlayingView: View {
 				} icon: {
 					route.deviceSymbol
 				}
-				.font(DTFont.text(.title3))
+				.labelStyle(.iconOnly)
 				.foregroundStyle(Color.white)
 				.lineLimit(1)
 				.multilineTextAlignment(.leading)
-				.frame(minHeight: 39, maxHeight: 40, alignment: .leading)
+				.frame(width: 40, height: 40, alignment: .center)
 				.padding(.horizontal)
 				.overlay {
 					RoutePickerButton()
 						.zIndex(50)
 				}
-				.glassEffect(Glass.clear.tint(Color.black.opacity(0.4)).interactive())
+				.glassEffect(Glass.clear.interactive(), in: Circle())
 
 				Spacer()
 			}

@@ -15,10 +15,10 @@ import UniformTypeIdentifiers
 /// One search for everything the library holds. The kind picks what comes back (and which filters apply);
 /// the results are Nafyn entities, so a shortcut reads their title, duration, file size, MusicBrainz ID, …
 struct FindLibraryItemsIntent: AppIntent {
-	static let title: LocalizedStringResource = "Find in Library"
-	static let description = IntentDescription("Finds tracks, albums, artists or playlists in your Nafyn library, filtered and sorted.", categoryName: "Library")
+	static let title: LocalizedStringResource = "intent-find-library-items"
+	static let description = IntentDescription("intent-find-library-items-description", categoryName: "Library")
 
-	@Parameter(title: "Content Type", default: .tracks)
+	@Parameter(title: "intent-property-content-type", default: .tracks)
 	var kind: LibraryContentKind
 
 	@Parameter(title: "Search")
@@ -30,22 +30,22 @@ struct FindLibraryItemsIntent: AppIntent {
 	@Parameter(title: "Album")
 	var album: String?
 
-	@Parameter(title: "Added After")
+	@Parameter(title: "intent-param-added-after")
 	var addedAfter: Date?
 
-	@Parameter(title: "Added Before")
+	@Parameter(title: "intent-param-added-before")
 	var addedBefore: Date?
 
-	@Parameter(title: "Minimum Tracks")
+	@Parameter(title: "intent-param-minimum-tracks")
 	var minimumTracks: Int?
 
-	@Parameter(title: "Downloaded Only", default: false)
+	@Parameter(title: "intent-param-downloaded-only", default: false)
 	var downloadedOnly: Bool
 
-	@Parameter(title: "Created by Me Only", default: false)
+	@Parameter(title: "intent-param-created-by-me-only", default: false)
 	var createdByMeOnly: Bool
 
-	@Parameter(title: "Sort By", default: .dateAdded)
+	@Parameter(title: "intent-param-sort-by", default: .dateAdded)
 	var sortBy: LibrarySortOption
 
 	@Parameter(title: "Ascending", default: false)
@@ -57,7 +57,7 @@ struct FindLibraryItemsIntent: AppIntent {
 	static var parameterSummary: some ParameterSummary {
 		Switch(\.$kind) {
 			Case(.tracks) {
-				Summary("Find \(\.$kind) sorted by \(\.$sortBy)") {
+				Summary("summary-find-library-items \(\.$kind) \(\.$sortBy)") {
 					\.$searchText
 					\.$artist
 					\.$album
@@ -69,7 +69,7 @@ struct FindLibraryItemsIntent: AppIntent {
 				}
 			}
 			Case(.albums) {
-				Summary("Find \(\.$kind) sorted by \(\.$sortBy)") {
+				Summary("summary-find-library-items \(\.$kind) \(\.$sortBy)") {
 					\.$searchText
 					\.$artist
 					\.$addedAfter
@@ -80,7 +80,7 @@ struct FindLibraryItemsIntent: AppIntent {
 				}
 			}
 			Case(.playlists) {
-				Summary("Find \(\.$kind) sorted by \(\.$sortBy)") {
+				Summary("summary-find-library-items \(\.$kind) \(\.$sortBy)") {
 					\.$searchText
 					\.$createdByMeOnly
 					\.$ascending
@@ -88,7 +88,7 @@ struct FindLibraryItemsIntent: AppIntent {
 				}
 			}
 			DefaultCase {
-				Summary("Find \(\.$kind) sorted by \(\.$sortBy)") {
+				Summary("summary-find-library-items \(\.$kind) \(\.$sortBy)") {
 					\.$searchText
 					\.$ascending
 					\.$limit
@@ -262,14 +262,14 @@ enum CoverArtError: LocalizedError {
 }
 
 struct GetSongCoverArtIntent: AppIntent {
-	static let title: LocalizedStringResource = "Get Song Cover Art"
-	static let description = IntentDescription("Gets the cover art of a song in your library, in high resolution.", categoryName: "Library")
+	static let title: LocalizedStringResource = "intent-get-song-cover"
+	static let description = IntentDescription("intent-get-song-cover-description", categoryName: "Library")
 
 	@Parameter(title: "Song")
 	var song: SongEntity
 
 	static var parameterSummary: some ParameterSummary {
-		Summary("Get cover art of \(\.$song)")
+		Summary("summary-get-song-cover \(\.$song)")
 	}
 
 	@MainActor
@@ -279,14 +279,14 @@ struct GetSongCoverArtIntent: AppIntent {
 }
 
 struct GetAlbumCoverArtIntent: AppIntent {
-	static let title: LocalizedStringResource = "Get Album Cover Art"
-	static let description = IntentDescription("Gets the cover art of an album in your library, in high resolution.", categoryName: "Library")
+	static let title: LocalizedStringResource = "intent-get-album-cover"
+	static let description = IntentDescription("intent-get-album-cover-description", categoryName: "Library")
 
 	@Parameter(title: "Album")
 	var album: AlbumEntity
 
 	static var parameterSummary: some ParameterSummary {
-		Summary("Get cover art of \(\.$album)")
+		Summary("summary-get-album-cover \(\.$album)")
 	}
 
 	@MainActor
@@ -298,20 +298,20 @@ struct GetAlbumCoverArtIntent: AppIntent {
 // MARK: - Playing
 
 struct PlaySongIntent: AudioPlaybackIntent {
-	static let title: LocalizedStringResource = "Play Song"
-	static let description = IntentDescription("Plays a song from your Nafyn library.", categoryName: "Playback")
+	static let title: LocalizedStringResource = "intent-play-song"
+	static let description = IntentDescription("intent-play-song-description", categoryName: "Playback")
 
 	@Parameter(title: "Song")
 	var song: SongEntity
 
-	@Parameter(title: "Continue with Album", default: false)
+	@Parameter(title: "intent-param-continue-with-album", default: false)
 	var continueWithAlbum: Bool
 
 	@Parameter(title: "Repeat", default: .off)
 	var repeatMode: RepeatOption
 
 	static var parameterSummary: some ParameterSummary {
-		Summary("Play \(\.$song)") {
+		Summary("summary-play-song \(\.$song)") {
 			\.$continueWithAlbum
 			\.$repeatMode
 		}
@@ -335,8 +335,8 @@ struct PlaySongIntent: AudioPlaybackIntent {
 }
 
 struct PlayAlbumIntent: AudioPlaybackIntent {
-	static let title: LocalizedStringResource = "Play Album"
-	static let description = IntentDescription("Plays an album from your Nafyn library.", categoryName: "Playback")
+	static let title: LocalizedStringResource = "intent-play-album"
+	static let description = IntentDescription("intent-play-album-description", categoryName: "Playback")
 
 	@Parameter(title: "Album")
 	var album: AlbumEntity
@@ -348,7 +348,7 @@ struct PlayAlbumIntent: AudioPlaybackIntent {
 	var repeatMode: RepeatOption
 
 	static var parameterSummary: some ParameterSummary {
-		Summary("Play \(\.$album)") {
+		Summary("summary-play-album \(\.$album)") {
 			\.$shuffle
 			\.$repeatMode
 		}
@@ -363,8 +363,8 @@ struct PlayAlbumIntent: AudioPlaybackIntent {
 }
 
 struct PlayPlaylistIntent: AudioPlaybackIntent {
-	static let title: LocalizedStringResource = "Play Playlist"
-	static let description = IntentDescription("Plays a Nafyn playlist.", categoryName: "Playback")
+	static let title: LocalizedStringResource = "intent-play-playlist"
+	static let description = IntentDescription("intent-play-playlist-description", categoryName: "Playback")
 
 	@Parameter(title: "Playlist")
 	var playlist: PlaylistEntity
@@ -376,7 +376,7 @@ struct PlayPlaylistIntent: AudioPlaybackIntent {
 	var repeatMode: RepeatOption
 
 	static var parameterSummary: some ParameterSummary {
-		Summary("Play \(\.$playlist)") {
+		Summary("summary-play-playlist \(\.$playlist)") {
 			\.$shuffle
 			\.$repeatMode
 		}
@@ -392,8 +392,8 @@ struct PlayPlaylistIntent: AudioPlaybackIntent {
 
 /// "Play …" for anything by name: Siri's catch-all, whether the name is a song, an album, an artist or a playlist.
 struct PlayLibraryItemIntent: AudioPlaybackIntent {
-	static let title: LocalizedStringResource = "Play Anything"
-	static let description = IntentDescription("Plays a song, album, artist or playlist from your Nafyn library.", categoryName: "Playback")
+	static let title: LocalizedStringResource = "intent-play-anything"
+	static let description = IntentDescription("intent-play-anything-description", categoryName: "Playback")
 
 	@Parameter(title: "Item")
 	var item: LibraryItemEntity
@@ -405,7 +405,7 @@ struct PlayLibraryItemIntent: AudioPlaybackIntent {
 	var repeatMode: RepeatOption
 
 	static var parameterSummary: some ParameterSummary {
-		Summary("Play \(\.$item)") {
+		Summary("summary-play-item \(\.$item)") {
 			\.$shuffle
 			\.$repeatMode
 		}
@@ -420,14 +420,14 @@ struct PlayLibraryItemIntent: AudioPlaybackIntent {
 }
 
 struct ShuffleLibraryIntent: AudioPlaybackIntent {
-	static let title: LocalizedStringResource = "Shuffle My Library"
-	static let description = IntentDescription("Plays your whole Nafyn library in random order.", categoryName: "Playback")
+	static let title: LocalizedStringResource = "intent-shuffle-library"
+	static let description = IntentDescription("intent-shuffle-library-description", categoryName: "Playback")
 
 	@MainActor
 	func perform() async throws -> some IntentResult & ProvidesDialog {
 		let tracks = try await LibraryCatalog.shared.tracks()
 		try AudioPlayback.start(AudioPlayback.Queue(tracks: tracks, context: nil), shuffle: true, repeatQueue: true)
-		return .result(dialog: "Shuffling your music.")
+		return .result(dialog: "dialog-shuffling-library")
 	}
 }
 
@@ -435,14 +435,14 @@ struct ShuffleLibraryIntent: AudioPlaybackIntent {
 
 /// Play, pause, skip: one action instead of one per button.
 struct ControlPlaybackIntent: AudioPlaybackIntent {
-	static let title: LocalizedStringResource = "Control Playback"
-	static let description = IntentDescription("Plays, pauses or skips what Nafyn is playing.", categoryName: "Playback")
+	static let title: LocalizedStringResource = "intent-control-playback"
+	static let description = IntentDescription("intent-control-playback-description", categoryName: "Playback")
 
 	@Parameter(title: "Action", default: .togglePlayPause)
 	var action: PlaybackAction
 
 	static var parameterSummary: some ParameterSummary {
-		Summary("\(\.$action) in Nafyn")
+		Summary("summary-control-playback \(\.$action)")
 	}
 
 	init() {}
@@ -454,26 +454,26 @@ struct ControlPlaybackIntent: AudioPlaybackIntent {
 	@MainActor
 	func perform() async throws -> some IntentResult & ProvidesDialog {
 		guard PlaybackSource.hasTrack else {
-			return .result(dialog: "Nothing is playing in Nafyn.")
+			return .result(dialog: "dialog-nothing-playing")
 		}
 
 		switch self.action {
 			case .play:
 				if !PlaybackSource.isPlaying { PlaybackSource.togglePlay() }
-				return .result(dialog: "Resuming playback.")
+				return .result(dialog: "dialog-resuming")
 			case .pause:
 				if PlaybackSource.isPlaying { PlaybackSource.togglePlay() }
 				return .result(dialog: "Paused.")
 			case .togglePlayPause:
 				let wasPlaying = PlaybackSource.isPlaying
 				PlaybackSource.togglePlay()
-				return wasPlaying ? .result(dialog: "Paused.") : .result(dialog: "Resuming playback.")
+				return wasPlaying ? .result(dialog: "Paused.") : .result(dialog: "dialog-resuming")
 			case .next:
 				PlaybackSource.next()
-				return .result(dialog: "Skipping to the next track.")
+				return .result(dialog: "dialog-next-track")
 			case .previous:
 				PlaybackSource.prev()
-				return .result(dialog: "Going back to the previous track.")
+				return .result(dialog: "dialog-previous-track")
 		}
 	}
 }
@@ -482,8 +482,8 @@ struct ControlPlaybackIntent: AudioPlaybackIntent {
 
 /// Creates a playlist, with songs and albums already in it if the shortcut has some.
 struct CreatePlaylistIntent: AppIntent {
-	static let title: LocalizedStringResource = "Create Playlist"
-	static let description = IntentDescription("Creates a Nafyn playlist, optionally with songs and albums already in it.", categoryName: "Playlists")
+	static let title: LocalizedStringResource = "intent-create-playlist"
+	static let description = IntentDescription("intent-create-playlist-description", categoryName: "Playlists")
 
 	@Parameter(title: "Name")
 	var name: String
@@ -501,7 +501,7 @@ struct CreatePlaylistIntent: AppIntent {
 	var albums: [AlbumEntity]
 
 	static var parameterSummary: some ParameterSummary {
-		Summary("Create the playlist \(\.$name)") {
+		Summary("summary-create-playlist \(\.$name)") {
 			\.$summary
 			\.$visibility
 			\.$songs
@@ -528,14 +528,14 @@ struct CreatePlaylistIntent: AppIntent {
 		}
 		await LibraryCatalog.shared.invalidatePlaylists()
 
-		return .result(value: PlaylistEntity(row: row), dialog: "Created the playlist \(title).")
+		return .result(value: PlaylistEntity(row: row), dialog: "dialog-created-playlist \(title)")
 	}
 }
 
 /// Adds any number of songs and albums to a playlist in one go.
 struct AddToPlaylistIntent: AppIntent {
-	static let title: LocalizedStringResource = "Add to Playlist"
-	static let description = IntentDescription("Adds songs and albums from your library to one of your playlists.", categoryName: "Playlists")
+	static let title: LocalizedStringResource = "intent-add-to-playlist"
+	static let description = IntentDescription("intent-add-to-playlist-description", categoryName: "Playlists")
 
 	@Parameter(title: "Songs", default: [])
 	var songs: [SongEntity]
@@ -547,7 +547,7 @@ struct AddToPlaylistIntent: AppIntent {
 	var playlist: PlaylistEntity
 
 	static var parameterSummary: some ParameterSummary {
-		Summary("Add \(\.$songs) and \(\.$albums) to \(\.$playlist)")
+		Summary("summary-add-to-playlist \(\.$songs) \(\.$albums) \(\.$playlist)")
 	}
 
 	@MainActor
@@ -556,14 +556,14 @@ struct AddToPlaylistIntent: AppIntent {
 		try await AudioPlayback.add(tracks, toPlaylist: self.playlist.id)
 
 		let name = await AudioPlayback.playlistTitle(self.playlist.id)
-		return .result(dialog: "Added to \(name).")
+		return .result(dialog: "dialog-added-to-playlist \(name)")
 	}
 }
 
 /// Takes songs out of a playlist; they stay in the library.
 struct RemoveFromPlaylistIntent: AppIntent {
-	static let title: LocalizedStringResource = "Remove from Playlist"
-	static let description = IntentDescription("Removes songs from one of your playlists. They stay in your library.", categoryName: "Playlists")
+	static let title: LocalizedStringResource = "remove-from-playlist"
+	static let description = IntentDescription("intent-remove-from-playlist-description", categoryName: "Playlists")
 
 	@Parameter(title: "Songs")
 	var songs: [SongEntity]
@@ -572,7 +572,7 @@ struct RemoveFromPlaylistIntent: AppIntent {
 	var playlist: PlaylistEntity
 
 	static var parameterSummary: some ParameterSummary {
-		Summary("Remove \(\.$songs) from \(\.$playlist)")
+		Summary("summary-remove-from-playlist \(\.$songs) \(\.$playlist)")
 	}
 
 	@MainActor
@@ -597,14 +597,14 @@ struct RemoveFromPlaylistIntent: AppIntent {
 		await LibraryCatalog.shared.invalidatePlaylists()
 
 		let name = await AudioPlayback.playlistTitle(self.playlist.id)
-		return .result(dialog: "Removed from \(name).")
+		return .result(dialog: "dialog-removed-from-playlist \(name)")
 	}
 }
 
 // MARK: - Opening (Spotlight results)
 
 struct OpenSongIntent: OpenIntent {
-	static let title: LocalizedStringResource = "Open Song"
+	static let title: LocalizedStringResource = "intent-open-song"
 
 	@Parameter(title: "Song")
 	var target: SongEntity
@@ -617,7 +617,7 @@ struct OpenSongIntent: OpenIntent {
 }
 
 struct OpenAlbumIntent: OpenIntent {
-	static let title: LocalizedStringResource = "Open Album"
+	static let title: LocalizedStringResource = "intent-open-album"
 
 	@Parameter(title: "Album")
 	var target: AlbumEntity
@@ -630,7 +630,7 @@ struct OpenAlbumIntent: OpenIntent {
 }
 
 struct OpenPlaylistIntent: OpenIntent {
-	static let title: LocalizedStringResource = "Open Playlist"
+	static let title: LocalizedStringResource = "intent-open-playlist"
 
 	@Parameter(title: "Playlist")
 	var target: PlaylistEntity

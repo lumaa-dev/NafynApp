@@ -20,10 +20,10 @@ struct PlaylistEntity: IndexedEntity {
 	@Property(title: "Owner")
 	var owner: Owner?
 
-	@Property(title: "Created by Me")
+	@Property(title: "intent-filter-created-by-me")
 	var createdByMe: Bool?
 
-	@Property(title: "Curated for Me")
+	@Property(title: "intent-filter-curated-for-me")
 	var curatedForMe: Bool?
 
 	@Property(title: "Description")
@@ -32,10 +32,10 @@ struct PlaylistEntity: IndexedEntity {
 	@Property(title: "Public")
 	var isPublic: Bool
 
-	@Property(title: "Date Updated")
+	@Property(title: "intent-property-date-updated")
 	var dateUpdated: Date
 
-	@Property(title: "Date Created")
+	@Property(title: "intent-property-date-created")
 	var dateCreated: Date
 
 	var displayRepresentation: DisplayRepresentation {

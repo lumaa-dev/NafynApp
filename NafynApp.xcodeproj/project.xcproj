@@ -54,8 +54,8 @@
         }, {
           "target": "RemoteMediaSessionExtension",
           "inclusions": [
-            "Data/DeviceManager.swift",
-            "Data/DeviceModels.swift",
+            "Data/Device/DeviceManager.swift",
+            "Data/Device/DeviceModels.swift",
           ],
         },
       ],

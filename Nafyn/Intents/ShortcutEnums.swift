@@ -10,7 +10,7 @@ enum LibraryContentKind: String, AppEnum {
 	case artists
 	case playlists
 
-	static let typeDisplayRepresentation = TypeDisplayRepresentation(name: "Content Type")
+	static let typeDisplayRepresentation = TypeDisplayRepresentation(name: "intent-property-content-type")
 
 	static let caseDisplayRepresentations: [LibraryContentKind: DisplayRepresentation] = [
 		.tracks: "Tracks",
@@ -38,11 +38,11 @@ enum LibrarySortOption: String, AppEnum {
 		.title: "Title",
 		.artist: "Artist",
 		.album: "Album",
-		.dateAdded: "Date Added",
+		.dateAdded: "intent-property-date-added",
 		.duration: "Duration",
-		.releaseDate: "Release Date",
-		.trackCount: "Track Count",
-		.fileSize: "File Size",
+		.releaseDate: "intent-property-release-date",
+		.trackCount: "intent-property-track-count",
+		.fileSize: "intent-property-file-size",
 	]
 }
 
@@ -54,14 +54,14 @@ enum PlaybackAction: String, AppEnum {
 	case next
 	case previous
 
-	static let typeDisplayRepresentation = TypeDisplayRepresentation(name: "Playback Action")
+	static let typeDisplayRepresentation = TypeDisplayRepresentation(name: "intent-type-playback-action")
 
 	static let caseDisplayRepresentations: [PlaybackAction: DisplayRepresentation] = [
 		.play: "Play",
 		.pause: "Pause",
-		.togglePlayPause: "Play or Pause",
-		.next: "Next Track",
-		.previous: "Previous Track",
+		.togglePlayPause: "intent-action-play-pause",
+		.next: "intent-action-next-track",
+		.previous: "intent-action-previous-track",
 	]
 }
 

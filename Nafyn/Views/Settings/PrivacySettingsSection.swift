@@ -11,9 +11,28 @@ struct PrivacySettingsSection: View {
 	@State private var isExporting = false
 	@State private var exportedFileURL: URL? = nil
 	@State private var toast = ToastState()
+	/// Personalized recommendations (mixes, Discover); `nil` until loaded, or when the server has them off.
+	@State private var recommendations: RecommendationSettings? = nil
+	@State private var savingRecommendations = false
 
 	var body: some View {
 		Group {
+			// GDPR art. 21: objecting to the profiling behind mixes and Discover stops it and deletes what it built
+			if let recommendations, recommendations.available {
+				Section {
+					Toggle(String(localized: "recommendations-toggle"), isOn: Binding(
+						get: { recommendations.enabled },
+						set: { self.setRecommendations($0) }
+					))
+					.disabled(self.savingRecommendations || NetworkMonitor.shared.isOffline)
+				}
+				header: {
+					Text(String(localized: "recommendations"))
+				} footer: {
+					Text(String(localized: "recommendations-footer"))
+				}
+			}
+
 			Section {
 				ForEach(self.sessions) { session in
 					HStack(spacing: 12) {
@@ -74,8 +93,22 @@ struct PrivacySettingsSection: View {
 			guard !self.isLoaded, let server else { return }
 			self.isLoaded = true
 			self.sessions = (try? await server.send(User.sessions)) ?? []
+			self.recommendations = try? await server.send(Recommendations.settings)
 		}
 		.toast(self.toast)
+	}
+
+	private func setRecommendations(_ enabled: Bool) {
+		guard let server else { return }
+		self.savingRecommendations = true
+		Task {
+			defer { self.savingRecommendations = false }
+			do {
+				self.recommendations = try await server.send(Recommendations.updateSettings(enabled: enabled))
+			} catch {
+				self.toast.failure(error)
+			}
+		}
 	}
 
 	private func revoke(_ session: SessionSummary) {

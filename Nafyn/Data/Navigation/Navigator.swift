@@ -57,7 +57,7 @@ final class Navigator {
 		var label: String {
 			switch self {
 				case .home:
-					String(localized: "home")
+					String(localized: "discover")
 				case .library:
 					String(localized: "library")
 				case .requests:
@@ -70,7 +70,7 @@ final class Navigator {
 		var symbol: String {
 			switch self {
 				case .home:
-					"house"
+					"sparkles"
 				case .library:
 					"book"
 				case .requests:
@@ -113,6 +113,8 @@ final class Navigator {
 		case monthlyInsights(month: String?)
 		case insightsTop(type: RankedEntityKind, period: String, year: Int?, month: String?)
 		case replayMix(year: String?)
+		/// A personalized mix (Discover).
+		case mix(id: String)
 		case yearComparison
 		case addToPlaylist(mediaIds: [String])
 		case changeAlbum(trackId: String)
@@ -213,6 +215,8 @@ final class Navigator {
 					AnyView(InsightsTopListView(type: type, period: period, year: year, month: month))
 				case .replayMix(let year):
 					AnyView(ReplayMixView(year: year))
+				case .mix(let id):
+					AnyView(MixDetailView(mixId: id))
 				case .yearComparison:
 					AnyView(YearComparisonView())
 				case .addToPlaylist(let mediaIds):

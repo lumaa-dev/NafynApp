@@ -200,6 +200,7 @@ struct TrackDetailView: View {
 			defer { self.isRequesting = false }
 			do {
 				_ = try await server.send(Request.create(id: track.info.id, type: .track)) as NafynRequest
+				RecommendationFeedback.shared.requested(recordingId: track.info.id)
 				self.toast.success(String(localized: "request-sent"))
 				await PushManager.shared.requestAuthorizationIfNeeded()
 			} catch {

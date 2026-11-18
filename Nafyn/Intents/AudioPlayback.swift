@@ -130,12 +130,12 @@ enum AudioPlayback {
 
 	/// What Siri says once playback started: the reply that ends the request.
 	static func dialog(_ outcome: Outcome, title: String?) -> IntentDialog {
-		let name = title ?? String(localized: "your music")
+		let name = title ?? String(localized: "dialog-fallback-your-music")
 		return switch outcome {
-			case .playing: "Playing \(name)."
-			case .shuffling: "Shuffling \(name)."
-			case .playingNext: "\(name) will play next."
-			case .addedToQueue: "Added \(name) to the queue."
+			case .playing: "dialog-playing \(name)"
+			case .shuffling: "dialog-shuffling \(name)"
+			case .playingNext: "dialog-will-play-next \(name)"
+			case .addedToQueue: "dialog-added-to-queue \(name)"
 		}
 	}
 }
@@ -160,7 +160,7 @@ extension AudioPlayback {
 	/// The playlist's name, for Siri's answer.
 	static func playlistTitle(_ id: String) async -> String {
 		let rows = (try? await LibraryCatalog.shared.playlists()) ?? []
-		return rows.first { $0.id == id }?.title ?? String(localized: "your playlist")
+		return rows.first { $0.id == id }?.title ?? String(localized: "dialog-fallback-your-playlist")
 	}
 
 	/// Adds `tracks` to the playlist `id` (the server skips none: duplicates are the user's call).

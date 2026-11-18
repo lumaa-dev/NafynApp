@@ -162,7 +162,7 @@ struct MediaEditSheet: View {
 				}
 				TextField(String(localized: "artist"), text: self.$artist)
 				TextField(String(localized: "album"), text: self.$album)
-				Picker(String(localized: "Album Type"), selection: self.$albumType) {
+				Picker(String(localized: "album-type"), selection: self.$albumType) {
 					Text("album-type-none").tag(AlbumKind?.none)
 					Text("album").tag(AlbumKind?.some(.album))
 					Text("ep").tag(AlbumKind?.some(.ep))
@@ -178,7 +178,7 @@ struct MediaEditSheet: View {
 					DatePicker(String(localized: "release-date"), selection: self.$releaseDate, displayedComponents: .date)
 						.labelsHidden()
 				}
-				TextField(String(localized: "Record Label"), text: self.$label)
+				TextField(String(localized: "record-label"), text: self.$label)
 			}
 			.sheetRows()
 		}

@@ -33,22 +33,6 @@ enum DTLayout {
 	}
 }
 
-/// The square cover at the top of a detail screen, sized for the window it is in (see
-/// ``DTLayout/detailCoverWidth(horizontal:vertical:)``) and centered in its column.
-struct DetailCover: View {
-	@Environment(\.horizontalSizeClass) private var horizontalSizeClass
-	@Environment(\.verticalSizeClass) private var verticalSizeClass
-
-	let url: URL?
-
-	var body: some View {
-		CoverImage(url: self.url)
-			.aspectRatio(1.0, contentMode: .fit)
-			.frame(maxWidth: DTLayout.detailCoverWidth(horizontal: self.horizontalSizeClass, vertical: self.verticalSizeClass))
-			.frame(maxWidth: .infinity)
-	}
-}
-
 extension GridItem {
 	/// One adaptive column that holds as many ``MusicCard``s as fit. In a compact-width window this
 	/// resolves to the same two columns the old `[.flexible(), .flexible()]` did; wider windows add

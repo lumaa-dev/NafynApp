@@ -211,6 +211,8 @@ final class PlayTracker {
 	/// Opens a session for a freshly started track, closing any session still open for the previous one.
 	func began(track: MediaRow, source: PlayEventSource, playlistId: String?) {
 		self.finished(completed: false)
+		// a listen that came from a Discover card is that card's reward, history on or off
+		RecommendationFeedback.shared.listenBegan(trackId: track.id)
 		if self.scrobbling, let server {
 			// Last.fm's "now playing"; the scrobble itself comes from this play's event
 			let mediaId = track.id
@@ -231,6 +233,7 @@ final class PlayTracker {
 
 	/// Stops accumulating listened time (playback paused).
 	func paused() {
+		RecommendationFeedback.shared.listenPaused()
 		guard var session = self.session, session.resumedAt != nil else { return }
 		session.accumulatedMs = session.playedMs()
 		session.resumedAt = nil
@@ -239,6 +242,7 @@ final class PlayTracker {
 
 	/// Resumes accumulating listened time (playback resumed).
 	func resumed() {
+		RecommendationFeedback.shared.listenResumed()
 		guard var session = self.session, session.resumedAt == nil else { return }
 		session.resumedAt = .now
 		self.session = session
@@ -246,6 +250,7 @@ final class PlayTracker {
 
 	/// Closes the open session, queueing it as an event if enough of the track was actually heard.
 	func finished(completed: Bool) {
+		RecommendationFeedback.shared.listenEnded()
 		guard let session = self.session else { return }
 		self.session = nil
 
