@@ -10,7 +10,7 @@ struct PlaylistDetailView: View {
 	var playlistId: String
 
 	var body: some View {
-		AsyncContentView {
+		AsyncContentView(placeholder: PlaylistDetail.placeholder) {
 			guard let server else { throw NafynError.unauthenticated }
 			return try await server.fetchPlaylistDetail(pid: self.playlistId)
 		} content: { detail, _ in
@@ -24,6 +24,8 @@ private struct PlaylistDetailContent: View {
 	@Environment(\.server) private var server: NafynServer?
 	@Environment(\.dismiss) private var dismiss
 	@Environment(\.colorScheme) private var colorScheme
+	/// Drawn as the screen's skeleton with placeholder data: nothing is fetched (DESIGN.md "Skeleton loading").
+	@Environment(\.isSkeleton) private var isSkeleton
 
 	let playlistId: String
 	@State private var detail: PlaylistDetail
@@ -48,6 +50,24 @@ private struct PlaylistDetailContent: View {
 
 	private var canReorder: Bool {
 		self.detail.viewer.isOwner && self.detail.playlist.sortMode == .manual && (self.paginator?.hasMore == false) && !NetworkMonitor.shared.isOffline
+	}
+
+	/// The loaded entries in the playlist's sort order. The server only stores the mode: the order is applied here,
+	/// like the web app does, so the whole playlist has to be loaded before anything but "manual" is meaningful.
+	private var sortedEntries: [PlaylistEntry] {
+		let items = self.paginator?.items ?? []
+		switch self.detail.playlist.sortMode {
+			case .title:
+				return items.sorted { $0.media.title.localizedStandardCompare($1.media.title) == .orderedAscending }
+			case .artist:
+				return items.sorted { $0.media.artistName.localizedStandardCompare($1.media.artistName) == .orderedAscending }
+			case .addedBy:
+				return items.sorted { $0.addedBy.username.localizedStandardCompare($1.addedBy.username) == .orderedAscending }
+			case .duration:
+				return items.sorted { $0.media.duration < $1.media.duration }
+			default:
+				return items
+		}
 	}
 
 	/// The playlist's page on the Nafyn web app (`/l/playlist/<id>`), shown for sharing once it is public.
@@ -84,10 +104,18 @@ private struct PlaylistDetailContent: View {
 			self.trackList(palette: palette)
 		}
 		.task(id: self.detail.playlist.image) {
+			guard !self.isSkeleton else { return }
 			self.imageColors = await Self.hexColors(of: self.coverURL)
 		}
+		.task(id: "\(self.detail.playlist.sortMode)-\(self.paginator != nil)") {
+			// sorting only what is scrolled into view would silently miss tracks
+			guard self.detail.playlist.sortMode != .manual, let paginator = self.paginator else { return }
+			while paginator.hasMore, paginator.error == nil, !Task.isCancelled {
+				await paginator.loadMore()
+			}
+		}
 		.task {
-			guard self.paginator == nil, let server else { return }
+			guard !self.isSkeleton, self.paginator == nil, let server else { return }
 			self.paginator = Paginator<PlaylistEntry>(
 				seed: PaginatedResponse(items: self.detail.entries, page: 1, limit: max(self.detail.entries.count, 1), total: self.detail.entriesTotal, hasMore: self.detail.entriesHasMore),
 				fetchPage: { page, limit in
@@ -304,13 +332,21 @@ private struct PlaylistDetailContent: View {
 
 	@ViewBuilder
 	private func trackList(palette: CoverPalette) -> some View {
-		if let paginator {
+		if self.isSkeleton {
+			// no paginator in a skeleton: the placeholder's own rows
 			LazyVStack(spacing: 0) {
-				ForEach(Array(paginator.items.enumerated()), id: \.element.entryId) { index, entry in
-					self.trackRow(entry, in: paginator)
+				ForEach(self.detail.entries, id: \.entryId) { entry in
+					self.trackRow(entry, in: self.detail.entries)
+				}
+			}
+		} else if let paginator {
+			let entries = self.sortedEntries
+			LazyVStack(spacing: 0) {
+				ForEach(Array(entries.enumerated()), id: \.element.entryId) { index, entry in
+					self.trackRow(entry, in: entries)
 						.onAppear { paginator.loadNextPageIfNeeded(currentItem: entry) }
 
-					if index < paginator.items.count - 1 {
+					if index < entries.count - 1 {
 						Divider()
 							.overlay(palette.secondary.opacity(0.3))
 					}
@@ -326,9 +362,9 @@ private struct PlaylistDetailContent: View {
 	}
 
 	/// A row with its cover (a playlist mixes albums); held, the actions the list's swipes used to carry.
-	private func trackRow(_ entry: PlaylistEntry, in paginator: Paginator<PlaylistEntry>) -> some View {
+	private func trackRow(_ entry: PlaylistEntry, in entries: [PlaylistEntry]) -> some View {
 		TrackRow(coverURL: entry.media.listCoverURL, title: entry.media.title, subtitle: entry.media.artistName, duration: entry.media.duration, fileSize: entry.media.fileSize, verticalPadding: 8) {
-			self.play(entry, in: paginator.items)
+			self.play(entry, in: entries)
 		}
 		.contextMenu {
 			if DownloadManager.shared.isDownloaded(trackId: entry.media.id) {
@@ -375,7 +411,8 @@ private struct PlaylistDetailContent: View {
 	}
 
 	private func playAll(shuffle: Bool) {
-		guard var queue = self.paginator?.items.map({ $0.media }), !queue.isEmpty else { return }
+		var queue = self.sortedEntries.map({ $0.media })
+		guard !queue.isEmpty else { return }
 		if shuffle {
 			queue.shuffle()
 		}
@@ -419,7 +456,6 @@ private struct PlaylistDetailContent: View {
 		Task {
 			do {
 				_ = try await server.send(Playlist.update(pid: self.playlistId, sortMode: mode)) as PlaylistRow
-				await self.paginator?.reset()
 			} catch {
 				self.toast.failure(error)
 			}

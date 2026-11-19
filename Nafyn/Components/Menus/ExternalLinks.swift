@@ -2,6 +2,7 @@
 
 import SwiftUI
 import WebKit
+import SafariServices
 import Safyn
 
 /// What a track or album is called, to find it on other services. Nafyn knows no Spotify/Deezer/... IDs, so every link
@@ -50,7 +51,7 @@ enum ExternalService: String, CaseIterable, Identifiable {
 
 /// "Open on" > one search link per service, for a track or album's menu ("View" category): a web view in a sheet
 /// (DESIGN.md "Links": never Safari directly). Not sharing: DESIGN.md "Sharing" puts a private item (a library
-/// track or album) out of reach of "Share", and shares an item's own link - see ``CatalogShareMenu``.
+/// track or album) out of reach of "Share", and shares an item's own link - see ``CatalogShareButton``.
 struct ExternalLinkMenuItems: View {
 	let item: ExternalShareItem
 
@@ -77,30 +78,19 @@ struct ExternalLinkMenuItems: View {
 	}
 }
 
-/// "Share" for a catalog track or album (not private: nobody's library): its link on this Nafyn server or its image
-/// (iOS only, 9:16), both through `ShareLink` (DESIGN.md "Sharing"). `path` is the item's page (`/t/<id>`, `/a/<id>`).
-struct CatalogShareMenu: View {
-	@Environment(\.server) private var server: NafynServer?
-
+/// "Share" for a catalog track or album, and for a library one (what is shared is its catalog page, never the
+/// private library entry): opens ``ShareCatalogSheet``, which shares the link on this Nafyn server or the image
+/// (iOS only, 9:16), both through `ShareLink` (DESIGN.md "Sharing"). `path` is the item's page (`t/<id>`, `a/<id>`).
+struct CatalogShareButton: View {
 	let path: String
 	let title: String
-	let onShareImage: () -> Void
+	var subtitle: String? = nil
+	var coverURL: URL? = nil
 
 	var body: some View {
-		Menu {
-			if let url = self.server?.instance.baseURL.appending(path: self.path) {
-				ShareLink(item: url, subject: Text(self.title)) {
-					Label(String(localized: "share-link"), systemImage: "link")
-				}
-				.tint(Color.primary)
-			}
-
-			Button {
-				self.onShareImage()
-			} label: {
-				Label(String(localized: "share-as-image"), systemImage: "photo")
-			}
-			.tint(Color.primary)
+		Button {
+			PlayerEngine.shared.isExpanded = false
+			Navigator.shared.sheet = Navigator.Paths.shareCatalog(path: self.path, title: self.title, subtitle: self.subtitle, coverURL: self.coverURL)
 		} label: {
 			Label(String(localized: "share"), systemImage: "square.and.arrow.up")
 		}
@@ -108,30 +98,37 @@ struct CatalogShareMenu: View {
 	}
 }
 
-/// A web page in a sheet (DESIGN.md "Links"), with a Close button.
-struct WebSheet: View {
+extension OpenURLAction {
+	/// DESIGN.md "Links": a web link (a `Link`, a link in markdown text) opens in the ``Navigator/Paths/web(url:)``
+	/// sheet, never in Safari directly. Any other scheme (the Settings app, `mailto:`) still goes to the system.
+	/// Set once on the tabs in `RootView`, so a new `Link` needs nothing more.
+	static let nafynWebSheet = OpenURLAction { url in
+		guard let scheme = url.scheme?.lowercased(), scheme == "http" || scheme == "https" else { return .systemAction }
+		Navigator.shared.sheet = Navigator.Paths.web(url: url)
+		return .handled
+	}
+}
+
+struct WebSheet: UIViewControllerRepresentable {
+	/// The URL to be opened in the Safari view.
 	let url: URL
 
-	@Environment(\.dismiss) private var dismiss
+	/// Creates and returns a new instance of SFSafariViewController.
+	/// - Parameter context: The context in which the Safari view controller is being created.
+	/// - Returns: An instance of SFSafariViewController with the specified URL.
+	func makeUIViewController(context: UIViewControllerRepresentableContext<WebSheet>) -> SFSafariViewController {
+		let safari = SFSafariViewController(url: url)
+		safari.dismissButtonStyle = .close
+		safari.modalPresentationStyle = .overCurrentContext
 
-	var body: some View {
-		NavigationStack {
-			WebView(url: self.url)
-				.ignoresSafeArea(edges: .bottom)
-				.navigationTitle(self.url.host() ?? "")
-				.navigationBarTitleDisplayMode(.inline)
-				.toolbar {
-					ToolbarItem(placement: .cancellationAction) {
-						Button {
-							self.dismiss()
-						} label: {
-							Label(String(localized: "close"), systemImage: "xmark")
-								.labelStyle(.iconOnly)
-						}
-						.tint(Color.primary)
-					}
-				}
-		}
-		.sheetBackground()
+		return safari
+	}
+
+	/// Updates the Safari view controller when needed.
+	/// - Parameters:
+	///   - uiViewController: The existing SFSafariViewController instance.
+	///   - context: The context in which the Safari view controller is being updated.
+	func updateUIViewController(_ uiViewController: SFSafariViewController, context: UIViewControllerRepresentableContext<WebSheet>) {
+
 	}
 }

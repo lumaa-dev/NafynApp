@@ -30,16 +30,16 @@ final class PlayTracker {
 		self.settings?.historyEnabled ?? false
 	}
 
-	/// Plays are scrobbled to Last.fm (server side, from these same events), so they are reported even with the
+	/// Plays are scrobbled to ListenBrainz (server side, from these same events), so they are reported even with the
 	/// listening history off - the server then scrobbles them and stores nothing.
 	private(set) var scrobbling = false
 
-	/// Whether finished plays are queued and sent: the history or Last.fm wants them.
+	/// Whether finished plays are queued and sent: the history or ListenBrainz wants them.
 	var capturesPlays: Bool {
 		self.historyEnabled || self.scrobbling
 	}
 
-	/// Settings → Last.fm changed the connection.
+	/// Settings → ListenBrainz changed the connection.
 	func setScrobbling(_ scrobbling: Bool) {
 		self.scrobbling = scrobbling
 	}
@@ -110,7 +110,7 @@ final class PlayTracker {
 				guard let self else { return }
 				// The open session is only snapshotted to disk, never closed: audio keeps playing in the
 				// background, and closing it here cut the track's play at the moment of locking the phone
-				// (too short for Last.fm's half-the-track rule) and left the rest of it unrecorded.
+				// (too short for the half-the-track scrobbling rule) and left the rest of it unrecorded.
 				self.checkpointSession()
 				Task { await self.flush() }
 			}
@@ -214,9 +214,9 @@ final class PlayTracker {
 		// a listen that came from a Discover card is that card's reward, history on or off
 		RecommendationFeedback.shared.listenBegan(trackId: track.id)
 		if self.scrobbling, let server {
-			// Last.fm's "now playing"; the scrobble itself comes from this play's event
+			// ListenBrainz' "playing now"; the listen itself comes from this play's event
 			let mediaId = track.id
-			Task { _ = try? await server.sendRaw(User.lastfmNowPlaying(mediaId: mediaId)) }
+			Task { _ = try? await server.sendRaw(User.listenBrainzNowPlaying(mediaId: mediaId)) }
 		}
 		guard self.capturesPlays else { return }
 
@@ -260,7 +260,7 @@ final class PlayTracker {
 		Self.savePending(self.pending)
 
 		// Every finished play goes out right away: a looped track (Repeat One) finishes one every few minutes, and
-		// holding them back until `flushThreshold` left the server (stats and the Last.fm scrobbles) behind for as
+		// holding them back until `flushThreshold` left the server (stats and the ListenBrainz scrobbles) behind for as
 		// long as the app stayed in the background. The batch is still sent in one request when several are waiting.
 		Task { await self.flush() }
 	}

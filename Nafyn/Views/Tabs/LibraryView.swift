@@ -106,12 +106,6 @@ struct LibraryView: View {
 			self.navBtn(String(localized: "albums"), systemImage: "square.stack", path: .myAlbums)
 
 			self.navBtn(String(localized: "playlists"), systemImage: "music.note.list", path: .myPlaylists)
-
-			// Only once listening history is on — with it off there's nothing behind this screen but the
-			// "keep listening" gate, and the setting is opt-in.
-			if PlayTracker.shared.historyEnabled {
-				self.navBtn(String(localized: "music-year"), systemImage: "sparkles", path: .musicYear(year: nil))
-			}
 		}
 	}
 

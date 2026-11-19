@@ -41,24 +41,25 @@ struct AlbumMenuItems: View {
 		PinMenuButton(target: .album(self.albumId))
 
 		// the MusicBrainz version of the album and its artist, not the library's
-		Button {
-			PlayerEngine.shared.isExpanded = false
-			Navigator.shared.send(to: .album(id: self.albumId))
-		} label: {
-			Label(String(localized: "view-catalog-album"), systemImage: "opticaldisc")
-		}
-		.tint(Color.primary)
-
-		Button {
-			self.openArtist()
-		} label: {
-			Label(String(localized: "view-artist"), systemImage: "person")
-		}
-		.tint(Color.primary)
+		ViewMenuItems(targets: [
+			.album(catalog: true) {
+				PlayerEngine.shared.isExpanded = false
+				Navigator.shared.send(to: .album(id: self.albumId))
+			},
+			.artist { self.openArtist() }
+		])
 
 		if let title = self.title {
 			ExternalLinkMenuItems(item: ExternalShareItem(title: title, artist: self.artistName))
 		}
+
+		// the album's catalog page: a library entry is private, the MusicBrainz album behind it is not
+		Button {
+			self.share()
+		} label: {
+			Label(String(localized: "share"), systemImage: "square.and.arrow.up")
+		}
+		.tint(Color.primary)
 
 		Divider()
 
@@ -150,6 +151,28 @@ struct AlbumMenuItems: View {
 				guard let artistId = response.album.row.artistMbid else { return }
 				PlayerEngine.shared.isExpanded = false
 				Navigator.shared.send(to: .artist(id: artistId))
+			} catch {
+				ToastState.app.failure(error)
+			}
+		}
+	}
+
+	private func share() {
+		let albumId = self.albumId
+		let cover = "/api/v1/art/release-group/\(albumId)/1000".coverArtURL(size: 1000)
+		if let title = self.title {
+			Navigator.shared.sheet = Navigator.Paths.shareCatalog(path: "a/\(albumId)", title: title, subtitle: self.artistName, coverURL: cover)
+			PlayerEngine.shared.isExpanded = false
+			return
+		}
+
+		let server = self.server
+		Task { @MainActor in
+			do {
+				guard let server else { throw NafynError.unauthenticated }
+				let response: LibraryAlbumResponse = try await server.send(Library.album(id: albumId))
+				PlayerEngine.shared.isExpanded = false
+				Navigator.shared.sheet = Navigator.Paths.shareCatalog(path: "a/\(albumId)", title: response.album.row.title, subtitle: response.album.row.artistName, coverURL: response.album.row.coverURL(size: 1000) ?? cover)
 			} catch {
 				ToastState.app.failure(error)
 			}

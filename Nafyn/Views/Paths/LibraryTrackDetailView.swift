@@ -11,7 +11,7 @@ struct LibraryTrackDetailView: View {
 	var trackId: String
 
 	var body: some View {
-		AsyncContentView {
+		AsyncContentView(placeholder: LibraryTrackResponse.placeholder) {
 			guard let server else { throw NafynError.unauthenticated }
 			return try await server.send(Library.track(id: self.trackId)) as LibraryTrackResponse
 		} content: { response, _ in
@@ -51,6 +51,13 @@ private struct LibraryTrackDetailContent: View {
 		}
 		.toast(self.toast)
 		.toolbar {
+			MediaVersionPicker(current: .library, counterpart: self.track.musicbrainzId.isMusicBrainzId ? .track(id: self.track.musicbrainzId) : nil) { path in
+				switch path {
+					case .libraryTrack(let id), .recentTrack(let id, _): id == self.track.id
+					default: false
+				}
+			}
+
 			ToolbarOverflowMenu {
 				// the same menu as the track's card: Play / Shuffle, then the shared track items
 				ControlGroup {

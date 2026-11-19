@@ -381,24 +381,16 @@ struct NowPlayingView: View {
 					}
 
 					Menu {
-						if !track.albumId.isEmpty {
-							Button {
+						ViewMenuItems(targets: [
+							track.albumId.isEmpty ? nil : .album {
 								Navigator.shared.send(to: .album(id: track.albumId))
 								PlayerEngine.shared.isExpanded = false
-							} label: {
-								Label("view-album", systemImage: "square.stack")
-							}
-							.tint(Color.primary)
-						}
-						if let artistId = track.artistMbid {
-							Button {
+							},
+							track.artistMbid.map { artistId in .artist {
 								Navigator.shared.send(to: .artist(id: artistId))
 								PlayerEngine.shared.isExpanded = false
-							} label: {
-								Label("view-artist", systemImage: "person")
-							}
-							.tint(Color.primary)
-						}
+							} }
+						].compactMap { $0 })
 						Button {
 							self.isPresentingAddToPlaylist = true
 						} label: {

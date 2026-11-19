@@ -35,8 +35,9 @@ struct RecapSummary {
 	}
 }
 
-/// The square card rendered into an image for sharing a recap's highlights — the same card serves both
-/// the monthly and yearly recaps, driven entirely by ``RecapSummary``.
+/// The card rendered into an image for sharing a recap's highlights — the same card serves both the monthly and
+/// yearly recaps, driven entirely by ``RecapSummary``. 9:16, 360 x 640 points rendered at 3x: 1080 x 1920, like
+/// every image Nafyn shares (DESIGN.md "Sharing": Instagram / Snapchat stories).
 ///
 /// Rendered off-screen through `ImageRenderer`, which draws only what it can resolve synchronously —
 /// `AsyncImage` would come out blank, so cover art is fetched up front by ``loadCovers(for:)`` and
@@ -49,46 +50,51 @@ struct MusicYearShareCard: View {
 	let covers: [String: Never]
 	#endif
 
-	private static let side: CGFloat = 400
-	private static let thumbnailSpacing: CGFloat = 8
+	/// The card's size in points, the same as ``ShareCardView``'s.
+	static let size = CGSize(width: 360, height: 640)
+	private static let padding: CGFloat = 28
+	private static let thumbnailSpacing: CGFloat = 14
+	/// Three covers side by side across the card's inner width.
+	private static let thumbnailSide: CGFloat = (size.width - padding * 2 - thumbnailSpacing * 2) / 3
 
 	var body: some View {
-		VStack(alignment: .leading, spacing: 4) {
-			HStack {
-				VStack(alignment: .leading, spacing: 0) {
-					Text(self.summary.title)
-						.font(DTFont.serif(56))
-						.foregroundStyle(DTColor.textPrimary)
-						.multilineTextAlignment(.leading)
-						.frame(maxWidth: .infinity, alignment: .leading)
-
-					Text(String(localized: "\(self.summary.totalMinutes)-minutes"))
-						.font(DTFont.system(15))
-						.foregroundStyle(DTColor.textPrimary.opacity(0.55))
-						.padding(.bottom, 14)
-						.multilineTextAlignment(.leading)
-						.frame(maxWidth: .infinity, alignment: .leading)
-				}
+		VStack(alignment: .leading, spacing: 0) {
+			HStack(alignment: .firstTextBaseline) {
+				Text(self.summary.title)
+					.font(DTFont.serif(56))
+					.foregroundStyle(DTColor.textPrimary)
+					.lineLimit(1)
+					.minimumScaleFactor(0.5)
+					.frame(maxWidth: .infinity, alignment: .leading)
 
 				Text(String("Nafyn"))
-					.font(DTFont.serifItalic(14))
+					.font(DTFont.serifItalic(16))
 					.foregroundStyle(DTColor.textPrimary)
 					.lineLimit(1)
 			}
 
-			HStack(alignment: .top, spacing: 16) {
-				self.list
+			Text(String(localized: "\(self.summary.totalMinutes)-minutes"))
+				.font(DTFont.system(15))
+				.foregroundStyle(DTColor.textPrimary)
+				.lineLimit(1)
+				.padding(.bottom, 24)
 
-				self.thumbnails
-					.frame(width: 96)
-			}
+			self.thumbnails
+				.padding(.bottom, 12)
+
+			self.list
+
+			Spacer(minLength: 0)
 		}
-		.padding(28)
-		.frame(width: Self.side, alignment: .leading)
+		// a story's top and bottom sit under the app's own controls: the content keeps clear of both edges
+		.padding(.horizontal, Self.padding)
+		.padding(.vertical, Self.padding * 2)
+		.frame(width: Self.size.width, height: Self.size.height, alignment: .topLeading)
 		.background(DTColor.background)
+		.environment(\.colorScheme, .dark)
 	}
 
-	// MARK: - Left column: text-only ranked list
+	// MARK: - Text-only ranked lists
 
 	@ContentBuilder
 	private var list: some View {
@@ -129,24 +135,20 @@ struct MusicYearShareCard: View {
 	@ContentBuilder
 	private func row(_ entity: RankedEntity) -> some View {
 		Text(entity.title ?? entity.entityId)
-			.font(DTFont.system(14))
+			.font(DTFont.system(16))
 			.foregroundStyle(DTColor.textPrimary)
 			.lineLimit(1)
 	}
 
-	// MARK: - Right column: 3 stacked big thumbnails, #1 of each kind
+	// MARK: - The #1 of each kind, side by side
 
 	@ContentBuilder
 	private var thumbnails: some View {
 		#if canImport(UIKit)
-		GeometryReader { proxy in
-			let height = (proxy.size.height - Self.thumbnailSpacing * 2) / 3
-
-			VStack(spacing: Self.thumbnailSpacing) {
-				self.thumbnail(for: self.summary.topArtists.first, height: height, shape: AnyShape(.circle))
-				self.thumbnail(for: self.summary.topTracks.first, height: height, shape: AnyShape(RoundedRectangle(cornerRadius: 10)))
-				self.thumbnail(for: self.summary.topAlbums.first, height: height, shape: AnyShape(RoundedRectangle(cornerRadius: 10)))
-			}
+		HStack(spacing: Self.thumbnailSpacing) {
+			self.thumbnail(for: self.summary.topArtists.first, height: Self.thumbnailSide, shape: AnyShape(.circle))
+			self.thumbnail(for: self.summary.topTracks.first, height: Self.thumbnailSide, shape: AnyShape(RoundedRectangle(cornerRadius: 10)))
+			self.thumbnail(for: self.summary.topAlbums.first, height: Self.thumbnailSide, shape: AnyShape(RoundedRectangle(cornerRadius: 10)))
 		}
 		#endif
 	}

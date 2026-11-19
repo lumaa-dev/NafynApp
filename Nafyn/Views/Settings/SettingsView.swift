@@ -132,8 +132,8 @@ private struct SettingsForm: View {
 				}
 				.tint(Color.primary)
 
-				NavigationLink(value: Navigator.Paths.settingsLastfm) {
-					Label(String("Last.fm"), systemImage: "dot.radiowaves.left.and.right")
+				NavigationLink(value: Navigator.Paths.settingsListenBrainz) {
+					Label(String("ListenBrainz"), systemImage: "dot.radiowaves.left.and.right")
 						.foregroundStyle(Color.primary)
 				}
 				.tint(Color.primary)

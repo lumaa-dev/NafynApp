@@ -3,7 +3,7 @@
 import SwiftUI
 import Safyn
 
-/// Edits the signed-in user's own profile (avatar, display name, Last.fm, Discogs): ``ProfileSettingsSection`` in a
+/// Edits the signed-in user's own profile (avatar, display name, ListenBrainz, Discogs): ``ProfileSettingsSection`` in a
 /// sheet. Closes once the fields are saved.
 struct ProfileEditSheet: View {
 	@Environment(\.dismiss) private var dismiss

@@ -10,7 +10,7 @@ struct ArtistDetailView: View {
 
 
 	var body: some View {
-		AsyncContentView {
+		AsyncContentView(placeholder: ArtistDetail.placeholder) {
 			guard let server else { throw NafynError.unauthenticated }
 			return try await server.send(Artist.get(aid: self.artistId)) as ArtistDetail
 		} content: { artist, _ in
@@ -42,10 +42,14 @@ struct ArtistDetailView: View {
 					.clipShape(Circle())
 					.frame(width: 140, height: 140)
 
-				Text(artist.name)
-					.font(DTFont.serif(31))
-					.foregroundStyle(DTColor.textPrimary)
-					.multilineTextAlignment(.center)
+				if let logo = artist.logo.flatMap({ URL(string: $0) }) {
+					ArtistLogo(url: logo, name: artist.name)
+				} else {
+					Text(artist.name)
+						.font(DTFont.serif(31))
+						.foregroundStyle(DTColor.textPrimary)
+						.multilineTextAlignment(.center)
+				}
 
 				if let listeners = artist.listeners {
 					Text(String(localized: "listeners \(Int(listeners))"))

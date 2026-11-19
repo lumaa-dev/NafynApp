@@ -131,6 +131,8 @@ struct CoverScrollView<Content: View>: View {
 struct CoverHeader<Details: View>: View {
 	var url: URL?
 	var palette: CoverPalette
+	/// Drawn in place of the cover at `url`, for a screen whose picture is not one cover (a mix's grid of four).
+	var artwork: AnyView? = nil
 	@ViewBuilder var details: () -> Details
 
 	@Environment(\.coverStretch) private var stretch
@@ -154,11 +156,17 @@ struct CoverHeader<Details: View>: View {
 				.frame(maxHeight: self.maxCoverHeight)
 				.overlay {
 					GeometryReader { proxy in
-						// the album's own color while loading, so a red cover never flashes gray first
-						CoverImage(url: self.url, cornerRadius: 0, placeholder: self.palette.background)
-							.frame(width: proxy.size.width, height: proxy.size.height)
-							.clipped()
-							.backgroundExtensionEffect()
+						Group {
+							if let artwork = self.artwork {
+								artwork
+							} else {
+								// the album's own color while loading, so a red cover never flashes gray first
+								CoverImage(url: self.url, cornerRadius: 0, placeholder: self.palette.background)
+							}
+						}
+						.frame(width: proxy.size.width, height: proxy.size.height)
+						.clipped()
+						.backgroundExtensionEffect()
 					}
 				}
 				.safeAreaInset(edge: .top, spacing: 0) {

@@ -5,7 +5,7 @@ import Safyn
 
 /// `Request.all`'s `requestedBy` is resolved server-side via a compact user projection (confirmed
 /// against `requests.ts`'s `rowToRequest`, which calls `getUserById(id, compact: true)`) — an object
-/// missing `permissions`/`lastFm`/`discogs`. `UserRef.init(from:)` tries to decode that object as a full
+/// missing `permissions`/`listenBrainz`/`discogs`. `UserRef.init(from:)` tries to decode that object as a full
 /// `NafynUser` (fails, missing `permissions`), then falls back to decoding it as a plain `String` — which
 /// also fails since it's an object, not a string — so the fallback itself throws, failing the entire
 /// `NafynRequest`/list decode. This is why the Requests tab shows nothing at all rather than erroring
@@ -32,11 +32,20 @@ extension NafynServer {
 	/// `filters` narrows the list to those statuses; empty means every request. The server only knows four
 	/// groups (`succeeded`/`failed`/`waiting`/`processing`) and always lists `denied`, so with a filter
 	/// active denied requests are dropped here unless `.denied` was picked.
-	func fetchRequests(page: Int, limit: Int, filters: Set<RequestFilter> = []) async throws -> PaginatedResponse<NafynRequest> {
+	///
+	/// `type` keeps only album or only track requests, `user` only one account's (``Request/requesters`` lists them);
+	/// `nil` keeps all of them. Same query items as Safyn's `Request.all(type:user:)`.
+	func fetchRequests(page: Int, limit: Int, filters: Set<RequestFilter> = [], type: RequestKind? = nil, user: String? = nil) async throws -> PaginatedResponse<NafynRequest> {
 		var queryItems = [
 			URLQueryItem(name: "page", value: String(page)),
 			URLQueryItem(name: "limit", value: String(limit)),
 		]
+		if let type {
+			queryItems.append(URLQueryItem(name: "type", value: type.rawValue))
+		}
+		if let user {
+			queryItems.append(URLQueryItem(name: "user", value: user))
+		}
 		if !filters.isEmpty {
 			queryItems += [
 				URLQueryItem(name: "succeeded", value: String(filters.contains(.succeeded))),

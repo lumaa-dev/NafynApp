@@ -11,26 +11,28 @@ struct MixDetailView: View {
 	let mixId: String
 
 	var body: some View {
-		AsyncContentView {
+		AsyncContentView(placeholder: MixDetail.placeholder) {
 			guard let server else { throw NafynError.unauthenticated }
 			return try await server.send(Recommendations.mix(id: self.mixId)) as MixDetail
-		} skeleton: {
-			AnyView(SkeletonTrackRows())
 		} content: { mix, _ in
 			MixDetailContent(mix: mix)
 		}
-		.navigationTitle(String(localized: "mix-made-for-you"))
 		.navigationBarTitleDisplayMode(.inline)
 	}
 }
 
 private struct MixDetailContent: View {
 	@Environment(\.server) private var server: NafynServer?
+	@Environment(\.colorScheme) private var colorScheme
+	/// Drawn as the screen's skeleton with placeholder data: no feedback is attributed (DESIGN.md "Skeleton loading").
+	@Environment(\.isSkeleton) private var isSkeleton
 
 	let mix: MixDetail
 
 	@State private var requested: Set<String> = []
 	@State private var toast = ToastState()
+	/// The first cover's dominant colours (hex), for the cover-themed screen; `nil` until read.
+	@State private var imageColors: [String]? = nil
 
 	private var familiar: [MediaRow] {
 		self.mix.tracks.compactMap(\.media)
@@ -40,35 +42,34 @@ private struct MixDetailContent: View {
 		self.mix.tracks.compactMap(\.suggestion)
 	}
 
-	var body: some View {
-		ScrollView {
-			VStack(alignment: .leading, spacing: 16) {
-				self.header
+	/// The cover the screen takes its colours from: the grid's first.
+	private var leadCoverURL: URL? {
+		self.mix.covers.first.flatMap { $0.contains("/art/") ? $0.coverArtURL(size: 250) : URL(string: $0) }
+	}
 
-				LazyVStack(spacing: 0) {
-					ForEach(self.mix.tracks) { track in
-						if let media = track.media {
-							TrackRow(
-								coverURL: media.listCoverURL,
-								title: media.title,
-								subtitle: "\(media.artistName) · \(track.reason.text)",
-								duration: media.duration
-							) {
-								self.play(from: media)
-							}
-							.libraryItemMenu(item: track.inLibrary ? .track(id: media.id) : nil, play: nil)
-						} else if let suggestion = track.suggestion {
-							self.suggestionRow(suggestion, reason: track.reason)
-						}
-					}
-				}
-			}
-			.padding(.horizontal)
-			.padding(.vertical)
+	var body: some View {
+		let palette = CoverPalette(imageColors: self.imageColors, colorScheme: self.colorScheme)
+
+		// The same layout as an album or a playlist (DESIGN.md "Track/Album Detail view"): the mix's covers edge to
+		// edge with its title on them, coloured after them, then the actions and the tracks; two panes when the window
+		// has room.
+		AdaptiveCoverDetail(palette: palette) {
+			self.header(palette: palette)
+		} compact: {
+			self.details(palette: palette)
+			self.actions
+			self.trackList(palette: palette)
+		} primary: {
+			self.details(palette: palette)
+		} secondary: {
+			self.actions
+			self.trackList(palette: palette)
 		}
-		.scrollEdgeEffectStyle(.soft, for: .all)
-		.contentColumn()
-		.background(DTColor.background.ignoresSafeArea())
+		.animation(.easeOut(duration: 0.25), value: self.imageColors)
+		.task(id: self.mix.covers.first) {
+			guard !self.isSkeleton else { return }
+			self.imageColors = await Self.hexColors(of: self.leadCoverURL)
+		}
 		.toolbar {
 			ToolbarItem(placement: .primaryAction) {
 				Button {
@@ -82,6 +83,7 @@ private struct MixDetailContent: View {
 			}
 		}
 		.onAppear {
+			guard !self.isSkeleton else { return }
 			RecommendationFeedback.shared.attributeMix(id: self.mix.id, mediaIds: self.familiar.map(\.id), recordingIds: self.suggestions.map(\.recordingId))
 		}
 		.onDisappear {
@@ -90,52 +92,100 @@ private struct MixDetailContent: View {
 		.toast(self.toast)
 	}
 
-	@ContentBuilder
-	private var header: some View {
-		VStack(alignment: .leading, spacing: 10) {
-			MixCover(covers: self.mix.covers, size: 1000)
-				.frame(maxWidth: 260)
-
+	/// The four covers as the header's picture, the mix's title and "Made for you" on them.
+	private func header(palette: CoverPalette) -> some View {
+		CoverHeader(url: nil, palette: palette, artwork: AnyView(MixCover(covers: self.mix.covers, size: 1000, cornerRadius: 0))) {
 			Text(self.mix.label.localizedTitle)
-				.font(DTFont.serif(40))
-				.foregroundStyle(DTColor.textPrimary)
+				.font(DTFont.serif(31))
+				.foregroundStyle(palette.primary)
 
-			Text(String(localized: "mix-summary-\(self.familiar.count)-\(self.suggestions.count)"))
-				.font(DTFont.system(14))
-				.foregroundStyle(DTColor.textPrimary.opacity(0.7))
+			Text(String(localized: "mix-made-for-you"))
+				.font(DTFont.serifItalic(20))
+				.foregroundStyle(palette.primary)
+		}
+	}
 
-			if !self.mix.topArtists.isEmpty {
-				Text(self.mix.topArtists.prefix(4).joined(separator: ", "))
-					.font(DTFont.system(14))
-					.foregroundStyle(DTColor.textPrimary.opacity(0.7))
+	/// How many tracks of each kind, and the artists the mix is built around.
+	@ViewBuilder
+	private func details(palette: CoverPalette) -> some View {
+		Text(String(localized: "mix-summary-\(self.familiar.count)-\(self.suggestions.count)"))
+			.font(DTFont.system(16))
+			.foregroundStyle(palette.secondary)
+
+		if !self.mix.topArtists.isEmpty {
+			Text(self.mix.topArtists.prefix(4).joined(separator: ", "))
+				.font(DTFont.system(16))
+				.foregroundStyle(palette.secondary)
+		}
+	}
+
+	/// Play / Shuffle the familiar tracks (the suggestions are previews, not playable yet), like a playlist's.
+	@ViewBuilder
+	private var actions: some View {
+		if !self.familiar.isEmpty {
+			HStack {
+				Button {
+					guard let first = self.familiar.first else { return }
+					PlaybackSource.play(first, queue: self.familiar)
+				} label: {
+					Label(String(localized: "play"), systemImage: "play.fill")
+						.frame(maxWidth: .infinity)
+				}
+				.buttonStyle(.filled())
+
+				Button {
+					let shuffled = self.familiar.shuffled()
+					guard let first = shuffled.first else { return }
+					PlaybackSource.play(first, queue: shuffled)
+				} label: {
+					Label(String(localized: "shuffle"), systemImage: "shuffle")
+						.frame(maxWidth: .infinity)
+				}
+				.buttonStyle(.hollow())
 			}
+		}
+	}
 
-			if !self.familiar.isEmpty {
-				HStack(spacing: 10) {
-					Button {
-						guard let first = self.familiar.first else { return }
-						PlaybackSource.play(first, queue: self.familiar)
-					} label: {
-						Label(String(localized: "play"), systemImage: "play.fill")
-							.frame(maxWidth: .infinity)
+	private func trackList(palette: CoverPalette) -> some View {
+		LazyVStack(spacing: 0) {
+			ForEach(Array(self.mix.tracks.enumerated()), id: \.element.id) { index, track in
+				Group {
+					if let media = track.media {
+						TrackRow(
+							coverURL: media.listCoverURL,
+							title: media.title,
+							subtitle: "\(media.artistName) · \(track.reason.text)",
+							duration: media.duration,
+							verticalPadding: 8
+						) {
+							self.play(from: media)
+						}
+						.libraryItemMenu(item: track.inLibrary ? .track(id: media.id) : nil, play: nil)
+					} else if let suggestion = track.suggestion {
+						self.suggestionRow(suggestion, reason: track.reason, palette: palette)
 					}
-					.buttonStyle(.filled())
+				}
 
-					Button {
-						let shuffled = self.familiar.shuffled()
-						guard let first = shuffled.first else { return }
-						PlaybackSource.play(first, queue: shuffled)
-					} label: {
-						Label(String(localized: "shuffle"), systemImage: "shuffle")
-							.frame(maxWidth: .infinity)
-					}
-					.buttonStyle(.filled())
+				if index < self.mix.tracks.count - 1 {
+					Divider()
+						.overlay(palette.secondary.opacity(0.3))
 				}
 			}
 		}
 	}
 
-	private func suggestionRow(_ suggestion: MixSuggestion, reason: MixTrackReason) -> some View {
+	/// The first cover's dominant colours as hex, for ``CoverPalette`` (as a playlist's image).
+	private static func hexColors(of url: URL?) async -> [String]? {
+		guard url != nil else { return nil }
+		let colors = await CoverPaletteExtractor.palette(for: url)
+		return colors.compactMap { color in
+			var red: CGFloat = 0, green: CGFloat = 0, blue: CGFloat = 0, alpha: CGFloat = 0
+			guard UIColor(color).getRed(&red, green: &green, blue: &blue, alpha: &alpha) else { return nil }
+			return String(format: "#%02X%02X%02X", Int(red * 255), Int(green * 255), Int(blue * 255))
+		}
+	}
+
+	private func suggestionRow(_ suggestion: MixSuggestion, reason: MixTrackReason, palette: CoverPalette) -> some View {
 		let preview = PreviewPlayer.shared
 		let id = suggestion.recordingId
 		return HStack(spacing: 12) {
@@ -148,15 +198,15 @@ private struct MixDetailContent: View {
 					VStack(alignment: .leading, spacing: 2) {
 						Text(suggestion.title)
 							.font(DTFont.serif(18))
-							.foregroundStyle(DTColor.textPrimary)
+							.foregroundStyle(palette.primary)
 							.lineLimit(1)
 						Text(suggestion.artist)
 							.font(DTFont.serif(15))
-							.foregroundStyle(DTColor.textPrimary.opacity(0.7))
+							.foregroundStyle(palette.secondary)
 							.lineLimit(1)
 						Text("\(String(localized: "mix-suggested")) · \(reason.text)")
 							.font(DTFont.serifItalic(14))
-							.foregroundStyle(DTColor.textPrimary.opacity(0.7))
+							.foregroundStyle(palette.secondary)
 							.lineLimit(1)
 					}
 					.frame(maxWidth: .infinity, alignment: .leading)
@@ -171,10 +221,14 @@ private struct MixDetailContent: View {
 			} label: {
 				Label(String(localized: preview.isActive(id) ? "stop-preview" : "play-preview"), systemImage: preview.isActive(id) ? "stop.fill" : "play.fill")
 					.labelStyle(.iconOnly)
+					.font(.system(size: 16, weight: .semibold))
+					.foregroundStyle(palette.primary)
 					.frame(width: 36, height: 36)
+					// the hollow style pads 48pt sideways: a circle of its own keeps the button 1:1
+					.overlay(Circle().strokeBorder(palette.primary, lineWidth: 1))
+					.contentShape(Circle())
 			}
-			.buttonStyle(.hollow())
-			.clipShape(Circle())
+			.buttonStyle(.plain)
 			.disabled(preview.unavailableIds.contains(id))
 
 			Button(String(localized: "request")) {
@@ -183,7 +237,7 @@ private struct MixDetailContent: View {
 			.buttonStyle(.hollow())
 			.disabled(self.requested.contains(id) || NetworkMonitor.shared.isOffline)
 		}
-		.padding(.vertical, 6)
+		.padding(.vertical, 8)
 	}
 
 	private func play(from media: MediaRow) {

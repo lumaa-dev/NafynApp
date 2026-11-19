@@ -123,7 +123,11 @@ struct LyricsPanel: View {
 				}
 				// the scroll view's own width (which the parent insets like the queue's), never the screen's
 				.frame(maxWidth: .infinity, alignment: .leading)
-				.animation(.easeOut(duration: 0.25), value: activeBreak)
+				// the break leaves at once: while it faded out, its height was still leaving the content, so the
+				// scroll to the lyric that follows it was aimed at a position that kept moving and overshot
+				.transaction(value: activeBreak) { transaction in
+					transaction.animation = activeBreak == nil ? nil : .easeOut(duration: 0.25)
+				}
 			}
 			// DESIGN.md "Lyrics Panel": room above and below for the Liquid Glass controls
 			.contentMargins(.horizontal, 16, for: .scrollContent)
@@ -138,10 +142,25 @@ struct LyricsPanel: View {
 					}
 				}
 			})
-			.onChange(of: self.activeLineId(in: lyrics)) { _, newId in
+			.onChange(of: self.activeLineId(in: lyrics)) { oldId, newId in
 				guard let newId, !self.isUserScrolling else { return }
-				withAnimation(.smooth(duration: 0.4)) {
-					proxy.scrollTo(newId, anchor: UnitPoint(x: 0.5, y: 0.35))
+				let leavingBreak = oldId.map { id in lyrics.paragraphs.contains { $0.breakBefore?.id == id } } ?? false
+				guard leavingBreak else {
+					withAnimation(.smooth(duration: 0.4)) {
+						proxy.scrollTo(newId, anchor: UnitPoint(x: 0.5, y: 0.35))
+					}
+					return
+				}
+				// the break leaves the content in this same update, but the scroll target would still be measured on
+				// the layout that holds it (the lyric one break lower), so the scroll overshot the lyric by the
+				// break's height. The lyric moves up into the break's place by itself: aim at it once the layout
+				// without the break exists.
+				Task { @MainActor in
+					try? await Task.sleep(for: .milliseconds(50))
+					guard !self.isUserScrolling, self.activeLineId(in: lyrics) == newId else { return }
+					withAnimation(.smooth(duration: 0.4)) {
+						proxy.scrollTo(newId, anchor: UnitPoint(x: 0.5, y: 0.35))
+					}
 				}
 			}
 			.overlay(alignment: .topTrailing) {

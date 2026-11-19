@@ -4,14 +4,15 @@ import Foundation
 import Safyn
 
 extension MusicCardEntry {
-	/// Whether the card's Play / Shuffle menu applies. Artists have nothing to play, and a search result track
-	/// that isn't resolved to a library file has no media to start.
+	/// Whether the card's Play / Shuffle menu applies. Artists have nothing to play, and a search result track or
+	/// album that isn't in the library has no file to start.
 	var isPlayable: Bool {
 		switch self {
 			case .artist:
 				false
 			case .info(let info):
-				info.type != .track
+				// a catalog album has tracks to play only once it is in the library
+				info.type != .track && info.inLibrary == true
 			case .recentlyPlayed, .album, .media, .playlist, .pinned:
 				true
 		}

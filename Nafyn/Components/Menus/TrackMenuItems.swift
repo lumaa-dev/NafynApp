@@ -53,38 +53,19 @@ struct TrackMenuItems: View {
 		PinMenuButton(target: .track(self.trackId))
 
 		// the MusicBrainz versions of the track's album and artist, not the library's
-		if self.track.map({ !$0.albumId.isEmpty }) ?? true {
-			Button {
-				self.openCatalogAlbum()
-			} label: {
-				Label(String(localized: "view-catalog-album"), systemImage: "opticaldisc")
-			}
-			.tint(Color.primary)
-		}
-
-		if self.track.map({ $0.artistMbid != nil }) ?? true {
-			Button {
-				self.openArtist()
-			} label: {
-				Label(String(localized: "view-artist"), systemImage: "person")
-			}
-			.tint(Color.primary)
-		}
-
-		if self.showsViewTrack {
-			Button {
-				// the full player is a cover over the tabs; close it so the pushed screen is visible
-				PlayerEngine.shared.isExpanded = false
-				Navigator.shared.send(to: .libraryTrack(id: self.trackId))
-			} label: {
-				Label(String(localized: "view-track"), systemImage: "info.circle")
-			}
-			.tint(Color.primary)
-		}
+		ViewMenuItems(targets: self.viewTargets)
 
 		if let share = self.share {
 			ExternalLinkMenuItems(item: share)
 		}
+
+		// the track's catalog page: a library entry is private, the MusicBrainz recording behind it is not
+		Button {
+			self.shareCatalogPage()
+		} label: {
+			Label(String(localized: "share"), systemImage: "square.and.arrow.up")
+		}
+		.tint(Color.primary)
 
 		Divider()
 
@@ -145,6 +126,33 @@ struct TrackMenuItems: View {
 		if let track = self.track { return track }
 		guard let server else { return nil }
 		return (try? await server.send(Library.track(id: self.trackId)) as LibraryTrackResponse)?.row
+	}
+
+	private func shareCatalogPage() {
+		Task { @MainActor in
+			guard let track = await self.resolvedTrack(), !track.musicbrainzId.isEmpty else { return }
+			PlayerEngine.shared.isExpanded = false
+			Navigator.shared.sheet = Navigator.Paths.shareCatalog(path: "t/\(track.musicbrainzId)", title: track.title, subtitle: track.artistName, coverURL: track.setCoverSize(1000))
+		}
+	}
+
+	/// View > Album | Artist | Track, each only when the track has one to go to.
+	private var viewTargets: [ViewMenuItems.Target] {
+		var targets: [ViewMenuItems.Target] = []
+		if self.track.map({ !$0.albumId.isEmpty }) ?? true {
+			targets.append(.album(catalog: true) { self.openCatalogAlbum() })
+		}
+		if self.track.map({ $0.artistMbid != nil }) ?? true {
+			targets.append(.artist { self.openArtist() })
+		}
+		if self.showsViewTrack {
+			targets.append(.track {
+				// the full player is a cover over the tabs; close it so the pushed screen is visible
+				PlayerEngine.shared.isExpanded = false
+				Navigator.shared.send(to: .libraryTrack(id: self.trackId))
+			})
+		}
+		return targets
 	}
 
 	private func openCatalogAlbum() {

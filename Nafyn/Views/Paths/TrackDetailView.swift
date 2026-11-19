@@ -10,13 +10,11 @@ struct TrackDetailView: View {
 
 	@State private var toast = ToastState()
 	@State private var isRequesting = false
-	/// "Share as Image" (DESIGN.md "Sharing": iOS only, one item at a time).
-	@State private var sharedImage: ShareCardContent?
 
 	var trackId: String
 
 	var body: some View {
-		AsyncContentView {
+		AsyncContentView(placeholder: TrackRelease.placeholder) {
 			guard let server else { throw NafynError.unauthenticated }
 			return try await server.fetchTrackRelease(tid: self.trackId)
 		} content: { track, reload in
@@ -37,40 +35,29 @@ struct TrackDetailView: View {
 			}
 			.toast(self.toast)
 			.toolbar {
+				MediaVersionPicker(current: .catalog, counterpart: track.detail.libraryId.map { .libraryTrack(id: $0) }) { path in
+					switch path {
+						case .track(let id), .recentTrack(_, let id): id == self.trackId
+						default: false
+					}
+				}
+
 				// DESIGN.md "Track/Album Detail view": an overflow menu with the actions of the track's row, minus the
 				// ones that would navigate back to this very screen
 				ToolbarOverflowMenu {
-						if let albumMbid = track.detail.albumMbid {
-							Button {
-								Navigator.shared.send(to: .album(id: albumMbid))
-							} label: {
-								Label(String(localized: "view-album"), systemImage: "square.stack")
-							}
-							.tint(Color.primary)
-						}
-
-						if let artistId = Self.artistId(of: track.detail.info.artist) {
-							Button {
-								Navigator.shared.send(to: .artist(id: artistId))
-							} label: {
-								Label(String(localized: "view-artist"), systemImage: "person")
-							}
-							.tint(Color.primary)
-						}
+						ViewMenuItems(targets: [
+							track.detail.albumMbid.map { albumMbid in .album { Navigator.shared.send(to: .album(id: albumMbid)) } },
+							Self.artistId(of: track.detail.info.artist).map { artistId in .artist { Navigator.shared.send(to: .artist(id: artistId)) } }
+						].compactMap { $0 })
 
 						ExternalLinkMenuItems(item: ExternalShareItem(title: track.detail.info.title, artist: track.detail.info.artist.name))
 
-						CatalogShareMenu(path: "t/\(track.detail.info.id)", title: track.detail.info.title) {
-							self.sharedImage = ShareCardContent(title: track.detail.info.title, subtitle: track.detail.info.artist.name, coverURL: track.detail.info.coverArt?.coverArtURL(size: 1000))
-						}
+						CatalogShareButton(path: "t/\(track.detail.info.id)", title: track.detail.info.title, subtitle: track.detail.info.artist.name, coverURL: track.detail.info.coverArt?.coverArtURL(size: 1000))
 				}
 			}
 		}
 		.navigationBarTitleDisplayMode(.inline)
 		.onDisappear { PreviewPlayer.shared.stop() }
-		.sheet(item: self.$sharedImage) { content in
-			ShareImageSheet(content: content)
-		}
 	}
 
 	private static func artistId(of artist: ArtistRef) -> String? {

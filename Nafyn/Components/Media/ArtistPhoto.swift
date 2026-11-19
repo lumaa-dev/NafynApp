@@ -101,6 +101,9 @@ struct ArtistPhoto: View {
 
 	@State private var found: URL? = nil
 
+	/// A skeleton's placeholder artist has nothing to look up (DESIGN.md "Skeleton loading").
+	@Environment(\.isSkeleton) private var isSkeleton
+
 	private var shown: URL? {
 		if let found { return found }
 		if let artistId, let cached = ArtistImageLoader.shared.cachedURL(for: artistId), let url = cached { return url }
@@ -110,7 +113,7 @@ struct ArtistPhoto: View {
 	var body: some View {
 		CoverImage(url: self.shown, cornerRadius: self.cornerRadius)
 			.task(id: self.artistId) {
-				guard let artistId, ArtistImageLoader.shared.cachedURL(for: artistId) == nil else { return }
+				guard !self.isSkeleton, let artistId, ArtistImageLoader.shared.cachedURL(for: artistId) == nil else { return }
 				self.found = await ArtistImageLoader.shared.url(for: artistId, server: self.server)
 			}
 	}

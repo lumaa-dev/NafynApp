@@ -14,7 +14,7 @@ struct ProfileSettingsSection: View {
 	var onUpdated: (NafynUser) -> Void
 
 	@State private var displayName: String
-	@State private var lastFm: String
+	@State private var listenBrainz: String
 	@State private var discogs: String
 	@State private var toast = ToastState()
 	@State private var isSaving = false
@@ -33,7 +33,7 @@ struct ProfileSettingsSection: View {
 		self.onSaved = onSaved
 		self.onUpdated = onUpdated
 		self._displayName = State(initialValue: user.displayName ?? "")
-		self._lastFm = State(initialValue: user.lastFm ?? "")
+		self._listenBrainz = State(initialValue: user.listenBrainz ?? "")
 		self._discogs = State(initialValue: user.discogs ?? "")
 	}
 
@@ -67,7 +67,7 @@ struct ProfileSettingsSection: View {
 
 			Section {
 				TextField(String(localized: "display-name"), text: self.$displayName)
-				TextField(String(localized: "lastfm-username"), text: self.$lastFm)
+				TextField(String(localized: "listenbrainz-username"), text: self.$listenBrainz)
 					.autocorrectionDisabled()
 				TextField(String(localized: "discogs-username"), text: self.$discogs)
 					.autocorrectionDisabled()
@@ -94,7 +94,7 @@ struct ProfileSettingsSection: View {
 			do {
 				let updated = try await server.send(User.updateProfile(
 					displayName: self.displayName.isEmpty ? nil : self.displayName,
-					lastFm: self.lastFm.isEmpty ? .clear : .value(self.lastFm),
+					listenBrainz: self.listenBrainz.isEmpty ? .clear : .value(self.listenBrainz),
 					discogs: self.discogs.isEmpty ? .clear : .value(self.discogs)
 				)) as NafynUser
 				self.onUpdated(updated)

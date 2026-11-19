@@ -72,6 +72,16 @@
     "%@ Hz" : {
       "shouldTranslate" : false
     },
+    "%@ · %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ · %2$@"
+          }
+        }
+      }
+    },
     "dialog-will-play-next %@" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3798,6 +3808,7 @@
       }
     },
     "home" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4806,158 +4817,6 @@
         }
       }
     },
-    "lastfm-account" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Account"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Compte"
-          }
-        }
-      }
-    },
-    "lastfm-connect" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Connect Last.fm"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Connecter Last.fm"
-          }
-        }
-      }
-    },
-    "lastfm-connect-failed" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Couldn’t connect your Last.fm account"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Impossible de connecter votre compte Last.fm"
-          }
-        }
-      }
-    },
-    "lastfm-connected" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Last.fm account connected"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Compte Last.fm connecté"
-          }
-        }
-      }
-    },
-    "lastfm-disconnect" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Disconnect Last.fm"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Déconnecter Last.fm"
-          }
-        }
-      }
-    },
-    "lastfm-footer" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nafyn scrobbles everything you play, on every device and app, to your Last.fm account."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nafyn scrobble tout ce que vous écoutez, sur tous vos appareils et applis, vers votre compte Last.fm."
-          }
-        }
-      }
-    },
-    "lastfm-scrobbling" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Scrobble"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Scrobbler"
-          }
-        }
-      }
-    },
-    "lastfm-unavailable" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Last.fm scrobbling isn’t set up on this server."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Le scrobbling Last.fm n’est pas configuré sur ce serveur."
-          }
-        }
-      }
-    },
-    "lastfm-username" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Last.fm Username"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nom d'utilisateur Last.fm"
-          }
-        }
-      }
-    },
     "leave" : {
       "localizations" : {
         "en" : {
@@ -5051,6 +4910,159 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Limite"
+          }
+        }
+      }
+    },
+    "listenbrainz-account" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Account"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Compte"
+          }
+        }
+      }
+    },
+    "listenbrainz-connect" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connect ListenBrainz"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connecter ListenBrainz"
+          }
+        }
+      }
+    },
+    "listenbrainz-connected" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ListenBrainz account connected"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Compte ListenBrainz connecté"
+          }
+        }
+      }
+    },
+    "listenbrainz-disconnect" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disconnect ListenBrainz"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Déconnecter ListenBrainz"
+          }
+        }
+      }
+    },
+    "listenbrainz-footer" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nafyn scrobbles everything you play, on every device and app, to your ListenBrainz account. Your user token is on your ListenBrainz settings page."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nafyn scrobble tout ce que vous écoutez, sur tous vos appareils et applis, vers votre compte ListenBrainz. Votre jeton utilisateur se trouve dans vos réglages ListenBrainz."
+          }
+        }
+      }
+    },
+    "listenbrainz-get-token" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Get Your User Token"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Obtenir votre jeton utilisateur"
+          }
+        }
+      }
+    },
+    "listenbrainz-scrobbling" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scrobble"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scrobbler"
+          }
+        }
+      }
+    },
+    "listenbrainz-token" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "User Token"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jeton utilisateur"
+          }
+        }
+      }
+    },
+    "listenbrainz-username" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ListenBrainz Username"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nom d'utilisateur ListenBrainz"
           }
         }
       }
@@ -10119,6 +10131,176 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Votre bibliothèque, vos playlists et vos écoutes façonnent vos mix et Découvrir. Désactiver supprime vos mix et la trace de ce que Pour vous vous a montré, et votre bibliothèque ne compte plus pour les recommandations de personne."
+          }
+        }
+      }
+    },
+    "all-types" : {
+      "comment" : "Requests filter: album and track requests",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All Types"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tous les types"
+          }
+        }
+      }
+    },
+    "request-type" : {
+      "comment" : "Requests filter: nested menu picking album or track requests",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Type"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Type"
+          }
+        }
+      }
+    },
+    "requested-by" : {
+      "comment" : "Requests filter: nested menu picking whose requests to list (managers)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Requested By"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Demandé par"
+          }
+        }
+      }
+    },
+    "everyone" : {
+      "comment" : "Requests filter: requests of every account",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Everyone"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tout le monde"
+          }
+        }
+      }
+    },
+    "you-name-%@" : {
+      "comment" : "Requests filter: the signed-in account in the requester list",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ (You)"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ (vous)"
+          }
+        }
+      }
+    },
+    "view" : {
+      "comment" : "Menus: the submenu holding View Album / Artist / Track",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "View"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Voir"
+          }
+        }
+      }
+    },
+    "view-target-track" : {
+      "comment" : "Menus: \"View\" submenu item leading to the track",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Track"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Titre"
+          }
+        }
+      }
+    },
+    "version" : {
+      "comment" : "Detail screens: the toolbar picker between the catalog and the library version of an album or track",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Version"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Version"
+          }
+        }
+      }
+    },
+    "version-catalog" : {
+      "comment" : "Detail screens: the MusicBrainz version of an album or track (requestable)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Catalog"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Catalogue"
+          }
+        }
+      }
+    },
+    "version-library" : {
+      "comment" : "Detail screens: the user's own copy of an album or track (playable)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Library"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bibliothèque"
           }
         }
       }

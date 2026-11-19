@@ -15,6 +15,13 @@ struct RequestsView: View {
 	/// Statuses to show; empty means "All". Several can be active at once.
 	@State private var filters: Set<RequestFilter> = []
 
+	/// Only album or only track requests; `nil` shows both.
+	@State private var typeFilter: RequestKind? = nil
+	/// Only this account's requests (managers only, who see everyone's); `nil` shows everyone's.
+	@State private var userFilter: String? = nil
+	/// Who made a request, for the "Requested by" filter (loaded for managers only).
+	@State private var requesters: [RequestRequester] = []
+
 	/// Bumped whenever `filters` changes, so `PaginatedList` (which only reads its paginator once) starts over.
 	@State private var listGeneration = 0
 
@@ -24,13 +31,15 @@ struct RequestsView: View {
 	}
 
 	private var isFiltering: Bool {
-		!self.filters.isEmpty
+		!self.filters.isEmpty || self.typeFilter != nil || self.userFilter != nil
 	}
 
 	private func makePaginator(server: NafynServer) -> Paginator<NafynRequest> {
 		let filters = self.filters
+		let type = self.typeFilter
+		let user = self.userFilter
 		return Paginator<NafynRequest> { page, limit in
-			try await server.fetchRequests(page: page, limit: limit, filters: filters)
+			try await server.fetchRequests(page: page, limit: limit, filters: filters, type: type, user: user)
 		}
 	}
 
@@ -90,6 +99,11 @@ struct RequestsView: View {
 				// once: the task runs again every time the screen re-appears
 				guard self.me == nil else { return }
 				self.me = try? await server.send(User.me) as NafynUser
+				// only managers see other people's requests, so only they get "Requested by" (silent on failure:
+				// the menu then simply has no such filter)
+				if self.canManage {
+					self.requesters = (try? await server.send(Request.requesters) as [RequestRequester]) ?? []
+				}
 			}
 		}
 	}
@@ -98,7 +112,7 @@ struct RequestsView: View {
 	/// off, and clearing the last one turns it back on. The icon fills while a filter is active.
 	private var filterMenu: some View {
 		Menu {
-			Toggle(isOn: Binding(get: { !self.isFiltering }, set: { _ in self.setFilters([]) })) {
+			Toggle(isOn: Binding(get: { !self.isFiltering }, set: { _ in self.clearFilters() })) {
 				Label(String(localized: "all"), systemImage: "tray.full")
 			}
 			.tint(Color.primary)
@@ -118,6 +132,36 @@ struct RequestsView: View {
 				}
 				.tint(Color.primary)
 			}
+
+			Divider()
+
+			Picker(selection: Binding(get: { self.typeFilter }, set: { self.setType($0) })) {
+				Label(String(localized: "all-types"), systemImage: "square.stack")
+					.tag(RequestKind?.none)
+				Label(String(localized: "albums"), systemImage: "square.stack.fill")
+					.tag(RequestKind?.some(.album))
+				Label(String(localized: "tracks"), systemImage: "music.note")
+					.tag(RequestKind?.some(.track))
+			} label: {
+				Label(String(localized: "request-type"), systemImage: "square.stack")
+			}
+			.pickerStyle(.menu)
+			.tint(Color.primary)
+
+			if self.canManage, !self.requesters.isEmpty {
+				Picker(selection: Binding(get: { self.userFilter }, set: { self.setUser($0) })) {
+					Label(String(localized: "everyone"), systemImage: "person.2")
+						.tag(String?.none)
+					ForEach(self.requesters) { requester in
+						Label(requester.id == self.me?.id ? String(localized: "you-name-\(requester.name)") : requester.name, systemImage: "person")
+							.tag(String?.some(requester.id))
+					}
+				} label: {
+					Label(String(localized: "requested-by"), systemImage: "person.2")
+				}
+				.pickerStyle(.menu)
+				.tint(Color.primary)
+			}
 		} label: {
 			Label(String(localized: "filter"), systemImage: self.isFiltering ? "line.3.horizontal.decrease.circle.fill" : "line.3.horizontal.decrease.circle")
 				.labelStyle(.iconOnly)
@@ -127,8 +171,35 @@ struct RequestsView: View {
 	}
 
 	private func setFilters(_ new: Set<RequestFilter>) {
-		guard new != self.filters, let server else { return }
+		guard new != self.filters else { return }
 		self.filters = new
+		self.reload()
+	}
+
+	private func setType(_ new: RequestKind?) {
+		guard new != self.typeFilter else { return }
+		self.typeFilter = new
+		self.reload()
+	}
+
+	private func setUser(_ new: String?) {
+		guard new != self.userFilter else { return }
+		self.userFilter = new
+		self.reload()
+	}
+
+	/// "All": every status, both types, everyone.
+	private func clearFilters() {
+		guard self.isFiltering else { return }
+		self.filters = []
+		self.typeFilter = nil
+		self.userFilter = nil
+		self.reload()
+	}
+
+	/// `PaginatedList` reads its paginator once: a new filter needs a new list.
+	private func reload() {
+		guard let server else { return }
 		self.paginator = self.makePaginator(server: server)
 		self.listGeneration += 1
 	}

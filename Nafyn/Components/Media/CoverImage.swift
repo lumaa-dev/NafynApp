@@ -31,9 +31,15 @@ struct CoverImage: View {
 	/// The cover `loaded` was fetched for, so a stale image is never shown after `url` changes.
 	@State private var loaded: (url: URL, image: UIImage)? = nil
 
+	/// A skeleton (`redacted(reason: .placeholder)`, DESIGN.md "Skeleton loading") draws the cover's shape only and
+	/// loads nothing.
+	@Environment(\.redactionReasons) private var redactionReasons
+
 	var body: some View {
 		Group {
-			if let url {
+			if self.redactionReasons.contains(.placeholder) {
+				DTColor.surfaceSelect
+			} else if let url {
 				if CoverArtLoader.shared.isConfigured, CoverArtReference(url: url) != nil {
 					self.served(url)
 				} else {

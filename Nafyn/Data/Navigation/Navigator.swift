@@ -30,6 +30,19 @@ final class Navigator {
 		self.currentPath[self.currentTab] = Self.folded(stack + [path], pushed: true)
 	}
 
+	/// Swaps the screen on top of a tab's stack for another one in place, without the push animation (the catalog /
+	/// library versions of an album or a track, ``MediaVersionPicker``). `isCurrent` says which path is the screen
+	/// being replaced (it may have been opened as a recently played entry); nothing happens when no tab shows it.
+	func replaceTop(where isCurrent: (Navigator.Paths) -> Bool, with replacement: Navigator.Paths) {
+		let tabs = [self.currentTab] + self.currentPath.keys.filter { $0 != self.currentTab }
+		guard let tab = tabs.first(where: { self.currentPath[$0]?.last.map(isCurrent) ?? false }) else { return }
+		var transaction = Transaction()
+		transaction.disablesAnimations = true
+		withTransaction(transaction) {
+			self.currentPath[tab] = Array((self.currentPath[tab] ?? []).dropLast()) + [replacement]
+		}
+	}
+
 	/// The binding for a tab's `NavigationStack(path:)`. Pushes that don't go through ``send(to:)`` (a
 	/// `NavigationLink(value:)`) get the same rule: a path that is already in the stack pops back to it.
 	func path(for tab: Navigator.Tabs) -> Binding<[Navigator.Paths]> {
@@ -70,7 +83,7 @@ final class Navigator {
 		var symbol: String {
 			switch self {
 				case .home:
-					"sparkles"
+					"square.grid.2x2.fill"
 				case .library:
 					"book"
 				case .requests:
@@ -107,7 +120,7 @@ final class Navigator {
 		case settingsUnity
 		case settingsNotifications
 		case settingsWebhooks
-		case settingsLastfm
+		case settingsListenBrainz
 		case users
 		case musicYear(year: Int?)
 		case monthlyInsights(month: String?)
@@ -121,12 +134,14 @@ final class Navigator {
 		case editMetadata(trackIds: [String])
 		/// A web page in a sheet (DESIGN.md "Links": never Safari directly).
 		case web(url: URL)
+		/// Share a catalog track or album (`path`: `t/<id>` or `a/<id>`) as a link or an image.
+		case shareCatalog(path: String, title: String, subtitle: String?, coverURL: URL?)
 
 		/// The destination screen. A path opened from a ``MusicCard`` zooms out of that card's cover; the
 		/// ones shown as a sheet never zoom.
 		var view: AnyView {
 			switch self {
-				case .addToPlaylist, .changeAlbum, .web, .editMetadata:
+				case .addToPlaylist, .changeAlbum, .web, .editMetadata, .shareCatalog:
 					self.screen
 				default:
 					AnyView(CardZoomDestination(path: self) { self.screen })
@@ -201,9 +216,9 @@ final class Navigator {
 					AnyView(SettingsSectionScreen(title: String(localized: "webhooks")) {
 						InstanceWebhooksSettingsSection()
 					})
-				case .settingsLastfm:
-					AnyView(SettingsSectionScreen(title: String("Last.fm")) {
-						LastfmSettingsSection()
+				case .settingsListenBrainz:
+					AnyView(SettingsSectionScreen(title: String("ListenBrainz")) {
+						ListenBrainzSettingsSection()
 					})
 				case .users:
 					AnyView(UsersAdminView())
@@ -227,6 +242,8 @@ final class Navigator {
 					AnyView(WebSheet(url: url))
 				case .editMetadata(let trackIds):
 					AnyView(MediaEditSheet(trackIds: trackIds))
+				case .shareCatalog(let path, let title, let subtitle, let coverURL):
+					AnyView(ShareCatalogSheet(path: path, title: title, subtitle: subtitle, coverURL: coverURL))
 			}
 		}
 

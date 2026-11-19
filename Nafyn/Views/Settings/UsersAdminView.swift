@@ -104,7 +104,7 @@ private struct EditUserSheet: View {
 
 	@State private var displayName: String
 	@State private var username: String
-	@State private var lastFm: String
+	@State private var listenBrainz: String
 	@State private var discogs: String
 	@State private var permissions: Permissions
 	@State private var toast = ToastState()
@@ -117,7 +117,7 @@ private struct EditUserSheet: View {
 		self.onDeleted = onDeleted
 		self._displayName = State(initialValue: user.displayName ?? "")
 		self._username = State(initialValue: user.username)
-		self._lastFm = State(initialValue: user.lastFm ?? "")
+		self._listenBrainz = State(initialValue: user.listenBrainz ?? "")
 		self._discogs = State(initialValue: user.discogs ?? "")
 		self._permissions = State(initialValue: user.permissions)
 	}
@@ -142,7 +142,7 @@ private struct EditUserSheet: View {
 					TextField(String(localized: "display-name"), text: self.$displayName)
 					TextField(String(localized: "username"), text: self.$username)
 						.autocorrectionDisabled()
-					TextField(String(localized: "lastfm-username"), text: self.$lastFm)
+					TextField(String(localized: "listenbrainz-username"), text: self.$listenBrainz)
 						.autocorrectionDisabled()
 					TextField(String(localized: "discogs-username"), text: self.$discogs)
 						.autocorrectionDisabled()
@@ -218,7 +218,7 @@ private struct EditUserSheet: View {
 					id: self.user.id,
 					displayName: self.displayName.isEmpty ? nil : self.displayName,
 					username: self.username == self.user.username ? nil : self.username,
-					lastFm: self.lastFm.isEmpty ? .clear : .value(self.lastFm),
+					listenBrainz: self.listenBrainz.isEmpty ? .clear : .value(self.listenBrainz),
 					discogs: self.discogs.isEmpty ? .clear : .value(self.discogs),
 					permissions: self.permissions
 				)) as NafynUser

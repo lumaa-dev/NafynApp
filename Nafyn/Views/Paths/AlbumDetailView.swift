@@ -10,11 +10,11 @@ struct AlbumDetailView: View {
 
 	@State private var toast = ToastState()
 	@State private var isRequesting = false
-	/// "Share as Image" (DESIGN.md "Sharing": iOS only, one item at a time).
-	@State private var sharedImage: ShareCardContent?
 	/// The release being viewed (picked from the grid at the bottom, or the one an artist's Deluxe card opened); `nil`
 	/// is the standard edition.
 	@State private var releaseId: String?
+	/// The user has some of this album in their library: the toolbar can switch to that version.
+	@State private var hasLibraryCopy = false
 
 	var albumId: String
 
@@ -24,7 +24,7 @@ struct AlbumDetailView: View {
 	}
 
 	var body: some View {
-		AsyncContentView {
+		AsyncContentView(placeholder: AlbumDetail.placeholder) {
 			guard let server else { throw NafynError.unauthenticated }
 			return try await server.fetchAlbumDetail(aid: self.albumId, release: self.releaseId)
 		} content: { album, reload in
@@ -49,7 +49,17 @@ struct AlbumDetailView: View {
 				self.releasePicker(album, palette: palette)
 			}
 			.toast(self.toast)
+			.task(id: album.id) {
+				await self.checkLibraryCopy(album)
+			}
 			.toolbar {
+				MediaVersionPicker(current: .catalog, counterpart: self.hasLibraryCopy ? .libraryAlbum(id: album.id) : nil) { path in
+					switch path {
+						case .album(let id, _), .recentAlbum(let id): id == self.albumId
+						default: false
+					}
+				}
+
 				// DESIGN.md "Track/Album Detail view": an overflow menu with the actions of the album's row, minus the
 				// ones that would navigate back to this very screen. Pinning needs the album in the library; the
 				// Request button covers the rest.
@@ -65,9 +75,7 @@ struct AlbumDetailView: View {
 
 					ExternalLinkMenuItems(item: ExternalShareItem(title: album.title, artist: album.artist.name))
 
-					CatalogShareMenu(path: "a/\(album.id)", title: album.title) {
-						self.sharedImage = ShareCardContent(title: album.title, subtitle: album.artist.name, coverURL: album.coverArt?.coverArtURL(size: 1000))
-					}
+					CatalogShareButton(path: "a/\(album.id)", title: album.title, subtitle: album.artist.name, coverURL: album.coverArt?.coverArtURL(size: 1000))
 
 					if album.inLibrary {
 						Divider()
@@ -81,9 +89,14 @@ struct AlbumDetailView: View {
 		.id(self.releaseId)
 		.navigationBarTitleDisplayMode(.inline)
 		.onDisappear { PreviewPlayer.shared.stop() }
-		.sheet(item: self.$sharedImage) { content in
-			ShareImageSheet(content: content)
-		}
+	}
+
+	/// The library groups an album's tracks by its release-group, the ID this screen has: confirmed by asking for
+	/// that library album, and only when the album says the user owns some of it.
+	private func checkLibraryCopy(_ album: AlbumDetail) async {
+		guard !self.hasLibraryCopy, album.id != AlbumDetail.placeholder.id, album.tracks.contains(where: \.inLibrary), let server else { return }
+		let response = try? await server.send(Library.album(id: album.id)) as LibraryAlbumResponse
+		self.hasLibraryCopy = !(response?.tracks.isEmpty ?? true)
 	}
 
 	private static func artistId(of artist: ArtistRef) -> String? {

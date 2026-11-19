@@ -4,7 +4,7 @@ import Foundation
 import Safyn
 
 /// The Nafyn server's "compact" user projection (used for a playlist's `owner`/`members`/`addedBy`, and
-/// for a request's `requestedBy`) omits `permissions`, `lastFm`, and `discogs` entirely — but Safyn's
+/// for a request's `requestedBy`) omits `permissions`, `listenBrainz`, and `discogs` entirely — but Safyn's
 /// `NafynUser` declares `permissions` as a required field with no default, so decoding those nested
 /// users via the normal `NafynUser: Decodable` synthesis throws `keyNotFound("permissions")`.
 ///
@@ -17,11 +17,11 @@ struct LenientUser: Decodable {
 	let displayName: String?
 	let avatar: String?
 	let permissions: Permissions?
-	let lastFm: String?
+	let listenBrainz: String?
 	let discogs: String?
 
 	var resolved: NafynUser {
-		NafynUser(id: id, username: username, displayName: displayName, avatar: avatar, permissions: permissions ?? [], lastFm: lastFm, discogs: discogs)
+		NafynUser(id: id, username: username, displayName: displayName, avatar: avatar, permissions: permissions ?? [], listenBrainz: listenBrainz, discogs: discogs)
 	}
 }
 

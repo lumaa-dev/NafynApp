@@ -12,6 +12,12 @@ struct AsyncContentView<Value, Content: View>: View {
 
 	@State private var state: LoadState = .loading
 
+	/// Placeholder data for the screen's skeleton (DESIGN.md "Skeleton loading"): while loading, `content` is drawn
+	/// with it, redacted and disabled - the loaded screen's own shapes, toolbar included (its buttons disabled until
+	/// the screen has loaded). Without one, `skeleton` is shown instead. Declared first, so it goes in the parentheses
+	/// before the trailing `load` closure.
+	var placeholder: Value? = nil
+
 	let load: () async throws -> Value
 	var skeleton: () -> AnyView = { AnyView(SkeletonDetailScreen()) }
 
@@ -26,8 +32,13 @@ struct AsyncContentView<Value, Content: View>: View {
 		Group {
 			switch self.state {
 				case .loading:
-					self.skeleton()
-						.frame(maxWidth: .infinity, maxHeight: .infinity)
+					if let placeholder = self.placeholder {
+						self.content(placeholder, {})
+							.skeleton()
+					} else {
+						self.skeleton()
+							.frame(maxWidth: .infinity, maxHeight: .infinity)
+					}
 				case .loaded(let value):
 					self.content(value, self.reload)
 				case .failed(let error):

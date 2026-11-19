@@ -58,6 +58,7 @@ struct RootView: View {
 				self.tabs
 				.environment(\.server, self.server)
 				.environment(\.zoomNamespace, self.cardZoomNamespace)
+				.environment(\.openURL, .nafynWebSheet)
 				.fullScreenCover(isPresented: self.$isPlayerExpanded) {
 					NowPlayingView(namespace: self.playerZoomNamespace)
 						.environment(\.server, self.server)
@@ -170,16 +171,16 @@ struct RootView: View {
 	@ContentBuilder
 	private var tabs: some View {
 		TabView(selection: Binding(get: { Navigator.shared.currentTab }, set: { Navigator.shared.currentTab = $0 })) {
-			Tab(value: Navigator.Tabs.home) {
-				DiscoverView()
-			} label: {
-				Navigator.Tabs.home.view
-			}
-
 			Tab(value: Navigator.Tabs.library) {
 				LibraryView()
 			} label: {
 				Navigator.Tabs.library.view
+			}
+
+			Tab(value: Navigator.Tabs.home) {
+				DiscoverView()
+			} label: {
+				Navigator.Tabs.home.view
 			}
 
 			Tab(value: Navigator.Tabs.requests) {

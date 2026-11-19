@@ -3,7 +3,7 @@
 import SwiftUI
 import Safyn
 
-/// The signed-in user's own profile page: avatar, names, linked Last.fm / Discogs accounts, library size and
+/// The signed-in user's own profile page: avatar, names, linked ListenBrainz / Discogs accounts, library size and
 /// public playlists, from `Users.profile(username:)` (what everyone else sees of them). "Edit" opens
 /// ``ProfileEditSheet``.
 struct UserProfileView: View {
@@ -101,8 +101,10 @@ private struct UserProfileContent: View {
 				.foregroundStyle(DTColor.textPrimary.opacity(0.5))
 
 			HStack(spacing: 16) {
-				if let lastFm = self.profile.lastFm, !lastFm.isEmpty, let url = URL(string: "https://www.last.fm/user/\(lastFm)") {
-					Link(String("Last.fm"), destination: url)
+				if let listenBrainz = self.profile.listenBrainz, !listenBrainz.isEmpty,
+				   let handle = listenBrainz.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed.subtracting(CharacterSet(charactersIn: "/"))),
+				   let url = URL(string: "https://listenbrainz.org/user/\(handle)/") {
+					Link(String("ListenBrainz"), destination: url)
 				}
 				if let discogs = self.profile.discogs, !discogs.isEmpty, let url = URL(string: "https://www.discogs.com/user/\(discogs)") {
 					Link(String("Discogs"), destination: url)
@@ -110,6 +112,18 @@ private struct UserProfileContent: View {
 			}
 			.font(DTFont.system(16))
 			.tint(Color.primary)
+
+			// Only once listening history is on: with it off there's nothing behind this screen but the
+			// "keep listening" gate, and the setting is opt-in.
+			if PlayTracker.shared.historyEnabled {
+				Button {
+					Navigator.shared.send(to: .musicYear(year: nil))
+				} label: {
+					Label(String(localized: "music-year"), systemImage: "sparkles")
+				}
+				.buttonStyle(.filled())
+				.padding(.top, 6)
+			}
 		}
 		.frame(maxWidth: .infinity)
 	}
@@ -165,7 +179,7 @@ private struct UserProfileContent: View {
 			username: updated.username,
 			displayName: updated.displayName,
 			avatar: updated.avatar,
-			lastFm: updated.lastFm,
+			listenBrainz: updated.listenBrainz,
 			discogs: updated.discogs,
 			trackCount: self.profile.trackCount,
 			playlists: self.profile.playlists

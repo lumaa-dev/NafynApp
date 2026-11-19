@@ -2,35 +2,40 @@
 
 import SwiftUI
 
-/// Shimmering placeholder block, the base unit every skeleton shape composes from.
+// DESIGN.md "Skeleton loading": a skeleton is the screen itself, drawn with placeholder data and redacted
+// (`redacted(reason: .placeholder)`), so its shapes are the loaded screen's; dark gray, and never animated (no
+// blinking, sliding gradient or pulsing opacity). A screen loaded through ``AsyncContentView`` passes its own
+// placeholder value (see `Placeholders.swift`); the views below are the skeletons of shared components, for lists
+// and the screens that have no placeholder of their own.
+
+extension EnvironmentValues {
+	/// `true` inside a skeleton: the content shows placeholder data, so it starts nothing (no fetch, no feedback
+	/// event, no paginator) - its real self takes its place once loaded.
+	@Entry var isSkeleton: Bool = false
+}
+
+extension View {
+	/// This view as a skeleton: placeholder text and covers in dark gray, nothing tappable (toolbar buttons stay, disabled).
+	func skeleton(_ active: Bool = true) -> some View {
+		self
+			.redacted(reason: active ? .placeholder : [])
+			.disabled(active)
+			.environment(\.isSkeleton, active)
+			.accessibilityHidden(active)
+	}
+}
+
+/// A flat dark-gray block, the base unit of a skeleton shape that has no text to redact (a cover, a bar).
 private struct SkeletonBlock: View {
 	var cornerRadius: CGFloat = 6
-	@State private var phase: CGFloat = -1.4
 
 	var body: some View {
 		RoundedRectangle(cornerRadius: self.cornerRadius)
 			.fill(DTColor.surfaceSelect)
-			.overlay(
-				GeometryReader { geo in
-					LinearGradient(
-						colors: [.clear, DTColor.textPrimary.opacity(0.14), .clear],
-						startPoint: .leading,
-						endPoint: .trailing
-					)
-					.frame(width: geo.size.width * 0.6)
-					.offset(x: self.phase * geo.size.width)
-				}
-				.clipShape(RoundedRectangle(cornerRadius: self.cornerRadius))
-			)
-			.onAppear {
-				withAnimation(.linear(duration: 1.3).repeatForever(autoreverses: false)) {
-					self.phase = 1.4
-				}
-			}
 	}
 }
 
-/// A rounded-rect skeleton bar, typically standing in for a line of text or a square cover.
+/// A rounded-rect skeleton bar, standing in for something that is not text (a progress bar, a chart).
 struct SkeletonBar: View {
 	var width: CGFloat? = nil
 	var height: CGFloat = 14
@@ -43,31 +48,32 @@ struct SkeletonBar: View {
 	}
 }
 
-/// Mirrors ``TrackRow``'s "cover • title • subtitle • duration" layout.
+/// A ``TrackRow`` with placeholder text, redacted: the same cover, title, subtitle and duration as a loaded row.
 struct SkeletonTrackRow: View {
 	var showsCover: Bool = true
 	var verticalPadding: CGFloat = 2
+	/// Varies the title's length from row to row, like real titles.
+	var variant: Int = 0
+
+	/// Never loaded: a redacted ``CoverImage`` only draws its shape.
+	static let placeholderCover = URL(string: "nafyn-placeholder://cover")
+
+	private static let titles = ["Placeholder title", "A longer placeholder title", "Placeholder", "Title of a track"]
+	private static let subtitles = ["Artist name", "Placeholder artist", "Artist"]
 
 	var body: some View {
-		HStack(spacing: 12) {
-			if self.showsCover {
-				SkeletonBar(width: 44, height: 44, cornerRadius: 6)
-			}
-
-			VStack(alignment: .leading, spacing: 6) {
-				SkeletonBar(width: 160, height: 14)
-				SkeletonBar(width: 100, height: 12)
-			}
-
-			Spacer()
-
-			SkeletonBar(width: 28, height: 10)
-		}
-		.padding(.vertical, self.verticalPadding)
+		TrackRow(
+			coverURL: self.showsCover ? Self.placeholderCover : nil,
+			title: Self.titles[self.variant % Self.titles.count],
+			subtitle: Self.subtitles[self.variant % Self.subtitles.count],
+			duration: 215,
+			verticalPadding: self.verticalPadding
+		)
+		.skeleton()
 	}
 }
 
-/// Mirrors ``MusicCard``'s `.highlight`/`.row` layouts.
+/// Mirrors ``MusicCard``'s `.highlight`/`.row` layouts with redacted placeholder text.
 struct SkeletonMusicCard: View {
 	enum ViewType {
 		case highlight
@@ -77,27 +83,39 @@ struct SkeletonMusicCard: View {
 	var type: Self.ViewType = .highlight
 
 	var body: some View {
-		switch self.type {
-			case .highlight:
-				VStack(alignment: .leading) {
-					Color.clear
-						.aspectRatio(1.0, contentMode: .fit)
-						.overlay { SkeletonBlock(cornerRadius: 10) }
-					SkeletonBar(width: 130, height: 16)
-					SkeletonBar(width: 90, height: 14)
-				}
-				.frame(maxWidth: .infinity, alignment: .topLeading)
-			case .row:
-				HStack {
-					SkeletonBar(width: 60, height: 60, cornerRadius: 10)
-
-					VStack(alignment: .leading, spacing: 6) {
-						SkeletonBar(width: 150, height: 16)
-						SkeletonBar(width: 100, height: 14)
+		Group {
+			switch self.type {
+				case .highlight:
+					VStack(alignment: .leading) {
+						Color.clear
+							.aspectRatio(1.0, contentMode: .fit)
+							.overlay { SkeletonBlock(cornerRadius: 10) }
+						Text(verbatim: "Placeholder title")
+							.font(DTFont.serif(18))
+							.lineLimit(1)
+						Text(verbatim: "Artist name")
+							.font(DTFont.serif(15))
+							.lineLimit(1)
 					}
-					.frame(maxWidth: .infinity, alignment: .leading)
-				}
+					.frame(maxWidth: .infinity, alignment: .topLeading)
+				case .row:
+					HStack {
+						SkeletonBlock(cornerRadius: 10)
+							.frame(width: 60, height: 60)
+
+						VStack(alignment: .leading, spacing: 2) {
+							Text(verbatim: "Placeholder title")
+								.font(DTFont.serif(18))
+								.lineLimit(1)
+							Text(verbatim: "Artist name")
+								.font(DTFont.serif(15))
+								.lineLimit(1)
+						}
+						.frame(maxWidth: .infinity, alignment: .leading)
+					}
+			}
 		}
+		.skeleton()
 	}
 }
 
@@ -107,8 +125,8 @@ struct SkeletonTrackRows: View {
 	var count: Int = 8
 
 	var body: some View {
-		ForEach(0..<self.count, id: \.self) { _ in
-			SkeletonTrackRow(showsCover: self.showsCover)
+		ForEach(0..<self.count, id: \.self) { index in
+			SkeletonTrackRow(showsCover: self.showsCover, variant: index)
 		}
 	}
 }
@@ -126,43 +144,76 @@ struct SkeletonMusicGrid: View {
 	}
 }
 
-/// Default skeleton for ``AsyncContentView``: a detail screen's cover header plus a handful of track rows.
+/// The skeleton of a cover-themed detail screen (``AdaptiveCoverDetail``) that has no placeholder of its own: the
+/// cover edge to edge with the title on it, Play / Shuffle, then track rows.
 struct SkeletonDetailScreen: View {
 	var body: some View {
 		ScrollView {
 			VStack(alignment: .leading, spacing: 16) {
-				VStack(alignment: .center, spacing: 10) {
-					SkeletonBar(width: 200, height: 200, cornerRadius: 10)
-					SkeletonBar(width: 180, height: 20)
-					SkeletonBar(width: 120, height: 15)
-				}
-				.frame(maxWidth: .infinity, alignment: .center)
-				.padding(.top, 24)
+				Color.clear
+					.aspectRatio(1, contentMode: .fit)
+					.frame(maxWidth: .infinity)
+					.frame(maxHeight: 520)
+					.overlay { SkeletonBlock(cornerRadius: 0) }
+					.overlay(alignment: .bottomLeading) {
+						VStack(alignment: .leading, spacing: 2) {
+							Text(verbatim: "Placeholder title")
+								.font(DTFont.serif(31))
+							Text(verbatim: "Artist name")
+								.font(DTFont.serifItalic(20))
+						}
+						.padding(.horizontal)
+						.padding(.bottom, 12)
+					}
 
-				VStack(alignment: .leading, spacing: 0) {
-					SkeletonTrackRows(count: 6)
+				VStack(alignment: .leading, spacing: 16) {
+					HStack {
+						Label(String(localized: "play"), systemImage: "play.fill")
+							.frame(maxWidth: .infinity)
+							.padding(.vertical, 12)
+							.background(Capsule().fill(DTColor.surfaceSelect))
+						Label(String(localized: "shuffle"), systemImage: "shuffle")
+							.frame(maxWidth: .infinity)
+							.padding(.vertical, 12)
+							.background(Capsule().fill(DTColor.surfaceSelect))
+					}
+
+					VStack(alignment: .leading, spacing: 0) {
+						SkeletonTrackRows(count: 6)
+					}
 				}
+				.frame(maxWidth: DTLayout.readableWidth, alignment: .leading)
+				.frame(maxWidth: .infinity)
+				.padding(.horizontal)
 			}
-			.padding()
 		}
+		.scrollDisabled(true)
+		.ignoresSafeArea(edges: .top)
+		.skeleton()
 	}
 }
 
-/// Skeleton for text-heavy screens (e.g. lyrics), a stack of variable-width lines.
+/// Skeleton for text-heavy screens (lyrics): lines of lyrics-sized placeholder text, redacted.
 struct SkeletonTextLines: View {
 	var count: Int = 10
+
+	private static let lines = ["A placeholder line of lyrics", "Placeholder words", "Another line of the song here"]
 
 	var body: some View {
 		VStack(alignment: .leading, spacing: 18) {
 			ForEach(0..<self.count, id: \.self) { i in
-				SkeletonBar(width: i.isMultiple(of: 3) ? 220 : 160, height: 20)
+				Text(verbatim: Self.lines[i % Self.lines.count])
+					.font(DTFont.serif(32).bold())
+					.lineLimit(1)
 			}
 		}
+		.frame(maxWidth: .infinity, alignment: .leading)
 		.padding()
+		.skeleton()
 	}
 }
 
-/// Skeleton for simple form/settings screens, a stack of labeled-row-shaped bars.
+/// Skeleton for simple form/settings screens: label and value rows, redacted.
 struct SkeletonFormRows: View {
 	var count: Int = 5
 
@@ -170,12 +221,14 @@ struct SkeletonFormRows: View {
 		VStack(alignment: .leading, spacing: 20) {
 			ForEach(0..<self.count, id: \.self) { _ in
 				HStack {
-					SkeletonBar(width: 100, height: 14)
+					Text(verbatim: "Setting name")
 					Spacer()
-					SkeletonBar(width: 140, height: 14)
+					Text(verbatim: "Its value")
 				}
+				.font(DTFont.system(17))
 			}
 		}
 		.padding()
+		.skeleton()
 	}
 }

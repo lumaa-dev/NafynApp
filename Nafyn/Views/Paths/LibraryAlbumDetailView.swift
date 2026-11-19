@@ -11,7 +11,7 @@ struct LibraryAlbumDetailView: View {
 	var albumId: String
 
 	var body: some View {
-		AsyncContentView {
+		AsyncContentView(placeholder: LibraryAlbumResponse.placeholder) {
 			if let server {
 				do {
 					return try await server.send(Library.album(id: self.albumId)) as LibraryAlbumResponse
@@ -120,6 +120,13 @@ private struct LibraryAlbumDetailContent: View {
 			}
 		}
 		.toolbar {
+			MediaVersionPicker(current: .library, counterpart: self.response.album.row.id.isMusicBrainzId ? .album(id: self.response.album.row.id) : nil) { path in
+				switch path {
+					case .libraryAlbum(let id), .recentAlbum(let id): id == self.response.album.row.id
+					default: false
+				}
+			}
+
 			ToolbarOverflowMenu {
 				// the same items as the album's card in a grid, plus Play / Shuffle which a card's menu leads with
 				ControlGroup {

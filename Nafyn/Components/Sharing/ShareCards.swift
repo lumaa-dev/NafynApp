@@ -100,9 +100,11 @@ struct ShareCardView: View {
 	}
 }
 
-/// Previews a share image and hands it to the share sheet (`ShareLink`, DESIGN.md "Sharing").
+/// Previews a share image and hands it to the share sheet (`ShareLink`, DESIGN.md "Sharing"). With a `link`, the
+/// item's page on this Nafyn server can be shared from here too.
 struct ShareImagePreview: View {
 	let content: ShareCardContent
+	var link: URL? = nil
 
 	@State private var image: Image?
 
@@ -114,18 +116,34 @@ struct ShareImagePreview: View {
 					.aspectRatio(9 / 16, contentMode: .fit)
 					.clipShape(RoundedRectangle(cornerRadius: 16))
 					.padding(.horizontal, 40)
-
-				ShareLink(item: image, preview: SharePreview(self.content.title, image: image)) {
-					Label(String(localized: "share-image"), systemImage: "square.and.arrow.up")
-						.frame(maxWidth: .infinity)
-				}
-				.buttonStyle(.filled())
-				.padding(.horizontal)
 			} else {
 				ProgressView()
 					.tint(DTColor.textPrimary)
 					.frame(maxWidth: .infinity, maxHeight: .infinity)
 			}
+
+			VStack(spacing: 12) {
+				if let link {
+					ShareLink(item: link, subject: Text(self.content.title)) {
+						Label(String(localized: "share-link"), systemImage: "link")
+							.frame(maxWidth: .infinity)
+					}
+					.buttonStyle(.filled())
+				}
+
+				if let image {
+					let shareImage = ShareLink(item: image, preview: SharePreview(self.content.title, image: image)) {
+						Label(String(localized: "share-image"), systemImage: "photo")
+							.frame(maxWidth: .infinity)
+					}
+					if self.link == nil {
+						shareImage.buttonStyle(.filled())
+					} else {
+						shareImage.buttonStyle(.hollow())
+					}
+				}
+			}
+			.padding(.horizontal)
 		}
 		.padding(.vertical)
 		.frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -139,12 +157,13 @@ struct ShareImagePreview: View {
 /// ``ShareImagePreview`` in its own sheet, with a Close button.
 struct ShareImageSheet: View {
 	let content: ShareCardContent
+	var link: URL? = nil
 
 	@Environment(\.dismiss) private var dismiss
 
 	var body: some View {
 		NavigationStack {
-			ShareImagePreview(content: self.content)
+			ShareImagePreview(content: self.content, link: self.link)
 				.toolbar {
 					ToolbarItem(placement: .cancellationAction) {
 						Button {
@@ -158,6 +177,27 @@ struct ShareImageSheet: View {
 				}
 		}
 		.sheetBackground()
+	}
+}
+
+/// The sheet behind "Share" on a catalog track or album, and on a library one (which shares its catalog page, never
+/// its library entry): the link of the page on this Nafyn server and the 9:16 image. A `ShareLink` in a menu (a
+/// toolbar's overflow menu, a long-press) never presented its share sheet, so the menu only opens this and the
+/// `ShareLink`s live here, where they work.
+struct ShareCatalogSheet: View {
+	@Environment(\.server) private var server: NafynServer?
+
+	/// The item's page on the server: `t/<recording id>` or `a/<album id>`.
+	let path: String
+	let title: String
+	let subtitle: String?
+	let coverURL: URL?
+
+	var body: some View {
+		ShareImageSheet(
+			content: ShareCardContent(title: self.title, subtitle: self.subtitle, coverURL: self.coverURL),
+			link: self.server?.instance.baseURL.appending(path: self.path)
+		)
 	}
 }
 

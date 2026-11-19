@@ -93,13 +93,20 @@ final class PlayerEngine: NSObject {
 	private(set) var duration: TimeInterval = 0
 	private(set) var lastError: String? = nil
 	var isExpanded = false
-	var repeatMode: RepeatMode = .off {
+	/// Repeat and shuffle are the listener's own settings: kept on this device (`UserDefaults`), so they are still on
+	/// after the app is closed. Never synced to another device or account.
+	var repeatMode: RepeatMode = RepeatMode(wireValue: UserDefaults.standard.string(forKey: PlayerEngine.repeatDefaultsKey) ?? "off") {
 		didSet {
+			UserDefaults.standard.set(self.repeatMode.wireValue, forKey: Self.repeatDefaultsKey)
 			self.mirrorRepeatShuffleToRemoteCommands()
 			UnityEngine.shared.playerDidChange()
 		}
 	}
-	private(set) var shuffleEnabled = false
+	private(set) var shuffleEnabled = UserDefaults.standard.bool(forKey: PlayerEngine.shuffleDefaultsKey) {
+		didSet { UserDefaults.standard.set(self.shuffleEnabled, forKey: Self.shuffleDefaultsKey) }
+	}
+	private static let repeatDefaultsKey = "player.repeatMode"
+	private static let shuffleDefaultsKey = "player.shuffleEnabled"
 
 	/// The songs played before the current one, oldest first, capped to ``Self/historyLimit``. Shown in the Queue
 	/// panel (DESIGN.md "Queue Panel"): it never holds the current song nor a song twice in a row, so repeating a
